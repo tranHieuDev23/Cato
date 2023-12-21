@@ -74,6 +74,7 @@ export * from './RpcProblemExample';
 export * from './RpcSubmission';
 export * from './RpcSubmissionProblem';
 export * from './RpcSubmissionProblemSnippet';
+export * from './RpcSubmissionResult';
 export * from './RpcSubmissionSnippet';
 export * from './RpcSubmissionStatus';
 export * from './RpcUpdateProblemRequest';

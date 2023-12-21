@@ -21,12 +21,6 @@ import { exists, mapValues } from '../runtime';
 export interface RpcProblemExample {
     /**
      * 
-     * @type {number}
-     * @memberof RpcProblemExample
-     */
-    iD: number;
-    /**
-     * 
      * @type {string}
      * @memberof RpcProblemExample
      */
@@ -44,7 +38,6 @@ export interface RpcProblemExample {
  */
 export function instanceOfRpcProblemExample(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "iD" in value;
     isInstance = isInstance && "input" in value;
     isInstance = isInstance && "output" in value;
 
@@ -61,7 +54,6 @@ export function RpcProblemExampleFromJSONTyped(json: any, ignoreDiscriminator: b
     }
     return {
         
-        'iD': json['ID'],
         'input': json['Input'],
         'output': json['Output'],
     };
@@ -76,7 +68,6 @@ export function RpcProblemExampleToJSON(value?: RpcProblemExample | null): any {
     }
     return {
         
-        'ID': value.iD,
         'Input': value.input,
         'Output': value.output,
     };

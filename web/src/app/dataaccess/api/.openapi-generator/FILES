@@ -76,6 +76,7 @@ models/RpcProblemExample.ts
 models/RpcSubmission.ts
 models/RpcSubmissionProblem.ts
 models/RpcSubmissionProblemSnippet.ts
+models/RpcSubmissionResult.ts
 models/RpcSubmissionSnippet.ts
 models/RpcSubmissionStatus.ts
 models/RpcUpdateProblemRequest.ts

@@ -25,6 +25,12 @@ import {
     RpcSubmissionProblemFromJSONTyped,
     RpcSubmissionProblemToJSON,
 } from './RpcSubmissionProblem';
+import type { RpcSubmissionResult } from './RpcSubmissionResult';
+import {
+    RpcSubmissionResultFromJSON,
+    RpcSubmissionResultFromJSONTyped,
+    RpcSubmissionResultToJSON,
+} from './RpcSubmissionResult';
 import type { RpcSubmissionStatus } from './RpcSubmissionStatus';
 import {
     RpcSubmissionStatusFromJSON,
@@ -76,6 +82,12 @@ export interface RpcSubmission {
     status: RpcSubmissionStatus;
     /**
      * 
+     * @type {RpcSubmissionResult}
+     * @memberof RpcSubmission
+     */
+    result: RpcSubmissionResult;
+    /**
+     * 
      * @type {number}
      * @memberof RpcSubmission
      */
@@ -93,6 +105,7 @@ export function instanceOfRpcSubmission(value: object): boolean {
     isInstance = isInstance && "content" in value;
     isInstance = isInstance && "language" in value;
     isInstance = isInstance && "status" in value;
+    isInstance = isInstance && "result" in value;
     isInstance = isInstance && "createdTime" in value;
 
     return isInstance;
@@ -114,6 +127,7 @@ export function RpcSubmissionFromJSONTyped(json: any, ignoreDiscriminator: boole
         'content': json['Content'],
         'language': json['Language'],
         'status': RpcSubmissionStatusFromJSON(json['Status']),
+        'result': RpcSubmissionResultFromJSON(json['Result']),
         'createdTime': json['CreatedTime'],
     };
 }
@@ -133,6 +147,7 @@ export function RpcSubmissionToJSON(value?: RpcSubmission | null): any {
         'Content': value.content,
         'Language': value.language,
         'Status': RpcSubmissionStatusToJSON(value.status),
+        'Result': RpcSubmissionResultToJSON(value.result),
         'CreatedTime': value.createdTime,
     };
 }
