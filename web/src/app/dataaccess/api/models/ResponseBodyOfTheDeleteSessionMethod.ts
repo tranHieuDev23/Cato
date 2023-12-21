@@ -13,12 +13,6 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { RpcEchoResponse } from './RpcEchoResponse';
-import {
-    RpcEchoResponseFromJSON,
-    RpcEchoResponseFromJSONTyped,
-    RpcEchoResponseToJSON,
-} from './RpcEchoResponse';
 import type { RpcError } from './RpcError';
 import {
     RpcErrorFromJSON,
@@ -29,59 +23,59 @@ import {
 /**
  * 
  * @export
- * @interface ResponseBodyOfTheEchoMethod
+ * @interface ResponseBodyOfTheDeleteSessionMethod
  */
-export interface ResponseBodyOfTheEchoMethod {
+export interface ResponseBodyOfTheDeleteSessionMethod {
     /**
      * A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
      * @type {string}
-     * @memberof ResponseBodyOfTheEchoMethod
+     * @memberof ResponseBodyOfTheDeleteSessionMethod
      */
-    jsonrpc?: ResponseBodyOfTheEchoMethodJsonrpcEnum;
+    jsonrpc?: ResponseBodyOfTheDeleteSessionMethodJsonrpcEnum;
     /**
      * It MUST be the same as the value of the id member in the Request.
      * @type {string}
-     * @memberof ResponseBodyOfTheEchoMethod
+     * @memberof ResponseBodyOfTheDeleteSessionMethod
      */
     id?: string;
     /**
      * 
      * @type {RpcError}
-     * @memberof ResponseBodyOfTheEchoMethod
+     * @memberof ResponseBodyOfTheDeleteSessionMethod
      */
     error?: RpcError;
     /**
      * 
-     * @type {RpcEchoResponse}
-     * @memberof ResponseBodyOfTheEchoMethod
+     * @type {object}
+     * @memberof ResponseBodyOfTheDeleteSessionMethod
      */
-    result?: RpcEchoResponse;
+    result?: object;
 }
 
 
 /**
  * @export
  */
-export const ResponseBodyOfTheEchoMethodJsonrpcEnum = {
+export const ResponseBodyOfTheDeleteSessionMethodJsonrpcEnum = {
     _20: '2.0'
 } as const;
-export type ResponseBodyOfTheEchoMethodJsonrpcEnum = typeof ResponseBodyOfTheEchoMethodJsonrpcEnum[keyof typeof ResponseBodyOfTheEchoMethodJsonrpcEnum];
+export type ResponseBodyOfTheDeleteSessionMethodJsonrpcEnum = typeof ResponseBodyOfTheDeleteSessionMethodJsonrpcEnum[keyof typeof ResponseBodyOfTheDeleteSessionMethodJsonrpcEnum];
 
 
 /**
- * Check if a given object implements the ResponseBodyOfTheEchoMethod interface.
+ * Check if a given object implements the ResponseBodyOfTheDeleteSessionMethod interface.
  */
-export function instanceOfResponseBodyOfTheEchoMethod(value: object): boolean {
+export function instanceOfResponseBodyOfTheDeleteSessionMethod(value: object): boolean {
     let isInstance = true;
 
     return isInstance;
 }
 
-export function ResponseBodyOfTheEchoMethodFromJSON(json: any): ResponseBodyOfTheEchoMethod {
-    return ResponseBodyOfTheEchoMethodFromJSONTyped(json, false);
+export function ResponseBodyOfTheDeleteSessionMethodFromJSON(json: any): ResponseBodyOfTheDeleteSessionMethod {
+    return ResponseBodyOfTheDeleteSessionMethodFromJSONTyped(json, false);
 }
 
-export function ResponseBodyOfTheEchoMethodFromJSONTyped(json: any, ignoreDiscriminator: boolean): ResponseBodyOfTheEchoMethod {
+export function ResponseBodyOfTheDeleteSessionMethodFromJSONTyped(json: any, ignoreDiscriminator: boolean): ResponseBodyOfTheDeleteSessionMethod {
     if ((json === undefined) || (json === null)) {
         return json;
     }
@@ -90,11 +84,11 @@ export function ResponseBodyOfTheEchoMethodFromJSONTyped(json: any, ignoreDiscri
         'jsonrpc': !exists(json, 'jsonrpc') ? undefined : json['jsonrpc'],
         'id': !exists(json, 'id') ? undefined : json['id'],
         'error': !exists(json, 'error') ? undefined : RpcErrorFromJSON(json['error']),
-        'result': !exists(json, 'result') ? undefined : RpcEchoResponseFromJSON(json['result']),
+        'result': !exists(json, 'result') ? undefined : json['result'],
     };
 }
 
-export function ResponseBodyOfTheEchoMethodToJSON(value?: ResponseBodyOfTheEchoMethod | null): any {
+export function ResponseBodyOfTheDeleteSessionMethodToJSON(value?: ResponseBodyOfTheDeleteSessionMethod | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -106,7 +100,7 @@ export function ResponseBodyOfTheEchoMethodToJSON(value?: ResponseBodyOfTheEchoM
         'jsonrpc': value.jsonrpc,
         'id': value.id,
         'error': RpcErrorToJSON(value.error),
-        'result': RpcEchoResponseToJSON(value.result),
+        'result': value.result,
     };
 }
 

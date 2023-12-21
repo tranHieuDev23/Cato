@@ -15,12 +15,46 @@ import (
 
 // List of the client JSON-RPC methods.
 const (
-	JSONRPCMethodEcho_Client = "echo"
+	JSONRPCMethodCreateUser_Client                      = "create_user"
+	JSONRPCMethodGetUserList_Client                     = "get_user_list"
+	JSONRPCMethodGetUser_Client                         = "get_user"
+	JSONRPCMethodUpdateUser_Client                      = "update_user"
+	JSONRPCMethodCreateSession_Client                   = "create_session"
+	JSONRPCMethodDeleteSession_Client                   = "delete_session"
+	JSONRPCMethodCreateProblem_Client                   = "create_problem"
+	JSONRPCMethodGetProblemSnippetList_Client           = "get_problem_snippet_list"
+	JSONRPCMethodGetProblem_Client                      = "get_problem"
+	JSONRPCMethodUpdateProblem_Client                   = "update_problem"
+	JSONRPCMethodDeleteProblem_Client                   = "delete_problem"
+	JSONRPCMethodGetUserProblemSnippetList_Client       = "get_user_problem_snippet_list"
+	JSONRPCMethodCreateSubmission_Client                = "create_submission"
+	JSONRPCMethodGetSubmissionSnippetList_Client        = "get_submission_snippet_list"
+	JSONRPCMethodGetSubmission_Client                   = "get_submission"
+	JSONRPCMethodDeleteSubmission_Client                = "delete_submission"
+	JSONRPCMethodGetUserSubmissionSnippetList_Client    = "get_user_submission_snippet_list"
+	JSONRPCMethodGetProblemSubmissionSnippetList_Client = "get_problem_submission_snippet_list"
 )
 
 // APIClient is an API client for API service.
 type APIClient interface {
-	Echo(ctx context.Context, in *rpc.EchoRequest, mods ...client.Mod) (*rpc.EchoResponse, error)
+	CreateUser(ctx context.Context, in *rpc.CreateUserRequest, mods ...client.Mod) (*rpc.CreateUserResponse, error)
+	GetUserList(ctx context.Context, in *rpc.GetUserListRequest, mods ...client.Mod) (*rpc.GetUserListResponse, error)
+	GetUser(ctx context.Context, in *rpc.GetUserRequest, mods ...client.Mod) (*rpc.GetUserResponse, error)
+	UpdateUser(ctx context.Context, in *rpc.UpdateUserRequest, mods ...client.Mod) (*rpc.UpdateUserResponse, error)
+	CreateSession(ctx context.Context, in *rpc.CreateSessionRequest, mods ...client.Mod) (*rpc.CreateSessionResponse, error)
+	DeleteSession(ctx context.Context, in *rpc.DeleteSessionRequest, mods ...client.Mod) (*rpc.DeleteSessionResponse, error)
+	CreateProblem(ctx context.Context, in *rpc.CreateProblemRequest, mods ...client.Mod) (*rpc.CreateProblemResponse, error)
+	GetProblemSnippetList(ctx context.Context, in *rpc.GetProblemSnippetListRequest, mods ...client.Mod) (*rpc.GetProblemSnippetListResponse, error)
+	GetProblem(ctx context.Context, in *rpc.GetProblemRequest, mods ...client.Mod) (*rpc.GetProblemResponse, error)
+	UpdateProblem(ctx context.Context, in *rpc.UpdateProblemRequest, mods ...client.Mod) (*rpc.UpdateProblemResponse, error)
+	DeleteProblem(ctx context.Context, in *rpc.DeleteProblemRequest, mods ...client.Mod) (*rpc.DeleteProblemResponse, error)
+	GetUserProblemSnippetList(ctx context.Context, in *rpc.GetUserProblemSnippetListRequest, mods ...client.Mod) (*rpc.GetUserProblemSnippetListResponse, error)
+	CreateSubmission(ctx context.Context, in *rpc.CreateSubmissionRequest, mods ...client.Mod) (*rpc.CreateSubmissionResponse, error)
+	GetSubmissionSnippetList(ctx context.Context, in *rpc.GetSubmissionSnippetListRequest, mods ...client.Mod) (*rpc.GetSubmissionSnippetListResponse, error)
+	GetSubmission(ctx context.Context, in *rpc.GetSubmissionRequest, mods ...client.Mod) (*rpc.GetSubmissionResponse, error)
+	DeleteSubmission(ctx context.Context, in *rpc.DeleteSubmissionRequest, mods ...client.Mod) (*rpc.DeleteSubmissionResponse, error)
+	GetUserSubmissionSnippetList(ctx context.Context, in *rpc.GetUserSubmissionSnippetListRequest, mods ...client.Mod) (*rpc.GetUserSubmissionSnippetListResponse, error)
+	GetProblemSubmissionSnippetList(ctx context.Context, in *rpc.GetProblemSubmissionSnippetListRequest, mods ...client.Mod) (*rpc.GetProblemSubmissionSnippetListResponse, error)
 }
 
 type implAPIClient struct {
@@ -32,17 +66,289 @@ func NewAPIClient(cl client.Invoker) APIClient {
 	return &implAPIClient{cl: cl}
 }
 
-func (c *implAPIClient) Echo(ctx context.Context, in *rpc.EchoRequest, mods ...client.Mod) (result *rpc.EchoResponse, err error) {
+func (c *implAPIClient) CreateUser(ctx context.Context, in *rpc.CreateUserRequest, mods ...client.Mod) (result *rpc.CreateUserResponse, err error) {
 	gen, err := uuid.NewUUID()
 	if err != nil {
 		return result, fmt.Errorf("failed to create uuid generator: %w", err)
 	}
 
-	result = new(rpc.EchoResponse)
+	result = new(rpc.CreateUserResponse)
 
-	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodEcho_Client, in, result, mods...)
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodCreateUser_Client, in, result, mods...)
 	if err != nil {
-		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodEcho_Client, err)
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodCreateUser_Client, err)
+	}
+
+	return result, nil
+}
+
+func (c *implAPIClient) GetUserList(ctx context.Context, in *rpc.GetUserListRequest, mods ...client.Mod) (result *rpc.GetUserListResponse, err error) {
+	gen, err := uuid.NewUUID()
+	if err != nil {
+		return result, fmt.Errorf("failed to create uuid generator: %w", err)
+	}
+
+	result = new(rpc.GetUserListResponse)
+
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodGetUserList_Client, in, result, mods...)
+	if err != nil {
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodGetUserList_Client, err)
+	}
+
+	return result, nil
+}
+
+func (c *implAPIClient) GetUser(ctx context.Context, in *rpc.GetUserRequest, mods ...client.Mod) (result *rpc.GetUserResponse, err error) {
+	gen, err := uuid.NewUUID()
+	if err != nil {
+		return result, fmt.Errorf("failed to create uuid generator: %w", err)
+	}
+
+	result = new(rpc.GetUserResponse)
+
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodGetUser_Client, in, result, mods...)
+	if err != nil {
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodGetUser_Client, err)
+	}
+
+	return result, nil
+}
+
+func (c *implAPIClient) UpdateUser(ctx context.Context, in *rpc.UpdateUserRequest, mods ...client.Mod) (result *rpc.UpdateUserResponse, err error) {
+	gen, err := uuid.NewUUID()
+	if err != nil {
+		return result, fmt.Errorf("failed to create uuid generator: %w", err)
+	}
+
+	result = new(rpc.UpdateUserResponse)
+
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodUpdateUser_Client, in, result, mods...)
+	if err != nil {
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodUpdateUser_Client, err)
+	}
+
+	return result, nil
+}
+
+func (c *implAPIClient) CreateSession(ctx context.Context, in *rpc.CreateSessionRequest, mods ...client.Mod) (result *rpc.CreateSessionResponse, err error) {
+	gen, err := uuid.NewUUID()
+	if err != nil {
+		return result, fmt.Errorf("failed to create uuid generator: %w", err)
+	}
+
+	result = new(rpc.CreateSessionResponse)
+
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodCreateSession_Client, in, result, mods...)
+	if err != nil {
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodCreateSession_Client, err)
+	}
+
+	return result, nil
+}
+
+func (c *implAPIClient) DeleteSession(ctx context.Context, in *rpc.DeleteSessionRequest, mods ...client.Mod) (result *rpc.DeleteSessionResponse, err error) {
+	gen, err := uuid.NewUUID()
+	if err != nil {
+		return result, fmt.Errorf("failed to create uuid generator: %w", err)
+	}
+
+	result = new(rpc.DeleteSessionResponse)
+
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodDeleteSession_Client, in, result, mods...)
+	if err != nil {
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodDeleteSession_Client, err)
+	}
+
+	return result, nil
+}
+
+func (c *implAPIClient) CreateProblem(ctx context.Context, in *rpc.CreateProblemRequest, mods ...client.Mod) (result *rpc.CreateProblemResponse, err error) {
+	gen, err := uuid.NewUUID()
+	if err != nil {
+		return result, fmt.Errorf("failed to create uuid generator: %w", err)
+	}
+
+	result = new(rpc.CreateProblemResponse)
+
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodCreateProblem_Client, in, result, mods...)
+	if err != nil {
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodCreateProblem_Client, err)
+	}
+
+	return result, nil
+}
+
+func (c *implAPIClient) GetProblemSnippetList(ctx context.Context, in *rpc.GetProblemSnippetListRequest, mods ...client.Mod) (result *rpc.GetProblemSnippetListResponse, err error) {
+	gen, err := uuid.NewUUID()
+	if err != nil {
+		return result, fmt.Errorf("failed to create uuid generator: %w", err)
+	}
+
+	result = new(rpc.GetProblemSnippetListResponse)
+
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodGetProblemSnippetList_Client, in, result, mods...)
+	if err != nil {
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodGetProblemSnippetList_Client, err)
+	}
+
+	return result, nil
+}
+
+func (c *implAPIClient) GetProblem(ctx context.Context, in *rpc.GetProblemRequest, mods ...client.Mod) (result *rpc.GetProblemResponse, err error) {
+	gen, err := uuid.NewUUID()
+	if err != nil {
+		return result, fmt.Errorf("failed to create uuid generator: %w", err)
+	}
+
+	result = new(rpc.GetProblemResponse)
+
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodGetProblem_Client, in, result, mods...)
+	if err != nil {
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodGetProblem_Client, err)
+	}
+
+	return result, nil
+}
+
+func (c *implAPIClient) UpdateProblem(ctx context.Context, in *rpc.UpdateProblemRequest, mods ...client.Mod) (result *rpc.UpdateProblemResponse, err error) {
+	gen, err := uuid.NewUUID()
+	if err != nil {
+		return result, fmt.Errorf("failed to create uuid generator: %w", err)
+	}
+
+	result = new(rpc.UpdateProblemResponse)
+
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodUpdateProblem_Client, in, result, mods...)
+	if err != nil {
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodUpdateProblem_Client, err)
+	}
+
+	return result, nil
+}
+
+func (c *implAPIClient) DeleteProblem(ctx context.Context, in *rpc.DeleteProblemRequest, mods ...client.Mod) (result *rpc.DeleteProblemResponse, err error) {
+	gen, err := uuid.NewUUID()
+	if err != nil {
+		return result, fmt.Errorf("failed to create uuid generator: %w", err)
+	}
+
+	result = new(rpc.DeleteProblemResponse)
+
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodDeleteProblem_Client, in, result, mods...)
+	if err != nil {
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodDeleteProblem_Client, err)
+	}
+
+	return result, nil
+}
+
+func (c *implAPIClient) GetUserProblemSnippetList(ctx context.Context, in *rpc.GetUserProblemSnippetListRequest, mods ...client.Mod) (result *rpc.GetUserProblemSnippetListResponse, err error) {
+	gen, err := uuid.NewUUID()
+	if err != nil {
+		return result, fmt.Errorf("failed to create uuid generator: %w", err)
+	}
+
+	result = new(rpc.GetUserProblemSnippetListResponse)
+
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodGetUserProblemSnippetList_Client, in, result, mods...)
+	if err != nil {
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodGetUserProblemSnippetList_Client, err)
+	}
+
+	return result, nil
+}
+
+func (c *implAPIClient) CreateSubmission(ctx context.Context, in *rpc.CreateSubmissionRequest, mods ...client.Mod) (result *rpc.CreateSubmissionResponse, err error) {
+	gen, err := uuid.NewUUID()
+	if err != nil {
+		return result, fmt.Errorf("failed to create uuid generator: %w", err)
+	}
+
+	result = new(rpc.CreateSubmissionResponse)
+
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodCreateSubmission_Client, in, result, mods...)
+	if err != nil {
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodCreateSubmission_Client, err)
+	}
+
+	return result, nil
+}
+
+func (c *implAPIClient) GetSubmissionSnippetList(ctx context.Context, in *rpc.GetSubmissionSnippetListRequest, mods ...client.Mod) (result *rpc.GetSubmissionSnippetListResponse, err error) {
+	gen, err := uuid.NewUUID()
+	if err != nil {
+		return result, fmt.Errorf("failed to create uuid generator: %w", err)
+	}
+
+	result = new(rpc.GetSubmissionSnippetListResponse)
+
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodGetSubmissionSnippetList_Client, in, result, mods...)
+	if err != nil {
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodGetSubmissionSnippetList_Client, err)
+	}
+
+	return result, nil
+}
+
+func (c *implAPIClient) GetSubmission(ctx context.Context, in *rpc.GetSubmissionRequest, mods ...client.Mod) (result *rpc.GetSubmissionResponse, err error) {
+	gen, err := uuid.NewUUID()
+	if err != nil {
+		return result, fmt.Errorf("failed to create uuid generator: %w", err)
+	}
+
+	result = new(rpc.GetSubmissionResponse)
+
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodGetSubmission_Client, in, result, mods...)
+	if err != nil {
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodGetSubmission_Client, err)
+	}
+
+	return result, nil
+}
+
+func (c *implAPIClient) DeleteSubmission(ctx context.Context, in *rpc.DeleteSubmissionRequest, mods ...client.Mod) (result *rpc.DeleteSubmissionResponse, err error) {
+	gen, err := uuid.NewUUID()
+	if err != nil {
+		return result, fmt.Errorf("failed to create uuid generator: %w", err)
+	}
+
+	result = new(rpc.DeleteSubmissionResponse)
+
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodDeleteSubmission_Client, in, result, mods...)
+	if err != nil {
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodDeleteSubmission_Client, err)
+	}
+
+	return result, nil
+}
+
+func (c *implAPIClient) GetUserSubmissionSnippetList(ctx context.Context, in *rpc.GetUserSubmissionSnippetListRequest, mods ...client.Mod) (result *rpc.GetUserSubmissionSnippetListResponse, err error) {
+	gen, err := uuid.NewUUID()
+	if err != nil {
+		return result, fmt.Errorf("failed to create uuid generator: %w", err)
+	}
+
+	result = new(rpc.GetUserSubmissionSnippetListResponse)
+
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodGetUserSubmissionSnippetList_Client, in, result, mods...)
+	if err != nil {
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodGetUserSubmissionSnippetList_Client, err)
+	}
+
+	return result, nil
+}
+
+func (c *implAPIClient) GetProblemSubmissionSnippetList(ctx context.Context, in *rpc.GetProblemSubmissionSnippetListRequest, mods ...client.Mod) (result *rpc.GetProblemSubmissionSnippetListResponse, err error) {
+	gen, err := uuid.NewUUID()
+	if err != nil {
+		return result, fmt.Errorf("failed to create uuid generator: %w", err)
+	}
+
+	result = new(rpc.GetProblemSubmissionSnippetListResponse)
+
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodGetProblemSubmissionSnippetList_Client, in, result, mods...)
+	if err != nil {
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodGetProblemSubmissionSnippetList_Client, err)
 	}
 
 	return result, nil

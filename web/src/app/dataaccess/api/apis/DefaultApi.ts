@@ -15,18 +15,188 @@
 
 import * as runtime from '../runtime';
 import type {
-  RequestBodyOfTheEchoMethod,
-  ResponseBodyOfTheEchoMethod,
+  RequestBodyOfTheCreateProblemMethod,
+  RequestBodyOfTheCreateSessionMethod,
+  RequestBodyOfTheCreateSubmissionMethod,
+  RequestBodyOfTheCreateUserMethod,
+  RequestBodyOfTheDeleteProblemMethod,
+  RequestBodyOfTheDeleteSessionMethod,
+  RequestBodyOfTheDeleteSubmissionMethod,
+  RequestBodyOfTheGetProblemMethod,
+  RequestBodyOfTheGetProblemSnippetListMethod,
+  RequestBodyOfTheGetProblemSubmissionSnippetListMethod,
+  RequestBodyOfTheGetSubmissionMethod,
+  RequestBodyOfTheGetSubmissionSnippetListMethod,
+  RequestBodyOfTheGetUserListMethod,
+  RequestBodyOfTheGetUserMethod,
+  RequestBodyOfTheGetUserProblemSnippetListMethod,
+  RequestBodyOfTheGetUserSubmissionSnippetListMethod,
+  RequestBodyOfTheUpdateProblemMethod,
+  RequestBodyOfTheUpdateUserMethod,
+  ResponseBodyOfTheCreateProblemMethod,
+  ResponseBodyOfTheCreateSessionMethod,
+  ResponseBodyOfTheCreateSubmissionMethod,
+  ResponseBodyOfTheCreateUserMethod,
+  ResponseBodyOfTheDeleteProblemMethod,
+  ResponseBodyOfTheDeleteSessionMethod,
+  ResponseBodyOfTheDeleteSubmissionMethod,
+  ResponseBodyOfTheGetProblemMethod,
+  ResponseBodyOfTheGetProblemSnippetListMethod,
+  ResponseBodyOfTheGetProblemSubmissionSnippetListMethod,
+  ResponseBodyOfTheGetSubmissionMethod,
+  ResponseBodyOfTheGetSubmissionSnippetListMethod,
+  ResponseBodyOfTheGetUserListMethod,
+  ResponseBodyOfTheGetUserMethod,
+  ResponseBodyOfTheGetUserProblemSnippetListMethod,
+  ResponseBodyOfTheGetUserSubmissionSnippetListMethod,
+  ResponseBodyOfTheUpdateProblemMethod,
+  ResponseBodyOfTheUpdateUserMethod,
 } from '../models/index';
 import {
-    RequestBodyOfTheEchoMethodFromJSON,
-    RequestBodyOfTheEchoMethodToJSON,
-    ResponseBodyOfTheEchoMethodFromJSON,
-    ResponseBodyOfTheEchoMethodToJSON,
+    RequestBodyOfTheCreateProblemMethodFromJSON,
+    RequestBodyOfTheCreateProblemMethodToJSON,
+    RequestBodyOfTheCreateSessionMethodFromJSON,
+    RequestBodyOfTheCreateSessionMethodToJSON,
+    RequestBodyOfTheCreateSubmissionMethodFromJSON,
+    RequestBodyOfTheCreateSubmissionMethodToJSON,
+    RequestBodyOfTheCreateUserMethodFromJSON,
+    RequestBodyOfTheCreateUserMethodToJSON,
+    RequestBodyOfTheDeleteProblemMethodFromJSON,
+    RequestBodyOfTheDeleteProblemMethodToJSON,
+    RequestBodyOfTheDeleteSessionMethodFromJSON,
+    RequestBodyOfTheDeleteSessionMethodToJSON,
+    RequestBodyOfTheDeleteSubmissionMethodFromJSON,
+    RequestBodyOfTheDeleteSubmissionMethodToJSON,
+    RequestBodyOfTheGetProblemMethodFromJSON,
+    RequestBodyOfTheGetProblemMethodToJSON,
+    RequestBodyOfTheGetProblemSnippetListMethodFromJSON,
+    RequestBodyOfTheGetProblemSnippetListMethodToJSON,
+    RequestBodyOfTheGetProblemSubmissionSnippetListMethodFromJSON,
+    RequestBodyOfTheGetProblemSubmissionSnippetListMethodToJSON,
+    RequestBodyOfTheGetSubmissionMethodFromJSON,
+    RequestBodyOfTheGetSubmissionMethodToJSON,
+    RequestBodyOfTheGetSubmissionSnippetListMethodFromJSON,
+    RequestBodyOfTheGetSubmissionSnippetListMethodToJSON,
+    RequestBodyOfTheGetUserListMethodFromJSON,
+    RequestBodyOfTheGetUserListMethodToJSON,
+    RequestBodyOfTheGetUserMethodFromJSON,
+    RequestBodyOfTheGetUserMethodToJSON,
+    RequestBodyOfTheGetUserProblemSnippetListMethodFromJSON,
+    RequestBodyOfTheGetUserProblemSnippetListMethodToJSON,
+    RequestBodyOfTheGetUserSubmissionSnippetListMethodFromJSON,
+    RequestBodyOfTheGetUserSubmissionSnippetListMethodToJSON,
+    RequestBodyOfTheUpdateProblemMethodFromJSON,
+    RequestBodyOfTheUpdateProblemMethodToJSON,
+    RequestBodyOfTheUpdateUserMethodFromJSON,
+    RequestBodyOfTheUpdateUserMethodToJSON,
+    ResponseBodyOfTheCreateProblemMethodFromJSON,
+    ResponseBodyOfTheCreateProblemMethodToJSON,
+    ResponseBodyOfTheCreateSessionMethodFromJSON,
+    ResponseBodyOfTheCreateSessionMethodToJSON,
+    ResponseBodyOfTheCreateSubmissionMethodFromJSON,
+    ResponseBodyOfTheCreateSubmissionMethodToJSON,
+    ResponseBodyOfTheCreateUserMethodFromJSON,
+    ResponseBodyOfTheCreateUserMethodToJSON,
+    ResponseBodyOfTheDeleteProblemMethodFromJSON,
+    ResponseBodyOfTheDeleteProblemMethodToJSON,
+    ResponseBodyOfTheDeleteSessionMethodFromJSON,
+    ResponseBodyOfTheDeleteSessionMethodToJSON,
+    ResponseBodyOfTheDeleteSubmissionMethodFromJSON,
+    ResponseBodyOfTheDeleteSubmissionMethodToJSON,
+    ResponseBodyOfTheGetProblemMethodFromJSON,
+    ResponseBodyOfTheGetProblemMethodToJSON,
+    ResponseBodyOfTheGetProblemSnippetListMethodFromJSON,
+    ResponseBodyOfTheGetProblemSnippetListMethodToJSON,
+    ResponseBodyOfTheGetProblemSubmissionSnippetListMethodFromJSON,
+    ResponseBodyOfTheGetProblemSubmissionSnippetListMethodToJSON,
+    ResponseBodyOfTheGetSubmissionMethodFromJSON,
+    ResponseBodyOfTheGetSubmissionMethodToJSON,
+    ResponseBodyOfTheGetSubmissionSnippetListMethodFromJSON,
+    ResponseBodyOfTheGetSubmissionSnippetListMethodToJSON,
+    ResponseBodyOfTheGetUserListMethodFromJSON,
+    ResponseBodyOfTheGetUserListMethodToJSON,
+    ResponseBodyOfTheGetUserMethodFromJSON,
+    ResponseBodyOfTheGetUserMethodToJSON,
+    ResponseBodyOfTheGetUserProblemSnippetListMethodFromJSON,
+    ResponseBodyOfTheGetUserProblemSnippetListMethodToJSON,
+    ResponseBodyOfTheGetUserSubmissionSnippetListMethodFromJSON,
+    ResponseBodyOfTheGetUserSubmissionSnippetListMethodToJSON,
+    ResponseBodyOfTheUpdateProblemMethodFromJSON,
+    ResponseBodyOfTheUpdateProblemMethodToJSON,
+    ResponseBodyOfTheUpdateUserMethodFromJSON,
+    ResponseBodyOfTheUpdateUserMethodToJSON,
 } from '../models/index';
 
-export interface EchoRequest {
-    requestBodyOfTheEchoMethod: RequestBodyOfTheEchoMethod;
+export interface CreateProblemRequest {
+    requestBodyOfTheCreateProblemMethod: RequestBodyOfTheCreateProblemMethod;
+}
+
+export interface CreateSessionRequest {
+    requestBodyOfTheCreateSessionMethod: RequestBodyOfTheCreateSessionMethod;
+}
+
+export interface CreateSubmissionRequest {
+    requestBodyOfTheCreateSubmissionMethod: RequestBodyOfTheCreateSubmissionMethod;
+}
+
+export interface CreateUserRequest {
+    requestBodyOfTheCreateUserMethod: RequestBodyOfTheCreateUserMethod;
+}
+
+export interface DeleteProblemRequest {
+    requestBodyOfTheDeleteProblemMethod: RequestBodyOfTheDeleteProblemMethod;
+}
+
+export interface DeleteSessionRequest {
+    requestBodyOfTheDeleteSessionMethod: RequestBodyOfTheDeleteSessionMethod;
+}
+
+export interface DeleteSubmissionRequest {
+    requestBodyOfTheDeleteSubmissionMethod: RequestBodyOfTheDeleteSubmissionMethod;
+}
+
+export interface GetProblemRequest {
+    requestBodyOfTheGetProblemMethod: RequestBodyOfTheGetProblemMethod;
+}
+
+export interface GetProblemSnippetListRequest {
+    requestBodyOfTheGetProblemSnippetListMethod: RequestBodyOfTheGetProblemSnippetListMethod;
+}
+
+export interface GetProblemSubmissionSnippetListRequest {
+    requestBodyOfTheGetProblemSubmissionSnippetListMethod: RequestBodyOfTheGetProblemSubmissionSnippetListMethod;
+}
+
+export interface GetSubmissionRequest {
+    requestBodyOfTheGetSubmissionMethod: RequestBodyOfTheGetSubmissionMethod;
+}
+
+export interface GetSubmissionSnippetListRequest {
+    requestBodyOfTheGetSubmissionSnippetListMethod: RequestBodyOfTheGetSubmissionSnippetListMethod;
+}
+
+export interface GetUserRequest {
+    requestBodyOfTheGetUserMethod: RequestBodyOfTheGetUserMethod;
+}
+
+export interface GetUserListRequest {
+    requestBodyOfTheGetUserListMethod: RequestBodyOfTheGetUserListMethod;
+}
+
+export interface GetUserProblemSnippetListRequest {
+    requestBodyOfTheGetUserProblemSnippetListMethod: RequestBodyOfTheGetUserProblemSnippetListMethod;
+}
+
+export interface GetUserSubmissionSnippetListRequest {
+    requestBodyOfTheGetUserSubmissionSnippetListMethod: RequestBodyOfTheGetUserSubmissionSnippetListMethod;
+}
+
+export interface UpdateProblemRequest {
+    requestBodyOfTheUpdateProblemMethod: RequestBodyOfTheUpdateProblemMethod;
+}
+
+export interface UpdateUserRequest {
+    requestBodyOfTheUpdateUserMethod: RequestBodyOfTheUpdateUserMethod;
 }
 
 /**
@@ -36,9 +206,9 @@ export class DefaultApi extends runtime.BaseAPI {
 
     /**
      */
-    async echoRaw(requestParameters: EchoRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ResponseBodyOfTheEchoMethod>> {
-        if (requestParameters.requestBodyOfTheEchoMethod === null || requestParameters.requestBodyOfTheEchoMethod === undefined) {
-            throw new runtime.RequiredError('requestBodyOfTheEchoMethod','Required parameter requestParameters.requestBodyOfTheEchoMethod was null or undefined when calling echo.');
+    async createProblemRaw(requestParameters: CreateProblemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ResponseBodyOfTheCreateProblemMethod>> {
+        if (requestParameters.requestBodyOfTheCreateProblemMethod === null || requestParameters.requestBodyOfTheCreateProblemMethod === undefined) {
+            throw new runtime.RequiredError('requestBodyOfTheCreateProblemMethod','Required parameter requestParameters.requestBodyOfTheCreateProblemMethod was null or undefined when calling createProblem.');
         }
 
         const queryParameters: any = {};
@@ -48,20 +218,547 @@ export class DefaultApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/#echo`,
+            path: `/#create_problem`,
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-            body: RequestBodyOfTheEchoMethodToJSON(requestParameters.requestBodyOfTheEchoMethod),
+            body: RequestBodyOfTheCreateProblemMethodToJSON(requestParameters.requestBodyOfTheCreateProblemMethod),
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ResponseBodyOfTheEchoMethodFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => ResponseBodyOfTheCreateProblemMethodFromJSON(jsonValue));
     }
 
     /**
      */
-    async echo(requestParameters: EchoRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheEchoMethod> {
-        const response = await this.echoRaw(requestParameters, initOverrides);
+    async createProblem(requestParameters: CreateProblemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheCreateProblemMethod> {
+        const response = await this.createProblemRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async createSessionRaw(requestParameters: CreateSessionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ResponseBodyOfTheCreateSessionMethod>> {
+        if (requestParameters.requestBodyOfTheCreateSessionMethod === null || requestParameters.requestBodyOfTheCreateSessionMethod === undefined) {
+            throw new runtime.RequiredError('requestBodyOfTheCreateSessionMethod','Required parameter requestParameters.requestBodyOfTheCreateSessionMethod was null or undefined when calling createSession.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/#create_session`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: RequestBodyOfTheCreateSessionMethodToJSON(requestParameters.requestBodyOfTheCreateSessionMethod),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ResponseBodyOfTheCreateSessionMethodFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async createSession(requestParameters: CreateSessionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheCreateSessionMethod> {
+        const response = await this.createSessionRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async createSubmissionRaw(requestParameters: CreateSubmissionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ResponseBodyOfTheCreateSubmissionMethod>> {
+        if (requestParameters.requestBodyOfTheCreateSubmissionMethod === null || requestParameters.requestBodyOfTheCreateSubmissionMethod === undefined) {
+            throw new runtime.RequiredError('requestBodyOfTheCreateSubmissionMethod','Required parameter requestParameters.requestBodyOfTheCreateSubmissionMethod was null or undefined when calling createSubmission.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/#create_submission`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: RequestBodyOfTheCreateSubmissionMethodToJSON(requestParameters.requestBodyOfTheCreateSubmissionMethod),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ResponseBodyOfTheCreateSubmissionMethodFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async createSubmission(requestParameters: CreateSubmissionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheCreateSubmissionMethod> {
+        const response = await this.createSubmissionRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async createUserRaw(requestParameters: CreateUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ResponseBodyOfTheCreateUserMethod>> {
+        if (requestParameters.requestBodyOfTheCreateUserMethod === null || requestParameters.requestBodyOfTheCreateUserMethod === undefined) {
+            throw new runtime.RequiredError('requestBodyOfTheCreateUserMethod','Required parameter requestParameters.requestBodyOfTheCreateUserMethod was null or undefined when calling createUser.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/#create_user`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: RequestBodyOfTheCreateUserMethodToJSON(requestParameters.requestBodyOfTheCreateUserMethod),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ResponseBodyOfTheCreateUserMethodFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async createUser(requestParameters: CreateUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheCreateUserMethod> {
+        const response = await this.createUserRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async deleteProblemRaw(requestParameters: DeleteProblemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ResponseBodyOfTheDeleteProblemMethod>> {
+        if (requestParameters.requestBodyOfTheDeleteProblemMethod === null || requestParameters.requestBodyOfTheDeleteProblemMethod === undefined) {
+            throw new runtime.RequiredError('requestBodyOfTheDeleteProblemMethod','Required parameter requestParameters.requestBodyOfTheDeleteProblemMethod was null or undefined when calling deleteProblem.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/#delete_problem`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: RequestBodyOfTheDeleteProblemMethodToJSON(requestParameters.requestBodyOfTheDeleteProblemMethod),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ResponseBodyOfTheDeleteProblemMethodFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async deleteProblem(requestParameters: DeleteProblemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheDeleteProblemMethod> {
+        const response = await this.deleteProblemRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async deleteSessionRaw(requestParameters: DeleteSessionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ResponseBodyOfTheDeleteSessionMethod>> {
+        if (requestParameters.requestBodyOfTheDeleteSessionMethod === null || requestParameters.requestBodyOfTheDeleteSessionMethod === undefined) {
+            throw new runtime.RequiredError('requestBodyOfTheDeleteSessionMethod','Required parameter requestParameters.requestBodyOfTheDeleteSessionMethod was null or undefined when calling deleteSession.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/#delete_session`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: RequestBodyOfTheDeleteSessionMethodToJSON(requestParameters.requestBodyOfTheDeleteSessionMethod),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ResponseBodyOfTheDeleteSessionMethodFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async deleteSession(requestParameters: DeleteSessionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheDeleteSessionMethod> {
+        const response = await this.deleteSessionRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async deleteSubmissionRaw(requestParameters: DeleteSubmissionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ResponseBodyOfTheDeleteSubmissionMethod>> {
+        if (requestParameters.requestBodyOfTheDeleteSubmissionMethod === null || requestParameters.requestBodyOfTheDeleteSubmissionMethod === undefined) {
+            throw new runtime.RequiredError('requestBodyOfTheDeleteSubmissionMethod','Required parameter requestParameters.requestBodyOfTheDeleteSubmissionMethod was null or undefined when calling deleteSubmission.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/#delete_submission`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: RequestBodyOfTheDeleteSubmissionMethodToJSON(requestParameters.requestBodyOfTheDeleteSubmissionMethod),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ResponseBodyOfTheDeleteSubmissionMethodFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async deleteSubmission(requestParameters: DeleteSubmissionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheDeleteSubmissionMethod> {
+        const response = await this.deleteSubmissionRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async getProblemRaw(requestParameters: GetProblemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ResponseBodyOfTheGetProblemMethod>> {
+        if (requestParameters.requestBodyOfTheGetProblemMethod === null || requestParameters.requestBodyOfTheGetProblemMethod === undefined) {
+            throw new runtime.RequiredError('requestBodyOfTheGetProblemMethod','Required parameter requestParameters.requestBodyOfTheGetProblemMethod was null or undefined when calling getProblem.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/#get_problem`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: RequestBodyOfTheGetProblemMethodToJSON(requestParameters.requestBodyOfTheGetProblemMethod),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ResponseBodyOfTheGetProblemMethodFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async getProblem(requestParameters: GetProblemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheGetProblemMethod> {
+        const response = await this.getProblemRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async getProblemSnippetListRaw(requestParameters: GetProblemSnippetListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ResponseBodyOfTheGetProblemSnippetListMethod>> {
+        if (requestParameters.requestBodyOfTheGetProblemSnippetListMethod === null || requestParameters.requestBodyOfTheGetProblemSnippetListMethod === undefined) {
+            throw new runtime.RequiredError('requestBodyOfTheGetProblemSnippetListMethod','Required parameter requestParameters.requestBodyOfTheGetProblemSnippetListMethod was null or undefined when calling getProblemSnippetList.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/#get_problem_snippet_list`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: RequestBodyOfTheGetProblemSnippetListMethodToJSON(requestParameters.requestBodyOfTheGetProblemSnippetListMethod),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ResponseBodyOfTheGetProblemSnippetListMethodFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async getProblemSnippetList(requestParameters: GetProblemSnippetListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheGetProblemSnippetListMethod> {
+        const response = await this.getProblemSnippetListRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async getProblemSubmissionSnippetListRaw(requestParameters: GetProblemSubmissionSnippetListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ResponseBodyOfTheGetProblemSubmissionSnippetListMethod>> {
+        if (requestParameters.requestBodyOfTheGetProblemSubmissionSnippetListMethod === null || requestParameters.requestBodyOfTheGetProblemSubmissionSnippetListMethod === undefined) {
+            throw new runtime.RequiredError('requestBodyOfTheGetProblemSubmissionSnippetListMethod','Required parameter requestParameters.requestBodyOfTheGetProblemSubmissionSnippetListMethod was null or undefined when calling getProblemSubmissionSnippetList.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/#get_problem_submission_snippet_list`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: RequestBodyOfTheGetProblemSubmissionSnippetListMethodToJSON(requestParameters.requestBodyOfTheGetProblemSubmissionSnippetListMethod),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ResponseBodyOfTheGetProblemSubmissionSnippetListMethodFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async getProblemSubmissionSnippetList(requestParameters: GetProblemSubmissionSnippetListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheGetProblemSubmissionSnippetListMethod> {
+        const response = await this.getProblemSubmissionSnippetListRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async getSubmissionRaw(requestParameters: GetSubmissionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ResponseBodyOfTheGetSubmissionMethod>> {
+        if (requestParameters.requestBodyOfTheGetSubmissionMethod === null || requestParameters.requestBodyOfTheGetSubmissionMethod === undefined) {
+            throw new runtime.RequiredError('requestBodyOfTheGetSubmissionMethod','Required parameter requestParameters.requestBodyOfTheGetSubmissionMethod was null or undefined when calling getSubmission.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/#get_submission`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: RequestBodyOfTheGetSubmissionMethodToJSON(requestParameters.requestBodyOfTheGetSubmissionMethod),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ResponseBodyOfTheGetSubmissionMethodFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async getSubmission(requestParameters: GetSubmissionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheGetSubmissionMethod> {
+        const response = await this.getSubmissionRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async getSubmissionSnippetListRaw(requestParameters: GetSubmissionSnippetListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ResponseBodyOfTheGetSubmissionSnippetListMethod>> {
+        if (requestParameters.requestBodyOfTheGetSubmissionSnippetListMethod === null || requestParameters.requestBodyOfTheGetSubmissionSnippetListMethod === undefined) {
+            throw new runtime.RequiredError('requestBodyOfTheGetSubmissionSnippetListMethod','Required parameter requestParameters.requestBodyOfTheGetSubmissionSnippetListMethod was null or undefined when calling getSubmissionSnippetList.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/#get_submission_snippet_list`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: RequestBodyOfTheGetSubmissionSnippetListMethodToJSON(requestParameters.requestBodyOfTheGetSubmissionSnippetListMethod),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ResponseBodyOfTheGetSubmissionSnippetListMethodFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async getSubmissionSnippetList(requestParameters: GetSubmissionSnippetListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheGetSubmissionSnippetListMethod> {
+        const response = await this.getSubmissionSnippetListRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async getUserRaw(requestParameters: GetUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ResponseBodyOfTheGetUserMethod>> {
+        if (requestParameters.requestBodyOfTheGetUserMethod === null || requestParameters.requestBodyOfTheGetUserMethod === undefined) {
+            throw new runtime.RequiredError('requestBodyOfTheGetUserMethod','Required parameter requestParameters.requestBodyOfTheGetUserMethod was null or undefined when calling getUser.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/#get_user`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: RequestBodyOfTheGetUserMethodToJSON(requestParameters.requestBodyOfTheGetUserMethod),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ResponseBodyOfTheGetUserMethodFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async getUser(requestParameters: GetUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheGetUserMethod> {
+        const response = await this.getUserRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async getUserListRaw(requestParameters: GetUserListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ResponseBodyOfTheGetUserListMethod>> {
+        if (requestParameters.requestBodyOfTheGetUserListMethod === null || requestParameters.requestBodyOfTheGetUserListMethod === undefined) {
+            throw new runtime.RequiredError('requestBodyOfTheGetUserListMethod','Required parameter requestParameters.requestBodyOfTheGetUserListMethod was null or undefined when calling getUserList.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/#get_user_list`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: RequestBodyOfTheGetUserListMethodToJSON(requestParameters.requestBodyOfTheGetUserListMethod),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ResponseBodyOfTheGetUserListMethodFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async getUserList(requestParameters: GetUserListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheGetUserListMethod> {
+        const response = await this.getUserListRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async getUserProblemSnippetListRaw(requestParameters: GetUserProblemSnippetListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ResponseBodyOfTheGetUserProblemSnippetListMethod>> {
+        if (requestParameters.requestBodyOfTheGetUserProblemSnippetListMethod === null || requestParameters.requestBodyOfTheGetUserProblemSnippetListMethod === undefined) {
+            throw new runtime.RequiredError('requestBodyOfTheGetUserProblemSnippetListMethod','Required parameter requestParameters.requestBodyOfTheGetUserProblemSnippetListMethod was null or undefined when calling getUserProblemSnippetList.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/#get_user_problem_snippet_list`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: RequestBodyOfTheGetUserProblemSnippetListMethodToJSON(requestParameters.requestBodyOfTheGetUserProblemSnippetListMethod),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ResponseBodyOfTheGetUserProblemSnippetListMethodFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async getUserProblemSnippetList(requestParameters: GetUserProblemSnippetListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheGetUserProblemSnippetListMethod> {
+        const response = await this.getUserProblemSnippetListRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async getUserSubmissionSnippetListRaw(requestParameters: GetUserSubmissionSnippetListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ResponseBodyOfTheGetUserSubmissionSnippetListMethod>> {
+        if (requestParameters.requestBodyOfTheGetUserSubmissionSnippetListMethod === null || requestParameters.requestBodyOfTheGetUserSubmissionSnippetListMethod === undefined) {
+            throw new runtime.RequiredError('requestBodyOfTheGetUserSubmissionSnippetListMethod','Required parameter requestParameters.requestBodyOfTheGetUserSubmissionSnippetListMethod was null or undefined when calling getUserSubmissionSnippetList.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/#get_user_submission_snippet_list`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: RequestBodyOfTheGetUserSubmissionSnippetListMethodToJSON(requestParameters.requestBodyOfTheGetUserSubmissionSnippetListMethod),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ResponseBodyOfTheGetUserSubmissionSnippetListMethodFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async getUserSubmissionSnippetList(requestParameters: GetUserSubmissionSnippetListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheGetUserSubmissionSnippetListMethod> {
+        const response = await this.getUserSubmissionSnippetListRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async updateProblemRaw(requestParameters: UpdateProblemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ResponseBodyOfTheUpdateProblemMethod>> {
+        if (requestParameters.requestBodyOfTheUpdateProblemMethod === null || requestParameters.requestBodyOfTheUpdateProblemMethod === undefined) {
+            throw new runtime.RequiredError('requestBodyOfTheUpdateProblemMethod','Required parameter requestParameters.requestBodyOfTheUpdateProblemMethod was null or undefined when calling updateProblem.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/#update_problem`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: RequestBodyOfTheUpdateProblemMethodToJSON(requestParameters.requestBodyOfTheUpdateProblemMethod),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ResponseBodyOfTheUpdateProblemMethodFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async updateProblem(requestParameters: UpdateProblemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheUpdateProblemMethod> {
+        const response = await this.updateProblemRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async updateUserRaw(requestParameters: UpdateUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ResponseBodyOfTheUpdateUserMethod>> {
+        if (requestParameters.requestBodyOfTheUpdateUserMethod === null || requestParameters.requestBodyOfTheUpdateUserMethod === undefined) {
+            throw new runtime.RequiredError('requestBodyOfTheUpdateUserMethod','Required parameter requestParameters.requestBodyOfTheUpdateUserMethod was null or undefined when calling updateUser.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/#update_user`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: RequestBodyOfTheUpdateUserMethodToJSON(requestParameters.requestBodyOfTheUpdateUserMethod),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ResponseBodyOfTheUpdateUserMethodFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async updateUser(requestParameters: UpdateUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheUpdateUserMethod> {
+        const response = await this.updateUserRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

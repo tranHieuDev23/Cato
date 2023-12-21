@@ -16,42 +16,42 @@ import { exists, mapValues } from '../runtime';
 /**
  * 
  * @export
- * @interface RpcEchoResponse
+ * @interface RpcGetProblemRequest
  */
-export interface RpcEchoResponse {
+export interface RpcGetProblemRequest {
     /**
      * 
-     * @type {string}
-     * @memberof RpcEchoResponse
+     * @type {number}
+     * @memberof RpcGetProblemRequest
      */
-    message: string;
+    iD: number;
 }
 
 /**
- * Check if a given object implements the RpcEchoResponse interface.
+ * Check if a given object implements the RpcGetProblemRequest interface.
  */
-export function instanceOfRpcEchoResponse(value: object): boolean {
+export function instanceOfRpcGetProblemRequest(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "message" in value;
+    isInstance = isInstance && "iD" in value;
 
     return isInstance;
 }
 
-export function RpcEchoResponseFromJSON(json: any): RpcEchoResponse {
-    return RpcEchoResponseFromJSONTyped(json, false);
+export function RpcGetProblemRequestFromJSON(json: any): RpcGetProblemRequest {
+    return RpcGetProblemRequestFromJSONTyped(json, false);
 }
 
-export function RpcEchoResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): RpcEchoResponse {
+export function RpcGetProblemRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): RpcGetProblemRequest {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
-        'message': json['Message'],
+        'iD': json['ID'],
     };
 }
 
-export function RpcEchoResponseToJSON(value?: RpcEchoResponse | null): any {
+export function RpcGetProblemRequestToJSON(value?: RpcGetProblemRequest | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -60,7 +60,7 @@ export function RpcEchoResponseToJSON(value?: RpcEchoResponse | null): any {
     }
     return {
         
-        'Message': value.message,
+        'ID': value.iD,
     };
 }
 

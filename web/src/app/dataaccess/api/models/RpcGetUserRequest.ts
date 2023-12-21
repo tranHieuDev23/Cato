@@ -16,42 +16,42 @@ import { exists, mapValues } from '../runtime';
 /**
  * 
  * @export
- * @interface RpcEchoRequest
+ * @interface RpcGetUserRequest
  */
-export interface RpcEchoRequest {
+export interface RpcGetUserRequest {
     /**
      * 
-     * @type {string}
-     * @memberof RpcEchoRequest
+     * @type {number}
+     * @memberof RpcGetUserRequest
      */
-    message: string;
+    iD: number;
 }
 
 /**
- * Check if a given object implements the RpcEchoRequest interface.
+ * Check if a given object implements the RpcGetUserRequest interface.
  */
-export function instanceOfRpcEchoRequest(value: object): boolean {
+export function instanceOfRpcGetUserRequest(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "message" in value;
+    isInstance = isInstance && "iD" in value;
 
     return isInstance;
 }
 
-export function RpcEchoRequestFromJSON(json: any): RpcEchoRequest {
-    return RpcEchoRequestFromJSONTyped(json, false);
+export function RpcGetUserRequestFromJSON(json: any): RpcGetUserRequest {
+    return RpcGetUserRequestFromJSONTyped(json, false);
 }
 
-export function RpcEchoRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): RpcEchoRequest {
+export function RpcGetUserRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): RpcGetUserRequest {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
-        'message': json['Message'],
+        'iD': json['ID'],
     };
 }
 
-export function RpcEchoRequestToJSON(value?: RpcEchoRequest | null): any {
+export function RpcGetUserRequestToJSON(value?: RpcGetUserRequest | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -60,7 +60,7 @@ export function RpcEchoRequestToJSON(value?: RpcEchoRequest | null): any {
     }
     return {
         
-        'Message': value.message,
+        'ID': value.iD,
     };
 }
 
