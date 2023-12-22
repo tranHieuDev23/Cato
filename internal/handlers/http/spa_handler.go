@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
+
+	"github.com/tranHieuDev23/cato/web"
 )
 
 type SPAHandler http.Handler
@@ -15,10 +17,10 @@ type spaHandler struct {
 	fileServer http.Handler
 }
 
-func NewSPAHandler(fileSystem http.FileSystem) SPAHandler {
+func NewSPAHandler() SPAHandler {
 	return &spaHandler{
-		fileSystem: fileSystem,
-		fileServer: http.FileServer(fileSystem),
+		fileSystem: http.FS(web.StaticContent),
+		fileServer: http.FileServer(http.FS(web.StaticContent)),
 	}
 }
 

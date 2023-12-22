@@ -2,25 +2,22 @@ all: generate build
 
 .PHONY: generate
 generate:
-	go generate ./...
+	rm -rf internal/handlers/http/rpc/rpcclient
+	rm -rf internal/handlers/http/rpc/rpcserver
 	rm -rf web/src/app/dataaccess/api
+
+	go get gitlab.com/pjrpc/pjrpc/cmd/genpjrpc@v0.4.0
+	go get github.com/google/wire/cmd/wire@v0.5.0
+	
+	go generate ./...
 	openapi-generator generate -i api/swagger.json -g typescript-fetch -o web/src/app/dataaccess/api
 
-.PHONY: build-judge
-build-judge:
-	go build -o build/judge cmd/judge/*.go
-
-.PHONY: build-worker
-build-worker:
-	go build -o build/worker cmd/worker/*.go
+	go mod tidy
 
 .PHONY: build
-build: build-judge build-worker
+build:
+	go build -o build/cato cmd/cato/*.go
 
-.PHONY: run-judge
-run-judge:
-	go run cmd/judge/*.go
-
-.PHONY: run-worker
-run-worker:
-	go run cmd/worker/*.go
+.PHONY: run
+run:
+	go run cmd/cato/*.go
