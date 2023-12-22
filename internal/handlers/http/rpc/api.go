@@ -170,7 +170,7 @@ type CreateTestCaseResponse struct {
 
 type CreateTestCaseListRequest struct {
 	ProblemID      uint64
-	ZippedTestData []byte
+	ZippedTestData string `validate:"max=5000"`
 }
 
 type CreateTestCaseListResponse struct{}

@@ -27,10 +27,10 @@ export interface RpcCreateTestCaseListRequest {
     problemID: number;
     /**
      * 
-     * @type {Array<number>}
+     * @type {string}
      * @memberof RpcCreateTestCaseListRequest
      */
-    zippedTestData: Array<number>;
+    zippedTestData: string;
 }
 
 /**
