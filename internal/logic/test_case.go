@@ -4,6 +4,9 @@ import (
 	"archive/zip"
 	"bytes"
 	"context"
+	"io"
+	"path/filepath"
+	"sort"
 
 	"gitlab.com/pjrpc/pjrpc/v2"
 	"go.uber.org/zap"
@@ -17,7 +20,9 @@ import (
 )
 
 const (
-	testCaseDataSize = 250
+	testCaseDataSize       = 250
+	testCaseInputFileName  = "input.txt"
+	testCaseOutputFileName = "output.txt"
 )
 
 type TestCase interface {
@@ -130,6 +135,81 @@ func (t testCase) CreateTestCase(ctx context.Context, in *rpc.CreateTestCaseRequ
 	return response, nil
 }
 
+func (t testCase) getTestCaseListFromZippedData(ctx context.Context, problemID uint64, zippedData []byte) ([]*db.TestCase, error) {
+	logger := utils.LoggerWithContext(ctx, t.logger)
+
+	zippedDataReader, err := zip.NewReader(bytes.NewReader(zippedData), int64(len(zippedData)))
+	if err != nil {
+		logger.With(zap.Error(err)).Error("failed to open zip reader")
+		return nil, pjrpc.JRPCErrInternalError()
+	}
+
+	type unzippedTestCase struct {
+		Input  *string
+		Output *string
+	}
+
+	fileDirectoryToUnzippedTestCaseMap := make(map[string]*unzippedTestCase)
+
+	for i := range zippedDataReader.File {
+		fileInfo := zippedDataReader.File[i].FileInfo()
+		if fileInfo.IsDir() {
+			continue
+		}
+
+		filePath := fileInfo.Name()
+		fileDirectory, fileName := filepath.Split(filePath)
+		if fileName != testCaseInputFileName && fileName != testCaseOutputFileName {
+			continue
+		}
+
+		if _, ok := fileDirectoryToUnzippedTestCaseMap[fileDirectory]; !ok {
+			fileDirectoryToUnzippedTestCaseMap[fileDirectory] = &unzippedTestCase{}
+		}
+
+		fileReader, err := zippedDataReader.File[i].Open()
+		if err != nil {
+			logger.With(zap.Error(err)).Error("failed to open file reader")
+			return nil, pjrpc.JRPCErrInternalError()
+		}
+
+		fileContent, err := io.ReadAll(fileReader)
+		if err != nil {
+			logger.With(zap.Error(err)).Error("failed to read file content")
+			return nil, pjrpc.JRPCErrInternalError()
+		}
+
+		fileContentString := string(fileContent)
+		if fileName == testCaseInputFileName {
+			fileDirectoryToUnzippedTestCaseMap[fileDirectory].Input = &fileContentString
+		} else {
+			fileDirectoryToUnzippedTestCaseMap[fileDirectory].Output = &fileContentString
+		}
+	}
+
+	fileDirectoryToUnzippedTestCaseEntryList := lo.Entries[string, *unzippedTestCase](fileDirectoryToUnzippedTestCaseMap)
+	sort.Slice(fileDirectoryToUnzippedTestCaseEntryList, func(i, j int) bool {
+		return fileDirectoryToUnzippedTestCaseEntryList[i].Key < fileDirectoryToUnzippedTestCaseEntryList[j].Key
+	})
+
+	testCaseList := make([]*db.TestCase, 0)
+	for i := range fileDirectoryToUnzippedTestCaseEntryList {
+		unzippedTestCase := fileDirectoryToUnzippedTestCaseEntryList[i].Value
+		if unzippedTestCase.Input == nil || unzippedTestCase.Output == nil {
+			continue
+		}
+
+		testCaseList = append(testCaseList, &db.TestCase{
+			OfProblemID: problemID,
+			Input:       *unzippedTestCase.Input,
+			Output:      *unzippedTestCase.Output,
+			IsHidden:    true,
+		})
+	}
+
+	return testCaseList, nil
+}
+
 func (t testCase) CreateTestCaseList(ctx context.Context, in *rpc.CreateTestCaseListRequest, token string) error {
 	logger := utils.LoggerWithContext(ctx, t.logger)
 
@@ -165,23 +245,12 @@ func (t testCase) CreateTestCaseList(ctx context.Context, in *rpc.CreateTestCase
 		return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
 	}
 
-	_, err = zip.NewReader(bytes.NewReader([]byte(in.ZippedTestData)), int64(len(in.ZippedTestData)))
+	testCaseList, err := t.getTestCaseListFromZippedData(ctx, in.ProblemID, []byte(in.ZippedTestData))
 	if err != nil {
-		logger.With(zap.Error(err)).Error("failed to open zip reader")
-		return pjrpc.JRPCErrInternalError()
+		return err
 	}
 
-	return t.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		testCase := &db.TestCase{
-			OfProblemID: in.ProblemID,
-			IsHidden:    true,
-		}
-		if err := t.testCaseDataAccessor.WithDB(tx).CreateTestCase(ctx, testCase); err != nil {
-			return err
-		}
-
-		return nil
-	})
+	return t.testCaseDataAccessor.CreateTestCaseList(ctx, testCaseList)
 }
 
 func (t testCase) DeleteTestCase(ctx context.Context, in *rpc.DeleteTestCaseRequest, token string) error {
