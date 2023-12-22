@@ -18,26 +18,29 @@ import (
 )
 
 type apiServerHandler struct {
-	accountLogic  logic.Account
-	problemLogic  logic.Problem
-	testCaseLogic logic.TestCase
-	logger        *zap.Logger
-	validate      *validator.Validate
+	accountLogic    logic.Account
+	problemLogic    logic.Problem
+	testCaseLogic   logic.TestCase
+	submissionLogic logic.Submission
+	logger          *zap.Logger
+	validate        *validator.Validate
 }
 
 func NewAPIServerHandler(
 	accountLogic logic.Account,
 	problemLogic logic.Problem,
 	testCaseLogic logic.TestCase,
+	submissionLogic logic.Submission,
 	logger *zap.Logger,
 ) rpcserver.APIServer {
 	validate := validator.New()
 	return &apiServerHandler{
-		accountLogic:  accountLogic,
-		problemLogic:  problemLogic,
-		testCaseLogic: testCaseLogic,
-		logger:        logger,
-		validate:      validate,
+		accountLogic:    accountLogic,
+		problemLogic:    problemLogic,
+		testCaseLogic:   testCaseLogic,
+		submissionLogic: submissionLogic,
+		logger:          logger,
+		validate:        validate,
 	}
 }
 
@@ -117,7 +120,8 @@ func (a apiServerHandler) CreateSubmission(ctx context.Context, in *rpc.CreateSu
 		return nil, err
 	}
 
-	panic("unimplemented")
+	token := a.getAuthorizationBearerToken(ctx)
+	return a.submissionLogic.CreateSubmission(ctx, in, token)
 }
 
 func (a apiServerHandler) CreateTestCase(ctx context.Context, in *rpc.CreateTestCaseRequest) (*rpc.CreateTestCaseResponse, error) {
@@ -169,7 +173,12 @@ func (a apiServerHandler) DeleteSubmission(ctx context.Context, in *rpc.DeleteSu
 		return nil, err
 	}
 
-	panic("unimplemented")
+	token := a.getAuthorizationBearerToken(ctx)
+	if err := a.submissionLogic.DeleteSubmission(ctx, in, token); err != nil {
+		return nil, err
+	}
+
+	return &rpc.DeleteSubmissionResponse{}, nil
 }
 
 func (a apiServerHandler) DeleteTestCase(ctx context.Context, in *rpc.DeleteTestCaseRequest) (*rpc.DeleteTestCaseResponse, error) {
@@ -217,7 +226,8 @@ func (a apiServerHandler) GetAccountSubmissionSnippetList(ctx context.Context, i
 		return nil, err
 	}
 
-	panic("unimplemented")
+	token := a.getAuthorizationBearerToken(ctx)
+	return a.submissionLogic.GetAccountSubmissionSnippetList(ctx, in, token)
 }
 
 func (a apiServerHandler) GetProblem(ctx context.Context, in *rpc.GetProblemRequest) (*rpc.GetProblemResponse, error) {
@@ -243,7 +253,8 @@ func (a apiServerHandler) GetProblemSubmissionSnippetList(ctx context.Context, i
 		return nil, err
 	}
 
-	panic("unimplemented")
+	token := a.getAuthorizationBearerToken(ctx)
+	return a.submissionLogic.GetProblemSubmissionSnippetList(ctx, in, token)
 }
 
 func (a apiServerHandler) GetProblemTestCaseSnippetList(ctx context.Context, in *rpc.GetProblemTestCaseSnippetListRequest) (*rpc.GetProblemTestCaseSnippetListResponse, error) {
@@ -260,7 +271,8 @@ func (a apiServerHandler) GetSubmission(ctx context.Context, in *rpc.GetSubmissi
 		return nil, err
 	}
 
-	panic("unimplemented")
+	token := a.getAuthorizationBearerToken(ctx)
+	return a.submissionLogic.GetSubmission(ctx, in, token)
 }
 
 func (a apiServerHandler) GetSubmissionSnippetList(ctx context.Context, in *rpc.GetSubmissionSnippetListRequest) (*rpc.GetSubmissionSnippetListResponse, error) {
@@ -268,7 +280,8 @@ func (a apiServerHandler) GetSubmissionSnippetList(ctx context.Context, in *rpc.
 		return nil, err
 	}
 
-	panic("unimplemented")
+	token := a.getAuthorizationBearerToken(ctx)
+	return a.submissionLogic.GetSubmissionSnippetList(ctx, in, token)
 }
 
 func (a apiServerHandler) GetTestCase(ctx context.Context, in *rpc.GetTestCaseRequest) (*rpc.GetTestCaseResponse, error) {

@@ -8,7 +8,6 @@ package wiring
 
 import (
 	"github.com/google/wire"
-
 	"github.com/tranHieuDev23/cato/internal/app"
 	"github.com/tranHieuDev23/cato/internal/configs"
 	"github.com/tranHieuDev23/cato/internal/dataaccess"
@@ -55,7 +54,9 @@ func InitializeCato(filePath configs.ConfigFilePath) (app.Cato, func(), error) {
 	problem := logic.NewProblem(logicToken, role, accountDataAccessor, problemDataAccessor, problemExampleDataAccessor, logger, gormDB)
 	testCaseDataAccessor := db.NewTestCaseDataAccessor(gormDB, logger)
 	testCase := logic.NewTestCase(logicToken, role, problemDataAccessor, testCaseDataAccessor, gormDB, logger)
-	apiServer := http.NewAPIServerHandler(account, problem, testCase, logger)
+	submissionDataAccessor := db.NewSubmissionDataAccessor(gormDB, logger)
+	submission := logic.NewSubmission(logicToken, role, problemDataAccessor, submissionDataAccessor, logger)
+	apiServer := http.NewAPIServerHandler(account, problem, testCase, submission, logger)
 	v := middlewares.InitializePJRPCMiddlewareList()
 	httpAuth, err := middlewares.NewHTTPAuth(logicToken, token, logger)
 	if err != nil {
