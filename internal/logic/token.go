@@ -16,7 +16,7 @@ import (
 )
 
 type Token interface {
-	GetToken(ctx context.Context, accountID uint64) (string, error)
+	GetToken(ctx context.Context, accountID uint64) (string, time.Time, error)
 	GetAccountIDAndExpireTime(ctx context.Context, token string) (uint64, time.Time, error)
 	GetAccount(ctx context.Context, token string) (*db.Account, error)
 }
@@ -102,21 +102,22 @@ func (t token) GetAccountIDAndExpireTime(ctx context.Context, tokenString string
 	return uint64(accountID), time.Unix(int64(expireTimeUnix), 0), nil
 }
 
-func (t token) GetToken(ctx context.Context, accountID uint64) (string, error) {
+func (t token) GetToken(ctx context.Context, accountID uint64) (string, time.Time, error) {
 	logger := utils.LoggerWithContext(ctx, t.logger)
 
+	expireTime := time.Now().Add(t.expiresIn)
 	token := jwt.NewWithClaims(jwt.SigningMethodRS512, jwt.MapClaims{
 		"sub": accountID,
-		"exp": time.Now().Add(t.expiresIn).Unix(),
+		"exp": expireTime.Unix(),
 	})
 
 	tokenString, err := token.SignedString(t.privateKey)
 	if err != nil {
 		logger.With(zap.Error(err)).Error("failed to sign token")
-		return "", pjrpc.JRPCErrInternalError()
+		return "", time.Time{}, pjrpc.JRPCErrInternalError()
 	}
 
-	return tokenString, nil
+	return tokenString, expireTime, nil
 }
 
 func (t token) GetAccount(ctx context.Context, token string) (*db.Account, error) {

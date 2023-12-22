@@ -1,9 +1,7 @@
 package middlewares
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -12,20 +10,29 @@ import (
 	"github.com/tranHieuDev23/cato/internal/logic"
 )
 
+const (
+	AuthorizationCookie = "CatoAuth"
+)
+
 type HTTPAuth func(http.Handler) http.Handler
 
 func getAuthorizationBearerToken(request *http.Request) string {
-	authorizationHeader := request.Header.Get("Authorization")
-	authorizationHeaderParts := strings.Split(authorizationHeader, "Bearer ")
-	if len(authorizationHeaderParts) != 2 {
+	authorizationCookie, err := request.Cookie(AuthorizationCookie)
+	if err != nil {
 		return ""
 	}
 
-	return authorizationHeaderParts[1]
+	return authorizationCookie.Value
 }
 
-func setAuthorizationBearerToken(w http.ResponseWriter, token string) {
-	w.Header().Set("Authorization", fmt.Sprintf("Bearer %s", token))
+func setAuthorizationBearerToken(w http.ResponseWriter, token string, expireTime time.Time) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     AuthorizationCookie,
+		Value:    token,
+		HttpOnly: true,
+		Expires:  expireTime,
+		SameSite: http.SameSiteStrictMode,
+	})
 }
 
 func NewHTTPAuth(
@@ -54,15 +61,15 @@ func NewHTTPAuth(
 			}
 
 			ctx := r.Context()
-			accountID, expiredAt, err := tokenLogic.GetAccountIDAndExpireTime(ctx, postRequestToken)
+			accountID, expireTime, err := tokenLogic.GetAccountIDAndExpireTime(ctx, postRequestToken)
 			if err != nil {
 				w.WriteHeader(http.StatusUnauthorized)
 				w.Write(make([]byte, 0))
 				return
 			}
 
-			if time.Now().Add(regenerateTokenBeforeExpiryDuration).After(expiredAt) {
-				newToken, err := tokenLogic.GetToken(ctx, accountID)
+			if time.Now().Add(regenerateTokenBeforeExpiryDuration).After(expireTime) {
+				newToken, newExpireTime, err := tokenLogic.GetToken(ctx, accountID)
 				if err != nil {
 					w.WriteHeader(http.StatusInternalServerError)
 					w.Write(make([]byte, 0))
@@ -70,9 +77,10 @@ func NewHTTPAuth(
 				}
 
 				postRequestToken = newToken
+				expireTime = newExpireTime
 			}
 
-			setAuthorizationBearerToken(inMemoryWriter, postRequestToken)
+			setAuthorizationBearerToken(inMemoryWriter, postRequestToken, expireTime)
 			inMemoryWriter.Apply(w)
 		})
 	}, nil

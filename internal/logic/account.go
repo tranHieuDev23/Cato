@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/samber/lo"
 	"gitlab.com/pjrpc/pjrpc/v2"
@@ -19,7 +20,7 @@ type Account interface {
 	GetAccountList(ctx context.Context, in *rpc.GetAccountListRequest, token string) (*rpc.GetAccountListResponse, error)
 	GetAccount(ctx context.Context, in *rpc.GetAccountRequest, token string) (*rpc.GetAccountResponse, error)
 	UpdateAccount(ctx context.Context, in *rpc.UpdateAccountRequest, token string) (*rpc.UpdateAccountResponse, error)
-	CreateSession(ctx context.Context, in *rpc.CreateSessionRequest) (*rpc.CreateSessionResponse, string, error)
+	CreateSession(ctx context.Context, in *rpc.CreateSessionRequest) (*rpc.CreateSessionResponse, string, time.Time, error)
 	DeleteSession(ctx context.Context, token string) error
 	IsAccountNameTaken(ctx context.Context, accountName string) (bool, error)
 	WithDB(db *gorm.DB) Account
@@ -155,42 +156,42 @@ func (a account) CreateAccount(ctx context.Context, in *rpc.CreateAccountRequest
 	return response, nil
 }
 
-func (a account) CreateSession(ctx context.Context, in *rpc.CreateSessionRequest) (*rpc.CreateSessionResponse, string, error) {
+func (a account) CreateSession(ctx context.Context, in *rpc.CreateSessionRequest) (*rpc.CreateSessionResponse, string, time.Time, error) {
 	logger := utils.LoggerWithContext(ctx, a.logger)
 
 	account, err := a.accountDataAccessor.GetAccountByAccountName(ctx, in.AccountName)
 	if err != nil {
-		return nil, "", err
+		return nil, "", time.Time{}, err
 	}
 
 	if account == nil {
-		return nil, "", pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
+		return nil, "", time.Time{}, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 	}
 
 	accountPassword, err := a.accountPasswordDataAccessor.GetAccountPasswordOfAccountID(ctx, uint64(account.ID))
 	if err != nil {
-		return nil, "", err
+		return nil, "", time.Time{}, err
 	}
 
 	if accountPassword == nil {
-		return nil, "", pjrpc.JRPCErrServerError(int(rpc.ErrorCodeUnauthenticated))
+		return nil, "", time.Time{}, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeUnauthenticated))
 	}
 
 	if equal, err := a.hash.IsHashEqual(ctx, in.Password, accountPassword.Hash); err != nil {
-		return nil, "", err
+		return nil, "", time.Time{}, err
 	} else if !equal {
 		logger.Error("incorrect password")
-		return nil, "", pjrpc.JRPCErrServerError(int(rpc.ErrorCodeUnauthenticated))
+		return nil, "", time.Time{}, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeUnauthenticated))
 	}
 
-	token, err := a.token.GetToken(ctx, uint64(account.ID))
+	token, expireTime, err := a.token.GetToken(ctx, uint64(account.ID))
 	if err != nil {
-		return nil, "", err
+		return nil, "", time.Time{}, err
 	}
 
 	return &rpc.CreateSessionResponse{
 		Account: a.dbAccountToRPCAccount(account),
-	}, token, nil
+	}, token, expireTime, nil
 }
 
 func (a account) DeleteSession(ctx context.Context, token string) error {

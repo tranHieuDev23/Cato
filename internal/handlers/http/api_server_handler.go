@@ -2,11 +2,12 @@ package http
 
 import (
 	"context"
-	"fmt"
-	"strings"
+	"net/http"
+	"time"
 
 	"gitlab.com/pjrpc/pjrpc/v2"
 
+	"github.com/tranHieuDev23/cato/internal/handlers/http/middlewares"
 	"github.com/tranHieuDev23/cato/internal/handlers/http/rpc"
 	"github.com/tranHieuDev23/cato/internal/handlers/http/rpc/rpcserver"
 	"github.com/tranHieuDev23/cato/internal/logic"
@@ -30,22 +31,27 @@ func (a apiServerHandler) getAuthorizationBearerToken(ctx context.Context) strin
 		return ""
 	}
 
-	authorizationHeader := contextData.HTTPRequest.Header.Get("Authorization")
-	authorizationHeaderParts := strings.Split(authorizationHeader, "Bearer ")
-	if len(authorizationHeaderParts) != 2 {
+	authorizationCookie, err := contextData.HTTPRequest.Cookie(middlewares.AuthorizationCookie)
+	if err != nil {
 		return ""
 	}
 
-	return authorizationHeaderParts[1]
+	return authorizationCookie.Value
 }
 
-func (a apiServerHandler) setAuthorizationBearerToken(ctx context.Context, token string) {
+func (a apiServerHandler) setAuthorizationBearerToken(ctx context.Context, token string, expireTime time.Time) {
 	contextData, ok := pjrpc.ContextGetData(ctx)
 	if !ok {
 		return
 	}
 
-	contextData.HTTPRequest.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+	contextData.HTTPRequest.AddCookie(&http.Cookie{
+		Name:     middlewares.AuthorizationCookie,
+		Value:    token,
+		HttpOnly: true,
+		Expires:  expireTime,
+		SameSite: http.SameSiteStrictMode,
+	})
 }
 
 func (a apiServerHandler) CreateAccount(ctx context.Context, in *rpc.CreateAccountRequest) (*rpc.CreateAccountResponse, error) {
@@ -58,12 +64,12 @@ func (a apiServerHandler) CreateProblem(ctx context.Context, in *rpc.CreateProbl
 }
 
 func (a apiServerHandler) CreateSession(ctx context.Context, in *rpc.CreateSessionRequest) (*rpc.CreateSessionResponse, error) {
-	response, token, err := a.accountLogic.CreateSession(ctx, in)
+	response, token, expireTime, err := a.accountLogic.CreateSession(ctx, in)
 	if err != nil {
 		return nil, err
 	}
 
-	a.setAuthorizationBearerToken(ctx, token)
+	a.setAuthorizationBearerToken(ctx, token, expireTime)
 	return response, err
 }
 
