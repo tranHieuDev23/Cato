@@ -10,23 +10,53 @@ import (
 	"github.com/google/wire"
 
 	"github.com/tranHieuDev23/cato/internal/app"
+	"github.com/tranHieuDev23/cato/internal/configs"
 	"github.com/tranHieuDev23/cato/internal/dataaccess"
+	"github.com/tranHieuDev23/cato/internal/dataaccess/db"
 	"github.com/tranHieuDev23/cato/internal/handlers"
 	"github.com/tranHieuDev23/cato/internal/handlers/http"
+	"github.com/tranHieuDev23/cato/internal/handlers/http/middlewares"
 	"github.com/tranHieuDev23/cato/internal/logic"
 	"github.com/tranHieuDev23/cato/internal/utils"
 )
 
 // Injectors from wire.go:
 
-func InitializeCato() (app.Cato, func(), error) {
-	apiServer := http.NewAPIServerHandler()
-	spaHandler := http.NewSPAHandler()
-	server := http.NewServer(apiServer, spaHandler)
+func InitializeCato(filePath configs.ConfigFilePath) (app.Cato, func(), error) {
+	config, err := configs.NewConfig(filePath)
+	if err != nil {
+		return nil, nil, err
+	}
+	hash := config.Hash
 	logger, cleanup, err := utils.InitializeLogger()
 	if err != nil {
 		return nil, nil, err
 	}
+	logicHash := logic.NewHash(hash, logger)
+	gormDB, err := db.InitializeDB()
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	accountDataAccessor := db.NewAccountDataAccessor(gormDB)
+	token := config.Token
+	logicToken, err := logic.NewToken(accountDataAccessor, token, logger)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	role := logic.NewRole(logger)
+	accountPasswordDataAccessor := db.NewAccountPasswordDataAccessor(gormDB)
+	account := logic.NewAccount(logicHash, logicToken, role, accountDataAccessor, accountPasswordDataAccessor, gormDB, logger)
+	apiServer := http.NewAPIServerHandler(account)
+	auth, err := middlewares.NewAuth(logicToken, token, logger)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	v := http.InitializeMiddlewareList(auth)
+	spaHandler := http.NewSPAHandler()
+	server := http.NewServer(apiServer, v, spaHandler)
 	cato := app.NewCato(server, logger)
 	return cato, func() {
 		cleanup()
@@ -35,4 +65,4 @@ func InitializeCato() (app.Cato, func(), error) {
 
 // wire.go:
 
-var WireSet = wire.NewSet(utils.WireSet, dataaccess.WireSet, logic.WireSet, handlers.WireSet, app.WireSet)
+var WireSet = wire.NewSet(utils.WireSet, configs.WireSet, dataaccess.WireSet, logic.WireSet, handlers.WireSet, app.WireSet)

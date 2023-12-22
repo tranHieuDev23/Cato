@@ -15,11 +15,13 @@ type Server interface {
 
 type server struct {
 	apiServerHandler rpcserver.APIServer
+	middlewareList   []pjrpc.Middleware
 	spaHandler       http.Handler
 }
 
 func NewServer(
 	apiServerHandler rpcserver.APIServer,
+	middlewareList []pjrpc.Middleware,
 	spaHandler SPAHandler,
 ) Server {
 	return &server{
@@ -32,7 +34,7 @@ func (s server) Start() error {
 	srv := pjrpc.NewServerHTTP()
 	srv.SetLogger(log.Writer()) // Server can write body close errors and panics in handlers.
 
-	rpcserver.RegisterAPIServer(srv, s.apiServerHandler)
+	rpcserver.RegisterAPIServer(srv, s.apiServerHandler, s.middlewareList...)
 
 	mux := http.NewServeMux()
 

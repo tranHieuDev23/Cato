@@ -5,6 +5,6 @@ import (
 	"gorm.io/gorm"
 )
 
-func InitializeDB(connectionString string) (*gorm.DB, error) {
-	return gorm.Open(sqlite.Open(connectionString), &gorm.Config{})
+func InitializeDB() (*gorm.DB, error) {
+	return gorm.Open(sqlite.Open(""), &gorm.Config{})
 }

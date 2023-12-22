@@ -15,7 +15,7 @@ import (
 )
 
 type Account interface {
-	CreateAccount(ctx context.Context, in *rpc.CreateAccountRequest) (*rpc.CreateAccountResponse, error)
+	CreateAccount(ctx context.Context, in *rpc.CreateAccountRequest, token string) (*rpc.CreateAccountResponse, error)
 	GetAccountList(ctx context.Context, in *rpc.GetAccountListRequest, token string) (*rpc.GetAccountListResponse, error)
 	GetAccount(ctx context.Context, in *rpc.GetAccountRequest, token string) (*rpc.GetAccountResponse, error)
 	UpdateAccount(ctx context.Context, in *rpc.UpdateAccountRequest, token string) (*rpc.UpdateAccountResponse, error)
@@ -63,6 +63,10 @@ func (a account) isValidDisplayName(displayName string) bool {
 	return displayName != ""
 }
 
+func (a account) canAccountBeCreatedAnonymously(role rpc.AccountRole) bool {
+	return role == rpc.AccountRoleContestant || role == rpc.AccountRoleProblemSetter
+}
+
 func (a account) dbAccountToRPCAccount(account *db.Account) rpc.Account {
 	return rpc.Account{
 		ID:          uint64(account.ID),
@@ -81,7 +85,7 @@ func (a account) IsAccountNameTaken(ctx context.Context, accountName string) (bo
 	return account != nil, nil
 }
 
-func (a account) CreateAccount(ctx context.Context, in *rpc.CreateAccountRequest) (*rpc.CreateAccountResponse, error) {
+func (a account) CreateAccount(ctx context.Context, in *rpc.CreateAccountRequest, token string) (*rpc.CreateAccountResponse, error) {
 	logger := utils.LoggerWithContext(ctx, a.logger)
 
 	cleanedDisplayName := a.cleanupDisplayName(in.DisplayName)
@@ -91,6 +95,19 @@ func (a account) CreateAccount(ctx context.Context, in *rpc.CreateAccountRequest
 			Error("failed to create account: invalid display name")
 
 		return nil, pjrpc.JRPCErrInvalidParams()
+	}
+
+	if !a.canAccountBeCreatedAnonymously(in.Role) {
+		account, err := a.token.GetAccount(ctx, token)
+		if err != nil {
+			return nil, err
+		}
+
+		if hasPermission, err := a.role.AccountHasPermission(ctx, string(account.Role), PermissionAccountsWrite); err != nil {
+			return nil, err
+		} else if !hasPermission {
+			return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+		}
 	}
 
 	hashedPassword, err := a.hash.Hash(ctx, in.Password)

@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	cato, cleanup, err := wiring.InitializeCato()
+	cato, cleanup, err := wiring.InitializeCato("")
 	if err != nil {
 		log.Println(err)
 		panic(err)
