@@ -6,6 +6,10 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	createProblemExampleListBatchSize = 5
+)
+
 type ProblemExample struct {
 	gorm.Model
 	OfProblemID uint64
@@ -35,7 +39,7 @@ func NewProblemExampleDataAccessor(
 
 func (a problemExampleDataAccessor) CreateProblemExampleList(ctx context.Context, problemExampleList []*ProblemExample) error {
 	db := a.db.WithContext(ctx)
-	if err := db.CreateInBatches(problemExampleList, 5).Error; err != nil {
+	if err := db.CreateInBatches(problemExampleList, createProblemExampleListBatchSize).Error; err != nil {
 		return err
 	}
 

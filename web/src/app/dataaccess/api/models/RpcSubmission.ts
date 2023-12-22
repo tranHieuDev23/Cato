@@ -13,12 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { RpcCreateProblemResponseAuthor } from './RpcCreateProblemResponseAuthor';
+import type { RpcCreateAccountResponseAccount } from './RpcCreateAccountResponseAccount';
 import {
-    RpcCreateProblemResponseAuthorFromJSON,
-    RpcCreateProblemResponseAuthorFromJSONTyped,
-    RpcCreateProblemResponseAuthorToJSON,
-} from './RpcCreateProblemResponseAuthor';
+    RpcCreateAccountResponseAccountFromJSON,
+    RpcCreateAccountResponseAccountFromJSONTyped,
+    RpcCreateAccountResponseAccountToJSON,
+} from './RpcCreateAccountResponseAccount';
 import type { RpcSubmissionProblem } from './RpcSubmissionProblem';
 import {
     RpcSubmissionProblemFromJSON,
@@ -58,10 +58,10 @@ export interface RpcSubmission {
     problem: RpcSubmissionProblem;
     /**
      * 
-     * @type {RpcCreateProblemResponseAuthor}
+     * @type {RpcCreateAccountResponseAccount}
      * @memberof RpcSubmission
      */
-    author: RpcCreateProblemResponseAuthor;
+    author: RpcCreateAccountResponseAccount;
     /**
      * 
      * @type {string}
@@ -123,7 +123,7 @@ export function RpcSubmissionFromJSONTyped(json: any, ignoreDiscriminator: boole
         
         'iD': json['ID'],
         'problem': RpcSubmissionProblemFromJSON(json['Problem']),
-        'author': RpcCreateProblemResponseAuthorFromJSON(json['Author']),
+        'author': RpcCreateAccountResponseAccountFromJSON(json['Author']),
         'content': json['Content'],
         'language': json['Language'],
         'status': RpcSubmissionStatusFromJSON(json['Status']),
@@ -143,7 +143,7 @@ export function RpcSubmissionToJSON(value?: RpcSubmission | null): any {
         
         'ID': value.iD,
         'Problem': RpcSubmissionProblemToJSON(value.problem),
-        'Author': RpcCreateProblemResponseAuthorToJSON(value.author),
+        'Author': RpcCreateAccountResponseAccountToJSON(value.author),
         'Content': value.content,
         'Language': value.language,
         'Status': RpcSubmissionStatusToJSON(value.status),

@@ -15,10 +15,10 @@ import (
 
 // List of the client JSON-RPC methods.
 const (
-	JSONRPCMethodCreateUser_Client                      = "create_user"
-	JSONRPCMethodGetUserList_Client                     = "get_user_list"
-	JSONRPCMethodGetUser_Client                         = "get_user"
-	JSONRPCMethodUpdateUser_Client                      = "update_user"
+	JSONRPCMethodCreateAccount_Client                   = "create_account"
+	JSONRPCMethodGetAccountList_Client                  = "get_account_list"
+	JSONRPCMethodGetAccount_Client                      = "get_account"
+	JSONRPCMethodUpdateAccount_Client                   = "update_account"
 	JSONRPCMethodCreateSession_Client                   = "create_session"
 	JSONRPCMethodDeleteSession_Client                   = "delete_session"
 	JSONRPCMethodCreateProblem_Client                   = "create_problem"
@@ -26,21 +26,27 @@ const (
 	JSONRPCMethodGetProblem_Client                      = "get_problem"
 	JSONRPCMethodUpdateProblem_Client                   = "update_problem"
 	JSONRPCMethodDeleteProblem_Client                   = "delete_problem"
-	JSONRPCMethodGetUserProblemSnippetList_Client       = "get_user_problem_snippet_list"
+	JSONRPCMethodCreateTestCase_Client                  = "create_test_case"
+	JSONRPCMethodCreateTestCaseList_Client              = "create_test_case_list"
+	JSONRPCMethodGetProblemTestCaseSnippetList_Client   = "get_problem_test_case_snippet_list"
+	JSONRPCMethodGetTestCase_Client                     = "get_test_case"
+	JSONRPCMethodUpdateTestCase_Client                  = "update_test_case"
+	JSONRPCMethodDeleteTestCase_Client                  = "delete_test_case"
+	JSONRPCMethodGetAccountProblemSnippetList_Client    = "get_account_problem_snippet_list"
 	JSONRPCMethodCreateSubmission_Client                = "create_submission"
 	JSONRPCMethodGetSubmissionSnippetList_Client        = "get_submission_snippet_list"
 	JSONRPCMethodGetSubmission_Client                   = "get_submission"
 	JSONRPCMethodDeleteSubmission_Client                = "delete_submission"
-	JSONRPCMethodGetUserSubmissionSnippetList_Client    = "get_user_submission_snippet_list"
+	JSONRPCMethodGetAccountSubmissionSnippetList_Client = "get_account_submission_snippet_list"
 	JSONRPCMethodGetProblemSubmissionSnippetList_Client = "get_problem_submission_snippet_list"
 )
 
 // APIClient is an API client for API service.
 type APIClient interface {
-	CreateUser(ctx context.Context, in *rpc.CreateUserRequest, mods ...client.Mod) (*rpc.CreateUserResponse, error)
-	GetUserList(ctx context.Context, in *rpc.GetUserListRequest, mods ...client.Mod) (*rpc.GetUserListResponse, error)
-	GetUser(ctx context.Context, in *rpc.GetUserRequest, mods ...client.Mod) (*rpc.GetUserResponse, error)
-	UpdateUser(ctx context.Context, in *rpc.UpdateUserRequest, mods ...client.Mod) (*rpc.UpdateUserResponse, error)
+	CreateAccount(ctx context.Context, in *rpc.CreateAccountRequest, mods ...client.Mod) (*rpc.CreateAccountResponse, error)
+	GetAccountList(ctx context.Context, in *rpc.GetAccountListRequest, mods ...client.Mod) (*rpc.GetAccountListResponse, error)
+	GetAccount(ctx context.Context, in *rpc.GetAccountRequest, mods ...client.Mod) (*rpc.GetAccountResponse, error)
+	UpdateAccount(ctx context.Context, in *rpc.UpdateAccountRequest, mods ...client.Mod) (*rpc.UpdateAccountResponse, error)
 	CreateSession(ctx context.Context, in *rpc.CreateSessionRequest, mods ...client.Mod) (*rpc.CreateSessionResponse, error)
 	DeleteSession(ctx context.Context, in *rpc.DeleteSessionRequest, mods ...client.Mod) (*rpc.DeleteSessionResponse, error)
 	CreateProblem(ctx context.Context, in *rpc.CreateProblemRequest, mods ...client.Mod) (*rpc.CreateProblemResponse, error)
@@ -48,12 +54,18 @@ type APIClient interface {
 	GetProblem(ctx context.Context, in *rpc.GetProblemRequest, mods ...client.Mod) (*rpc.GetProblemResponse, error)
 	UpdateProblem(ctx context.Context, in *rpc.UpdateProblemRequest, mods ...client.Mod) (*rpc.UpdateProblemResponse, error)
 	DeleteProblem(ctx context.Context, in *rpc.DeleteProblemRequest, mods ...client.Mod) (*rpc.DeleteProblemResponse, error)
-	GetUserProblemSnippetList(ctx context.Context, in *rpc.GetUserProblemSnippetListRequest, mods ...client.Mod) (*rpc.GetUserProblemSnippetListResponse, error)
+	CreateTestCase(ctx context.Context, in *rpc.CreateTestCaseRequest, mods ...client.Mod) (*rpc.CreateTestCaseResponse, error)
+	CreateTestCaseList(ctx context.Context, in *rpc.CreateTestCaseListRequest, mods ...client.Mod) (*rpc.CreateTestCaseListResponse, error)
+	GetProblemTestCaseSnippetList(ctx context.Context, in *rpc.GetProblemTestCaseSnippetListRequest, mods ...client.Mod) (*rpc.GetProblemTestCaseSnippetListResponse, error)
+	GetTestCase(ctx context.Context, in *rpc.GetTestCaseRequest, mods ...client.Mod) (*rpc.GetTestCaseResponse, error)
+	UpdateTestCase(ctx context.Context, in *rpc.UpdateTestCaseRequest, mods ...client.Mod) (*rpc.UpdateTestCaseResponse, error)
+	DeleteTestCase(ctx context.Context, in *rpc.DeleteTestCaseRequest, mods ...client.Mod) (*rpc.DeleteTestCaseResponse, error)
+	GetAccountProblemSnippetList(ctx context.Context, in *rpc.GetAccountProblemSnippetListRequest, mods ...client.Mod) (*rpc.GetAccountProblemSnippetListResponse, error)
 	CreateSubmission(ctx context.Context, in *rpc.CreateSubmissionRequest, mods ...client.Mod) (*rpc.CreateSubmissionResponse, error)
 	GetSubmissionSnippetList(ctx context.Context, in *rpc.GetSubmissionSnippetListRequest, mods ...client.Mod) (*rpc.GetSubmissionSnippetListResponse, error)
 	GetSubmission(ctx context.Context, in *rpc.GetSubmissionRequest, mods ...client.Mod) (*rpc.GetSubmissionResponse, error)
 	DeleteSubmission(ctx context.Context, in *rpc.DeleteSubmissionRequest, mods ...client.Mod) (*rpc.DeleteSubmissionResponse, error)
-	GetUserSubmissionSnippetList(ctx context.Context, in *rpc.GetUserSubmissionSnippetListRequest, mods ...client.Mod) (*rpc.GetUserSubmissionSnippetListResponse, error)
+	GetAccountSubmissionSnippetList(ctx context.Context, in *rpc.GetAccountSubmissionSnippetListRequest, mods ...client.Mod) (*rpc.GetAccountSubmissionSnippetListResponse, error)
 	GetProblemSubmissionSnippetList(ctx context.Context, in *rpc.GetProblemSubmissionSnippetListRequest, mods ...client.Mod) (*rpc.GetProblemSubmissionSnippetListResponse, error)
 }
 
@@ -66,65 +78,65 @@ func NewAPIClient(cl client.Invoker) APIClient {
 	return &implAPIClient{cl: cl}
 }
 
-func (c *implAPIClient) CreateUser(ctx context.Context, in *rpc.CreateUserRequest, mods ...client.Mod) (result *rpc.CreateUserResponse, err error) {
+func (c *implAPIClient) CreateAccount(ctx context.Context, in *rpc.CreateAccountRequest, mods ...client.Mod) (result *rpc.CreateAccountResponse, err error) {
 	gen, err := uuid.NewUUID()
 	if err != nil {
 		return result, fmt.Errorf("failed to create uuid generator: %w", err)
 	}
 
-	result = new(rpc.CreateUserResponse)
+	result = new(rpc.CreateAccountResponse)
 
-	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodCreateUser_Client, in, result, mods...)
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodCreateAccount_Client, in, result, mods...)
 	if err != nil {
-		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodCreateUser_Client, err)
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodCreateAccount_Client, err)
 	}
 
 	return result, nil
 }
 
-func (c *implAPIClient) GetUserList(ctx context.Context, in *rpc.GetUserListRequest, mods ...client.Mod) (result *rpc.GetUserListResponse, err error) {
+func (c *implAPIClient) GetAccountList(ctx context.Context, in *rpc.GetAccountListRequest, mods ...client.Mod) (result *rpc.GetAccountListResponse, err error) {
 	gen, err := uuid.NewUUID()
 	if err != nil {
 		return result, fmt.Errorf("failed to create uuid generator: %w", err)
 	}
 
-	result = new(rpc.GetUserListResponse)
+	result = new(rpc.GetAccountListResponse)
 
-	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodGetUserList_Client, in, result, mods...)
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodGetAccountList_Client, in, result, mods...)
 	if err != nil {
-		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodGetUserList_Client, err)
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodGetAccountList_Client, err)
 	}
 
 	return result, nil
 }
 
-func (c *implAPIClient) GetUser(ctx context.Context, in *rpc.GetUserRequest, mods ...client.Mod) (result *rpc.GetUserResponse, err error) {
+func (c *implAPIClient) GetAccount(ctx context.Context, in *rpc.GetAccountRequest, mods ...client.Mod) (result *rpc.GetAccountResponse, err error) {
 	gen, err := uuid.NewUUID()
 	if err != nil {
 		return result, fmt.Errorf("failed to create uuid generator: %w", err)
 	}
 
-	result = new(rpc.GetUserResponse)
+	result = new(rpc.GetAccountResponse)
 
-	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodGetUser_Client, in, result, mods...)
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodGetAccount_Client, in, result, mods...)
 	if err != nil {
-		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodGetUser_Client, err)
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodGetAccount_Client, err)
 	}
 
 	return result, nil
 }
 
-func (c *implAPIClient) UpdateUser(ctx context.Context, in *rpc.UpdateUserRequest, mods ...client.Mod) (result *rpc.UpdateUserResponse, err error) {
+func (c *implAPIClient) UpdateAccount(ctx context.Context, in *rpc.UpdateAccountRequest, mods ...client.Mod) (result *rpc.UpdateAccountResponse, err error) {
 	gen, err := uuid.NewUUID()
 	if err != nil {
 		return result, fmt.Errorf("failed to create uuid generator: %w", err)
 	}
 
-	result = new(rpc.UpdateUserResponse)
+	result = new(rpc.UpdateAccountResponse)
 
-	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodUpdateUser_Client, in, result, mods...)
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodUpdateAccount_Client, in, result, mods...)
 	if err != nil {
-		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodUpdateUser_Client, err)
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodUpdateAccount_Client, err)
 	}
 
 	return result, nil
@@ -242,17 +254,113 @@ func (c *implAPIClient) DeleteProblem(ctx context.Context, in *rpc.DeleteProblem
 	return result, nil
 }
 
-func (c *implAPIClient) GetUserProblemSnippetList(ctx context.Context, in *rpc.GetUserProblemSnippetListRequest, mods ...client.Mod) (result *rpc.GetUserProblemSnippetListResponse, err error) {
+func (c *implAPIClient) CreateTestCase(ctx context.Context, in *rpc.CreateTestCaseRequest, mods ...client.Mod) (result *rpc.CreateTestCaseResponse, err error) {
 	gen, err := uuid.NewUUID()
 	if err != nil {
 		return result, fmt.Errorf("failed to create uuid generator: %w", err)
 	}
 
-	result = new(rpc.GetUserProblemSnippetListResponse)
+	result = new(rpc.CreateTestCaseResponse)
 
-	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodGetUserProblemSnippetList_Client, in, result, mods...)
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodCreateTestCase_Client, in, result, mods...)
 	if err != nil {
-		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodGetUserProblemSnippetList_Client, err)
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodCreateTestCase_Client, err)
+	}
+
+	return result, nil
+}
+
+func (c *implAPIClient) CreateTestCaseList(ctx context.Context, in *rpc.CreateTestCaseListRequest, mods ...client.Mod) (result *rpc.CreateTestCaseListResponse, err error) {
+	gen, err := uuid.NewUUID()
+	if err != nil {
+		return result, fmt.Errorf("failed to create uuid generator: %w", err)
+	}
+
+	result = new(rpc.CreateTestCaseListResponse)
+
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodCreateTestCaseList_Client, in, result, mods...)
+	if err != nil {
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodCreateTestCaseList_Client, err)
+	}
+
+	return result, nil
+}
+
+func (c *implAPIClient) GetProblemTestCaseSnippetList(ctx context.Context, in *rpc.GetProblemTestCaseSnippetListRequest, mods ...client.Mod) (result *rpc.GetProblemTestCaseSnippetListResponse, err error) {
+	gen, err := uuid.NewUUID()
+	if err != nil {
+		return result, fmt.Errorf("failed to create uuid generator: %w", err)
+	}
+
+	result = new(rpc.GetProblemTestCaseSnippetListResponse)
+
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodGetProblemTestCaseSnippetList_Client, in, result, mods...)
+	if err != nil {
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodGetProblemTestCaseSnippetList_Client, err)
+	}
+
+	return result, nil
+}
+
+func (c *implAPIClient) GetTestCase(ctx context.Context, in *rpc.GetTestCaseRequest, mods ...client.Mod) (result *rpc.GetTestCaseResponse, err error) {
+	gen, err := uuid.NewUUID()
+	if err != nil {
+		return result, fmt.Errorf("failed to create uuid generator: %w", err)
+	}
+
+	result = new(rpc.GetTestCaseResponse)
+
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodGetTestCase_Client, in, result, mods...)
+	if err != nil {
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodGetTestCase_Client, err)
+	}
+
+	return result, nil
+}
+
+func (c *implAPIClient) UpdateTestCase(ctx context.Context, in *rpc.UpdateTestCaseRequest, mods ...client.Mod) (result *rpc.UpdateTestCaseResponse, err error) {
+	gen, err := uuid.NewUUID()
+	if err != nil {
+		return result, fmt.Errorf("failed to create uuid generator: %w", err)
+	}
+
+	result = new(rpc.UpdateTestCaseResponse)
+
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodUpdateTestCase_Client, in, result, mods...)
+	if err != nil {
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodUpdateTestCase_Client, err)
+	}
+
+	return result, nil
+}
+
+func (c *implAPIClient) DeleteTestCase(ctx context.Context, in *rpc.DeleteTestCaseRequest, mods ...client.Mod) (result *rpc.DeleteTestCaseResponse, err error) {
+	gen, err := uuid.NewUUID()
+	if err != nil {
+		return result, fmt.Errorf("failed to create uuid generator: %w", err)
+	}
+
+	result = new(rpc.DeleteTestCaseResponse)
+
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodDeleteTestCase_Client, in, result, mods...)
+	if err != nil {
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodDeleteTestCase_Client, err)
+	}
+
+	return result, nil
+}
+
+func (c *implAPIClient) GetAccountProblemSnippetList(ctx context.Context, in *rpc.GetAccountProblemSnippetListRequest, mods ...client.Mod) (result *rpc.GetAccountProblemSnippetListResponse, err error) {
+	gen, err := uuid.NewUUID()
+	if err != nil {
+		return result, fmt.Errorf("failed to create uuid generator: %w", err)
+	}
+
+	result = new(rpc.GetAccountProblemSnippetListResponse)
+
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodGetAccountProblemSnippetList_Client, in, result, mods...)
+	if err != nil {
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodGetAccountProblemSnippetList_Client, err)
 	}
 
 	return result, nil
@@ -322,17 +430,17 @@ func (c *implAPIClient) DeleteSubmission(ctx context.Context, in *rpc.DeleteSubm
 	return result, nil
 }
 
-func (c *implAPIClient) GetUserSubmissionSnippetList(ctx context.Context, in *rpc.GetUserSubmissionSnippetListRequest, mods ...client.Mod) (result *rpc.GetUserSubmissionSnippetListResponse, err error) {
+func (c *implAPIClient) GetAccountSubmissionSnippetList(ctx context.Context, in *rpc.GetAccountSubmissionSnippetListRequest, mods ...client.Mod) (result *rpc.GetAccountSubmissionSnippetListResponse, err error) {
 	gen, err := uuid.NewUUID()
 	if err != nil {
 		return result, fmt.Errorf("failed to create uuid generator: %w", err)
 	}
 
-	result = new(rpc.GetUserSubmissionSnippetListResponse)
+	result = new(rpc.GetAccountSubmissionSnippetListResponse)
 
-	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodGetUserSubmissionSnippetList_Client, in, result, mods...)
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodGetAccountSubmissionSnippetList_Client, in, result, mods...)
 	if err != nil {
-		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodGetUserSubmissionSnippetList_Client, err)
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodGetAccountSubmissionSnippetList_Client, err)
 	}
 
 	return result, nil

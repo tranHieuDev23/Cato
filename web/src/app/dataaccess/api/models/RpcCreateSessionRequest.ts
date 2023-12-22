@@ -24,7 +24,7 @@ export interface RpcCreateSessionRequest {
      * @type {string}
      * @memberof RpcCreateSessionRequest
      */
-    username: string;
+    accountName: string;
     /**
      * 
      * @type {string}
@@ -38,7 +38,7 @@ export interface RpcCreateSessionRequest {
  */
 export function instanceOfRpcCreateSessionRequest(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "username" in value;
+    isInstance = isInstance && "accountName" in value;
     isInstance = isInstance && "password" in value;
 
     return isInstance;
@@ -54,7 +54,7 @@ export function RpcCreateSessionRequestFromJSONTyped(json: any, ignoreDiscrimina
     }
     return {
         
-        'username': json['Username'],
+        'accountName': json['AccountName'],
         'password': json['Password'],
     };
 }
@@ -68,7 +68,7 @@ export function RpcCreateSessionRequestToJSON(value?: RpcCreateSessionRequest | 
     }
     return {
         
-        'Username': value.username,
+        'AccountName': value.accountName,
         'Password': value.password,
     };
 }

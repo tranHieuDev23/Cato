@@ -13,12 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { RpcCreateProblemResponseAuthor } from './RpcCreateProblemResponseAuthor';
+import type { RpcCreateAccountResponseAccount } from './RpcCreateAccountResponseAccount';
 import {
-    RpcCreateProblemResponseAuthorFromJSON,
-    RpcCreateProblemResponseAuthorFromJSONTyped,
-    RpcCreateProblemResponseAuthorToJSON,
-} from './RpcCreateProblemResponseAuthor';
+    RpcCreateAccountResponseAccountFromJSON,
+    RpcCreateAccountResponseAccountFromJSONTyped,
+    RpcCreateAccountResponseAccountToJSON,
+} from './RpcCreateAccountResponseAccount';
 
 /**
  * 
@@ -28,10 +28,10 @@ import {
 export interface RpcCreateSessionResponse {
     /**
      * 
-     * @type {RpcCreateProblemResponseAuthor}
+     * @type {RpcCreateAccountResponseAccount}
      * @memberof RpcCreateSessionResponse
      */
-    user: RpcCreateProblemResponseAuthor;
+    account: RpcCreateAccountResponseAccount;
 }
 
 /**
@@ -39,7 +39,7 @@ export interface RpcCreateSessionResponse {
  */
 export function instanceOfRpcCreateSessionResponse(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "user" in value;
+    isInstance = isInstance && "account" in value;
 
     return isInstance;
 }
@@ -54,7 +54,7 @@ export function RpcCreateSessionResponseFromJSONTyped(json: any, ignoreDiscrimin
     }
     return {
         
-        'user': RpcCreateProblemResponseAuthorFromJSON(json['User']),
+        'account': RpcCreateAccountResponseAccountFromJSON(json['Account']),
     };
 }
 
@@ -67,7 +67,7 @@ export function RpcCreateSessionResponseToJSON(value?: RpcCreateSessionResponse 
     }
     return {
         
-        'User': RpcCreateProblemResponseAuthorToJSON(value.user),
+        'Account': RpcCreateAccountResponseAccountToJSON(value.account),
     };
 }
 

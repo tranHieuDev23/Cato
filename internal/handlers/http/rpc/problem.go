@@ -8,7 +8,7 @@ type ProblemExample struct {
 type Problem struct {
 	ID                     uint64
 	DisplayName            string `validate:"alphanumunicode,min=1,max=256"`
-	Author                 User
+	Author                 Account
 	Description            string           `validate:"max=5000"`
 	TimeLimitInMillisecond uint64           `validate:"max=10000"`
 	MemoryLimitInByte      uint64           `validate:"max=8589934592"`
@@ -20,7 +20,7 @@ type Problem struct {
 type ProblemSnippet struct {
 	ID                     uint64
 	DisplayName            string `validate:"alphanumunicode,min=1,max=256"`
-	Author                 User
+	Author                 Account
 	TimeLimitInMillisecond uint64 `validate:"max=10000"`
 	MemoryLimitInByte      uint64 `validate:"max=8589934592"`
 	CreatedTime            uint64

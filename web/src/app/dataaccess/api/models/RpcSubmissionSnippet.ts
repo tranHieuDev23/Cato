@@ -13,12 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { RpcCreateProblemResponseAuthor } from './RpcCreateProblemResponseAuthor';
+import type { RpcCreateAccountResponseAccount } from './RpcCreateAccountResponseAccount';
 import {
-    RpcCreateProblemResponseAuthorFromJSON,
-    RpcCreateProblemResponseAuthorFromJSONTyped,
-    RpcCreateProblemResponseAuthorToJSON,
-} from './RpcCreateProblemResponseAuthor';
+    RpcCreateAccountResponseAccountFromJSON,
+    RpcCreateAccountResponseAccountFromJSONTyped,
+    RpcCreateAccountResponseAccountToJSON,
+} from './RpcCreateAccountResponseAccount';
 import type { RpcSubmissionProblem } from './RpcSubmissionProblem';
 import {
     RpcSubmissionProblemFromJSON,
@@ -58,10 +58,10 @@ export interface RpcSubmissionSnippet {
     problem: RpcSubmissionProblem;
     /**
      * 
-     * @type {RpcCreateProblemResponseAuthor}
+     * @type {RpcCreateAccountResponseAccount}
      * @memberof RpcSubmissionSnippet
      */
-    author: RpcCreateProblemResponseAuthor;
+    author: RpcCreateAccountResponseAccount;
     /**
      * 
      * @type {string}
@@ -116,7 +116,7 @@ export function RpcSubmissionSnippetFromJSONTyped(json: any, ignoreDiscriminator
         
         'iD': json['ID'],
         'problem': RpcSubmissionProblemFromJSON(json['Problem']),
-        'author': RpcCreateProblemResponseAuthorFromJSON(json['Author']),
+        'author': RpcCreateAccountResponseAccountFromJSON(json['Author']),
         'language': json['Language'],
         'status': RpcSubmissionStatusFromJSON(json['Status']),
         'result': RpcSubmissionResultFromJSON(json['Result']),
@@ -135,7 +135,7 @@ export function RpcSubmissionSnippetToJSON(value?: RpcSubmissionSnippet | null):
         
         'ID': value.iD,
         'Problem': RpcSubmissionProblemToJSON(value.problem),
-        'Author': RpcCreateProblemResponseAuthorToJSON(value.author),
+        'Author': RpcCreateAccountResponseAccountToJSON(value.author),
         'Language': value.language,
         'Status': RpcSubmissionStatusToJSON(value.status),
         'Result': RpcSubmissionResultToJSON(value.result),

@@ -24,7 +24,7 @@ type SubmissionProblemSnippet struct {
 type Submission struct {
 	ID          uint64
 	Problem     SubmissionProblemSnippet
-	Author      User
+	Author      Account
 	Content     string           `validate:"max=5120"`
 	Language    string           `validate:"max=32"`
 	Status      SubmissionStatus `validate:"enum=1,2,3"`
@@ -35,7 +35,7 @@ type Submission struct {
 type SubmissionSnippet struct {
 	ID          uint64
 	Problem     SubmissionProblemSnippet
-	Author      User
+	Author      Account
 	Language    string           `validate:"max=32"`
 	Status      SubmissionStatus `validate:"enum=1,2,3"`
 	Result      SubmissionResult `validate:"enum=1,2,3,4,5,6"`

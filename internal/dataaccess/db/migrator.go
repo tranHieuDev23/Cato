@@ -22,10 +22,11 @@ func NewMigrator(db *gorm.DB) Migrator {
 
 func (m migrator) Migrate(ctx context.Context) error {
 	if err := m.db.AutoMigrate(
-		new(User),
-		new(UserPassword),
+		new(Account),
+		new(AccountPassword),
 		new(Problem),
 		new(ProblemExample),
+		new(TestCase),
 		new(Submission),
 	); err != nil {
 		return err

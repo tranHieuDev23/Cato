@@ -13,12 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { RpcCreateProblemResponseAuthor } from './RpcCreateProblemResponseAuthor';
+import type { RpcCreateAccountResponseAccount } from './RpcCreateAccountResponseAccount';
 import {
-    RpcCreateProblemResponseAuthorFromJSON,
-    RpcCreateProblemResponseAuthorFromJSONTyped,
-    RpcCreateProblemResponseAuthorToJSON,
-} from './RpcCreateProblemResponseAuthor';
+    RpcCreateAccountResponseAccountFromJSON,
+    RpcCreateAccountResponseAccountFromJSONTyped,
+    RpcCreateAccountResponseAccountToJSON,
+} from './RpcCreateAccountResponseAccount';
 import type { RpcProblemExample } from './RpcProblemExample';
 import {
     RpcProblemExampleFromJSON,
@@ -46,10 +46,10 @@ export interface RpcCreateProblemResponse {
     displayName: string;
     /**
      * 
-     * @type {RpcCreateProblemResponseAuthor}
+     * @type {RpcCreateAccountResponseAccount}
      * @memberof RpcCreateProblemResponse
      */
-    author: RpcCreateProblemResponseAuthor;
+    author: RpcCreateAccountResponseAccount;
     /**
      * 
      * @type {string}
@@ -118,7 +118,7 @@ export function RpcCreateProblemResponseFromJSONTyped(json: any, ignoreDiscrimin
         
         'iD': json['ID'],
         'displayName': json['DisplayName'],
-        'author': RpcCreateProblemResponseAuthorFromJSON(json['Author']),
+        'author': RpcCreateAccountResponseAccountFromJSON(json['Author']),
         'description': json['Description'],
         'timeLimitInMillisecond': json['TimeLimitInMillisecond'],
         'memoryLimitInByte': json['MemoryLimitInByte'],
@@ -139,7 +139,7 @@ export function RpcCreateProblemResponseToJSON(value?: RpcCreateProblemResponse 
         
         'ID': value.iD,
         'DisplayName': value.displayName,
-        'Author': RpcCreateProblemResponseAuthorToJSON(value.author),
+        'Author': RpcCreateAccountResponseAccountToJSON(value.author),
         'Description': value.description,
         'TimeLimitInMillisecond': value.timeLimitInMillisecond,
         'MemoryLimitInByte': value.memoryLimitInByte,

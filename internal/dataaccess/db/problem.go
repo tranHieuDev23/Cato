@@ -9,9 +9,9 @@ import (
 type Problem struct {
 	gorm.Model
 	DisplayName            string
-	AuthorUserID           uint64
-	Author                 User   `gorm:"foreignKey:AuthorUserID"`
-	Description            string `gorm:"type:text"`
+	AuthorAccountID        uint64
+	Author                 Account `gorm:"foreignKey:AuthorAccountID"`
+	Description            string  `gorm:"type:text"`
 	TimeLimitInMillisecond uint64
 	MemoryLimitInByte      uint64
 }
@@ -21,9 +21,9 @@ type ProblemDataAccessor interface {
 	UpdateProblem(ctx context.Context, Problem *Problem) error
 	GetProblem(ctx context.Context, id uint64) (*Problem, error)
 	GetProblemList(ctx context.Context, offset, limit uint64) ([]*Problem, error)
-	GetUserProblemList(ctx context.Context, userID uint64, offset, limit uint64) ([]*Problem, error)
+	GetAccountProblemList(ctx context.Context, accountID uint64, offset, limit uint64) ([]*Problem, error)
 	GetProblemCount(ctx context.Context) (uint64, error)
-	GetUserProblemCount(ctx context.Context, userID uint64) (uint64, error)
+	GetAccountProblemCount(ctx context.Context, accountID uint64) (uint64, error)
 	WithDB(db *gorm.DB) ProblemDataAccessor
 }
 
@@ -49,7 +49,7 @@ func (*problemDataAccessor) GetProblemCount(ctx context.Context) (uint64, error)
 	panic("unimplemented")
 }
 
-func (*problemDataAccessor) GetUserProblemCount(ctx context.Context, userID uint64) (uint64, error) {
+func (*problemDataAccessor) GetAccountProblemCount(ctx context.Context, accountID uint64) (uint64, error) {
 	panic("unimplemented")
 }
 
@@ -57,7 +57,7 @@ func (*problemDataAccessor) GetProblemList(ctx context.Context, offset uint64, l
 	panic("unimplemented")
 }
 
-func (*problemDataAccessor) GetUserProblemList(ctx context.Context, userID uint64, offset, limit uint64) ([]*Problem, error) {
+func (*problemDataAccessor) GetAccountProblemList(ctx context.Context, accountID uint64, offset, limit uint64) ([]*Problem, error) {
 	panic("unimplemented")
 }
 

@@ -16,10 +16,10 @@ import (
 
 // List of the server JSON-RPC methods.
 const (
-	JSONRPCMethodCreateUser                      = "create_user"
-	JSONRPCMethodGetUserList                     = "get_user_list"
-	JSONRPCMethodGetUser                         = "get_user"
-	JSONRPCMethodUpdateUser                      = "update_user"
+	JSONRPCMethodCreateAccount                   = "create_account"
+	JSONRPCMethodGetAccountList                  = "get_account_list"
+	JSONRPCMethodGetAccount                      = "get_account"
+	JSONRPCMethodUpdateAccount                   = "update_account"
 	JSONRPCMethodCreateSession                   = "create_session"
 	JSONRPCMethodDeleteSession                   = "delete_session"
 	JSONRPCMethodCreateProblem                   = "create_problem"
@@ -27,21 +27,27 @@ const (
 	JSONRPCMethodGetProblem                      = "get_problem"
 	JSONRPCMethodUpdateProblem                   = "update_problem"
 	JSONRPCMethodDeleteProblem                   = "delete_problem"
-	JSONRPCMethodGetUserProblemSnippetList       = "get_user_problem_snippet_list"
+	JSONRPCMethodCreateTestCase                  = "create_test_case"
+	JSONRPCMethodCreateTestCaseList              = "create_test_case_list"
+	JSONRPCMethodGetProblemTestCaseSnippetList   = "get_problem_test_case_snippet_list"
+	JSONRPCMethodGetTestCase                     = "get_test_case"
+	JSONRPCMethodUpdateTestCase                  = "update_test_case"
+	JSONRPCMethodDeleteTestCase                  = "delete_test_case"
+	JSONRPCMethodGetAccountProblemSnippetList    = "get_account_problem_snippet_list"
 	JSONRPCMethodCreateSubmission                = "create_submission"
 	JSONRPCMethodGetSubmissionSnippetList        = "get_submission_snippet_list"
 	JSONRPCMethodGetSubmission                   = "get_submission"
 	JSONRPCMethodDeleteSubmission                = "delete_submission"
-	JSONRPCMethodGetUserSubmissionSnippetList    = "get_user_submission_snippet_list"
+	JSONRPCMethodGetAccountSubmissionSnippetList = "get_account_submission_snippet_list"
 	JSONRPCMethodGetProblemSubmissionSnippetList = "get_problem_submission_snippet_list"
 )
 
 // APIServer is an API server for API service.
 type APIServer interface {
-	CreateUser(ctx context.Context, in *rpc.CreateUserRequest) (*rpc.CreateUserResponse, error)
-	GetUserList(ctx context.Context, in *rpc.GetUserListRequest) (*rpc.GetUserListResponse, error)
-	GetUser(ctx context.Context, in *rpc.GetUserRequest) (*rpc.GetUserResponse, error)
-	UpdateUser(ctx context.Context, in *rpc.UpdateUserRequest) (*rpc.UpdateUserResponse, error)
+	CreateAccount(ctx context.Context, in *rpc.CreateAccountRequest) (*rpc.CreateAccountResponse, error)
+	GetAccountList(ctx context.Context, in *rpc.GetAccountListRequest) (*rpc.GetAccountListResponse, error)
+	GetAccount(ctx context.Context, in *rpc.GetAccountRequest) (*rpc.GetAccountResponse, error)
+	UpdateAccount(ctx context.Context, in *rpc.UpdateAccountRequest) (*rpc.UpdateAccountResponse, error)
 	CreateSession(ctx context.Context, in *rpc.CreateSessionRequest) (*rpc.CreateSessionResponse, error)
 	DeleteSession(ctx context.Context, in *rpc.DeleteSessionRequest) (*rpc.DeleteSessionResponse, error)
 	CreateProblem(ctx context.Context, in *rpc.CreateProblemRequest) (*rpc.CreateProblemResponse, error)
@@ -49,12 +55,18 @@ type APIServer interface {
 	GetProblem(ctx context.Context, in *rpc.GetProblemRequest) (*rpc.GetProblemResponse, error)
 	UpdateProblem(ctx context.Context, in *rpc.UpdateProblemRequest) (*rpc.UpdateProblemResponse, error)
 	DeleteProblem(ctx context.Context, in *rpc.DeleteProblemRequest) (*rpc.DeleteProblemResponse, error)
-	GetUserProblemSnippetList(ctx context.Context, in *rpc.GetUserProblemSnippetListRequest) (*rpc.GetUserProblemSnippetListResponse, error)
+	CreateTestCase(ctx context.Context, in *rpc.CreateTestCaseRequest) (*rpc.CreateTestCaseResponse, error)
+	CreateTestCaseList(ctx context.Context, in *rpc.CreateTestCaseListRequest) (*rpc.CreateTestCaseListResponse, error)
+	GetProblemTestCaseSnippetList(ctx context.Context, in *rpc.GetProblemTestCaseSnippetListRequest) (*rpc.GetProblemTestCaseSnippetListResponse, error)
+	GetTestCase(ctx context.Context, in *rpc.GetTestCaseRequest) (*rpc.GetTestCaseResponse, error)
+	UpdateTestCase(ctx context.Context, in *rpc.UpdateTestCaseRequest) (*rpc.UpdateTestCaseResponse, error)
+	DeleteTestCase(ctx context.Context, in *rpc.DeleteTestCaseRequest) (*rpc.DeleteTestCaseResponse, error)
+	GetAccountProblemSnippetList(ctx context.Context, in *rpc.GetAccountProblemSnippetListRequest) (*rpc.GetAccountProblemSnippetListResponse, error)
 	CreateSubmission(ctx context.Context, in *rpc.CreateSubmissionRequest) (*rpc.CreateSubmissionResponse, error)
 	GetSubmissionSnippetList(ctx context.Context, in *rpc.GetSubmissionSnippetListRequest) (*rpc.GetSubmissionSnippetListResponse, error)
 	GetSubmission(ctx context.Context, in *rpc.GetSubmissionRequest) (*rpc.GetSubmissionResponse, error)
 	DeleteSubmission(ctx context.Context, in *rpc.DeleteSubmissionRequest) (*rpc.DeleteSubmissionResponse, error)
-	GetUserSubmissionSnippetList(ctx context.Context, in *rpc.GetUserSubmissionSnippetListRequest) (*rpc.GetUserSubmissionSnippetListResponse, error)
+	GetAccountSubmissionSnippetList(ctx context.Context, in *rpc.GetAccountSubmissionSnippetListRequest) (*rpc.GetAccountSubmissionSnippetListResponse, error)
 	GetProblemSubmissionSnippetList(ctx context.Context, in *rpc.GetProblemSubmissionSnippetListRequest) (*rpc.GetProblemSubmissionSnippetListResponse, error)
 }
 
@@ -66,10 +78,10 @@ type regAPI struct {
 func RegisterAPIServer(srv pjrpc.Registrator, svc APIServer, middlewares ...pjrpc.Middleware) {
 	r := &regAPI{svc: svc}
 
-	srv.RegisterMethod(JSONRPCMethodCreateUser, r.regCreateUser)
-	srv.RegisterMethod(JSONRPCMethodGetUserList, r.regGetUserList)
-	srv.RegisterMethod(JSONRPCMethodGetUser, r.regGetUser)
-	srv.RegisterMethod(JSONRPCMethodUpdateUser, r.regUpdateUser)
+	srv.RegisterMethod(JSONRPCMethodCreateAccount, r.regCreateAccount)
+	srv.RegisterMethod(JSONRPCMethodGetAccountList, r.regGetAccountList)
+	srv.RegisterMethod(JSONRPCMethodGetAccount, r.regGetAccount)
+	srv.RegisterMethod(JSONRPCMethodUpdateAccount, r.regUpdateAccount)
 	srv.RegisterMethod(JSONRPCMethodCreateSession, r.regCreateSession)
 	srv.RegisterMethod(JSONRPCMethodDeleteSession, r.regDeleteSession)
 	srv.RegisterMethod(JSONRPCMethodCreateProblem, r.regCreateProblem)
@@ -77,76 +89,82 @@ func RegisterAPIServer(srv pjrpc.Registrator, svc APIServer, middlewares ...pjrp
 	srv.RegisterMethod(JSONRPCMethodGetProblem, r.regGetProblem)
 	srv.RegisterMethod(JSONRPCMethodUpdateProblem, r.regUpdateProblem)
 	srv.RegisterMethod(JSONRPCMethodDeleteProblem, r.regDeleteProblem)
-	srv.RegisterMethod(JSONRPCMethodGetUserProblemSnippetList, r.regGetUserProblemSnippetList)
+	srv.RegisterMethod(JSONRPCMethodCreateTestCase, r.regCreateTestCase)
+	srv.RegisterMethod(JSONRPCMethodCreateTestCaseList, r.regCreateTestCaseList)
+	srv.RegisterMethod(JSONRPCMethodGetProblemTestCaseSnippetList, r.regGetProblemTestCaseSnippetList)
+	srv.RegisterMethod(JSONRPCMethodGetTestCase, r.regGetTestCase)
+	srv.RegisterMethod(JSONRPCMethodUpdateTestCase, r.regUpdateTestCase)
+	srv.RegisterMethod(JSONRPCMethodDeleteTestCase, r.regDeleteTestCase)
+	srv.RegisterMethod(JSONRPCMethodGetAccountProblemSnippetList, r.regGetAccountProblemSnippetList)
 	srv.RegisterMethod(JSONRPCMethodCreateSubmission, r.regCreateSubmission)
 	srv.RegisterMethod(JSONRPCMethodGetSubmissionSnippetList, r.regGetSubmissionSnippetList)
 	srv.RegisterMethod(JSONRPCMethodGetSubmission, r.regGetSubmission)
 	srv.RegisterMethod(JSONRPCMethodDeleteSubmission, r.regDeleteSubmission)
-	srv.RegisterMethod(JSONRPCMethodGetUserSubmissionSnippetList, r.regGetUserSubmissionSnippetList)
+	srv.RegisterMethod(JSONRPCMethodGetAccountSubmissionSnippetList, r.regGetAccountSubmissionSnippetList)
 	srv.RegisterMethod(JSONRPCMethodGetProblemSubmissionSnippetList, r.regGetProblemSubmissionSnippetList)
 
 	srv.With(middlewares...)
 }
 
-func (r *regAPI) regCreateUser(ctx context.Context, params json.RawMessage) (any, error) {
-	in := new(rpc.CreateUserRequest)
+func (r *regAPI) regCreateAccount(ctx context.Context, params json.RawMessage) (any, error) {
+	in := new(rpc.CreateAccountRequest)
 	if len(params) != 0 {
 		if err := pjson.Unmarshal(params, in); err != nil {
 			return nil, pjrpc.JRPCErrParseError("failed to parse params")
 		}
 	}
 
-	res, err := r.svc.CreateUser(ctx, in)
+	res, err := r.svc.CreateAccount(ctx, in)
 	if err != nil {
-		return nil, fmt.Errorf("failed CreateUser: %w", err)
+		return nil, fmt.Errorf("failed CreateAccount: %w", err)
 	}
 
 	return res, nil
 }
 
-func (r *regAPI) regGetUserList(ctx context.Context, params json.RawMessage) (any, error) {
-	in := new(rpc.GetUserListRequest)
+func (r *regAPI) regGetAccountList(ctx context.Context, params json.RawMessage) (any, error) {
+	in := new(rpc.GetAccountListRequest)
 	if len(params) != 0 {
 		if err := pjson.Unmarshal(params, in); err != nil {
 			return nil, pjrpc.JRPCErrParseError("failed to parse params")
 		}
 	}
 
-	res, err := r.svc.GetUserList(ctx, in)
+	res, err := r.svc.GetAccountList(ctx, in)
 	if err != nil {
-		return nil, fmt.Errorf("failed GetUserList: %w", err)
+		return nil, fmt.Errorf("failed GetAccountList: %w", err)
 	}
 
 	return res, nil
 }
 
-func (r *regAPI) regGetUser(ctx context.Context, params json.RawMessage) (any, error) {
-	in := new(rpc.GetUserRequest)
+func (r *regAPI) regGetAccount(ctx context.Context, params json.RawMessage) (any, error) {
+	in := new(rpc.GetAccountRequest)
 	if len(params) != 0 {
 		if err := pjson.Unmarshal(params, in); err != nil {
 			return nil, pjrpc.JRPCErrParseError("failed to parse params")
 		}
 	}
 
-	res, err := r.svc.GetUser(ctx, in)
+	res, err := r.svc.GetAccount(ctx, in)
 	if err != nil {
-		return nil, fmt.Errorf("failed GetUser: %w", err)
+		return nil, fmt.Errorf("failed GetAccount: %w", err)
 	}
 
 	return res, nil
 }
 
-func (r *regAPI) regUpdateUser(ctx context.Context, params json.RawMessage) (any, error) {
-	in := new(rpc.UpdateUserRequest)
+func (r *regAPI) regUpdateAccount(ctx context.Context, params json.RawMessage) (any, error) {
+	in := new(rpc.UpdateAccountRequest)
 	if len(params) != 0 {
 		if err := pjson.Unmarshal(params, in); err != nil {
 			return nil, pjrpc.JRPCErrParseError("failed to parse params")
 		}
 	}
 
-	res, err := r.svc.UpdateUser(ctx, in)
+	res, err := r.svc.UpdateAccount(ctx, in)
 	if err != nil {
-		return nil, fmt.Errorf("failed UpdateUser: %w", err)
+		return nil, fmt.Errorf("failed UpdateAccount: %w", err)
 	}
 
 	return res, nil
@@ -264,17 +282,113 @@ func (r *regAPI) regDeleteProblem(ctx context.Context, params json.RawMessage) (
 	return res, nil
 }
 
-func (r *regAPI) regGetUserProblemSnippetList(ctx context.Context, params json.RawMessage) (any, error) {
-	in := new(rpc.GetUserProblemSnippetListRequest)
+func (r *regAPI) regCreateTestCase(ctx context.Context, params json.RawMessage) (any, error) {
+	in := new(rpc.CreateTestCaseRequest)
 	if len(params) != 0 {
 		if err := pjson.Unmarshal(params, in); err != nil {
 			return nil, pjrpc.JRPCErrParseError("failed to parse params")
 		}
 	}
 
-	res, err := r.svc.GetUserProblemSnippetList(ctx, in)
+	res, err := r.svc.CreateTestCase(ctx, in)
 	if err != nil {
-		return nil, fmt.Errorf("failed GetUserProblemSnippetList: %w", err)
+		return nil, fmt.Errorf("failed CreateTestCase: %w", err)
+	}
+
+	return res, nil
+}
+
+func (r *regAPI) regCreateTestCaseList(ctx context.Context, params json.RawMessage) (any, error) {
+	in := new(rpc.CreateTestCaseListRequest)
+	if len(params) != 0 {
+		if err := pjson.Unmarshal(params, in); err != nil {
+			return nil, pjrpc.JRPCErrParseError("failed to parse params")
+		}
+	}
+
+	res, err := r.svc.CreateTestCaseList(ctx, in)
+	if err != nil {
+		return nil, fmt.Errorf("failed CreateTestCaseList: %w", err)
+	}
+
+	return res, nil
+}
+
+func (r *regAPI) regGetProblemTestCaseSnippetList(ctx context.Context, params json.RawMessage) (any, error) {
+	in := new(rpc.GetProblemTestCaseSnippetListRequest)
+	if len(params) != 0 {
+		if err := pjson.Unmarshal(params, in); err != nil {
+			return nil, pjrpc.JRPCErrParseError("failed to parse params")
+		}
+	}
+
+	res, err := r.svc.GetProblemTestCaseSnippetList(ctx, in)
+	if err != nil {
+		return nil, fmt.Errorf("failed GetProblemTestCaseSnippetList: %w", err)
+	}
+
+	return res, nil
+}
+
+func (r *regAPI) regGetTestCase(ctx context.Context, params json.RawMessage) (any, error) {
+	in := new(rpc.GetTestCaseRequest)
+	if len(params) != 0 {
+		if err := pjson.Unmarshal(params, in); err != nil {
+			return nil, pjrpc.JRPCErrParseError("failed to parse params")
+		}
+	}
+
+	res, err := r.svc.GetTestCase(ctx, in)
+	if err != nil {
+		return nil, fmt.Errorf("failed GetTestCase: %w", err)
+	}
+
+	return res, nil
+}
+
+func (r *regAPI) regUpdateTestCase(ctx context.Context, params json.RawMessage) (any, error) {
+	in := new(rpc.UpdateTestCaseRequest)
+	if len(params) != 0 {
+		if err := pjson.Unmarshal(params, in); err != nil {
+			return nil, pjrpc.JRPCErrParseError("failed to parse params")
+		}
+	}
+
+	res, err := r.svc.UpdateTestCase(ctx, in)
+	if err != nil {
+		return nil, fmt.Errorf("failed UpdateTestCase: %w", err)
+	}
+
+	return res, nil
+}
+
+func (r *regAPI) regDeleteTestCase(ctx context.Context, params json.RawMessage) (any, error) {
+	in := new(rpc.DeleteTestCaseRequest)
+	if len(params) != 0 {
+		if err := pjson.Unmarshal(params, in); err != nil {
+			return nil, pjrpc.JRPCErrParseError("failed to parse params")
+		}
+	}
+
+	res, err := r.svc.DeleteTestCase(ctx, in)
+	if err != nil {
+		return nil, fmt.Errorf("failed DeleteTestCase: %w", err)
+	}
+
+	return res, nil
+}
+
+func (r *regAPI) regGetAccountProblemSnippetList(ctx context.Context, params json.RawMessage) (any, error) {
+	in := new(rpc.GetAccountProblemSnippetListRequest)
+	if len(params) != 0 {
+		if err := pjson.Unmarshal(params, in); err != nil {
+			return nil, pjrpc.JRPCErrParseError("failed to parse params")
+		}
+	}
+
+	res, err := r.svc.GetAccountProblemSnippetList(ctx, in)
+	if err != nil {
+		return nil, fmt.Errorf("failed GetAccountProblemSnippetList: %w", err)
 	}
 
 	return res, nil
@@ -344,17 +458,17 @@ func (r *regAPI) regDeleteSubmission(ctx context.Context, params json.RawMessage
 	return res, nil
 }
 
-func (r *regAPI) regGetUserSubmissionSnippetList(ctx context.Context, params json.RawMessage) (any, error) {
-	in := new(rpc.GetUserSubmissionSnippetListRequest)
+func (r *regAPI) regGetAccountSubmissionSnippetList(ctx context.Context, params json.RawMessage) (any, error) {
+	in := new(rpc.GetAccountSubmissionSnippetListRequest)
 	if len(params) != 0 {
 		if err := pjson.Unmarshal(params, in); err != nil {
 			return nil, pjrpc.JRPCErrParseError("failed to parse params")
 		}
 	}
 
-	res, err := r.svc.GetUserSubmissionSnippetList(ctx, in)
+	res, err := r.svc.GetAccountSubmissionSnippetList(ctx, in)
 	if err != nil {
-		return nil, fmt.Errorf("failed GetUserSubmissionSnippetList: %w", err)
+		return nil, fmt.Errorf("failed GetAccountSubmissionSnippetList: %w", err)
 	}
 
 	return res, nil
