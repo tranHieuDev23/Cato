@@ -300,16 +300,23 @@ func (a account) UpdateAccount(ctx context.Context, in *rpc.UpdateAccountRequest
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
 	}
 
-	cleanedDisplayName := a.cleanupDisplayName(in.DisplayName)
-	if !a.isValidDisplayName(cleanedDisplayName) {
-		logger.
-			With(zap.String("display_name", in.DisplayName)).
-			Error("failed to update account: invalid display name")
+	if in.DisplayName != nil {
+		cleanedDisplayName := a.cleanupDisplayName(*in.DisplayName)
+		if !a.isValidDisplayName(cleanedDisplayName) {
+			logger.
+				With(zap.String("display_name", *in.DisplayName)).
+				Error("failed to update account: invalid display name")
 
-		return nil, pjrpc.JRPCErrInvalidParams()
+			return nil, pjrpc.JRPCErrInvalidParams()
+		}
+
+		updatedAccount.DisplayName = cleanedDisplayName
 	}
 
-	updatedAccount.DisplayName = cleanedDisplayName
+	if in.Role != nil {
+		updatedAccount.Role = db.AccountRole(*in.Role)
+	}
+
 	if err := a.accountDataAccessor.UpdateAccount(ctx, updatedAccount); err != nil {
 		return nil, err
 	}

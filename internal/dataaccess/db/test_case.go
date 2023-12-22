@@ -2,9 +2,12 @@ package db
 
 import (
 	"context"
+	"errors"
 
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+
+	"github.com/tranHieuDev23/cato/internal/utils"
 )
 
 const (
@@ -21,11 +24,12 @@ type TestCase struct {
 }
 
 type TestCaseDataAccessor interface {
-	CreateTestCase(ctx context.Context, testCase TestCase) error
+	CreateTestCase(ctx context.Context, testCase *TestCase) error
 	CreateTestCaseList(ctx context.Context, testCaseList []*TestCase) error
+	GetTestCase(ctx context.Context, id uint64) (*TestCase, error)
 	GetTestCaseListOfProblem(ctx context.Context, problemID uint64, offset uint64, limit uint64) ([]*TestCase, error)
 	GetTestCaseCountOfProblem(ctx context.Context, problemID uint64) (uint64, error)
-	UpdateTestCase(ctx context.Context, testCase TestCase) error
+	UpdateTestCase(ctx context.Context, testCase *TestCase) error
 	DeleteTestCase(ctx context.Context, id uint64) error
 	WithDB(db *gorm.DB) TestCaseDataAccessor
 }
@@ -45,7 +49,7 @@ func NewTestCaseDataAccessor(
 	}
 }
 
-func (a testCaseDataAccessor) CreateTestCase(ctx context.Context, testCase TestCase) error {
+func (a testCaseDataAccessor) CreateTestCase(ctx context.Context, testCase *TestCase) error {
 	db := a.db.WithContext(ctx)
 	if err := db.Create(testCase).Error; err != nil {
 		return err
@@ -54,13 +58,32 @@ func (a testCaseDataAccessor) CreateTestCase(ctx context.Context, testCase TestC
 	return nil
 }
 
-func (a testCaseDataAccessor) UpdateTestCase(ctx context.Context, testCase TestCase) error {
+func (a testCaseDataAccessor) UpdateTestCase(ctx context.Context, testCase *TestCase) error {
 	db := a.db.WithContext(ctx)
 	if err := db.Save(testCase).Error; err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (a testCaseDataAccessor) GetTestCase(ctx context.Context, id uint64) (*TestCase, error) {
+	logger := utils.LoggerWithContext(ctx, a.logger)
+	db := a.db.WithContext(ctx)
+	testCase := new(TestCase)
+	if err := db.First(testCase).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		logger.
+			With(zap.Uint64("id", id)).
+			With(zap.Error(err)).
+			Error("failed to get test case")
+		return nil, err
+	}
+
+	return testCase, nil
 }
 
 func (a testCaseDataAccessor) CreateTestCaseList(ctx context.Context, testCaseList []*TestCase) error {

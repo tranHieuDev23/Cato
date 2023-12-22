@@ -3,9 +3,10 @@ package db
 import (
 	"context"
 
-	"github.com/tranHieuDev23/cato/internal/utils"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+
+	"github.com/tranHieuDev23/cato/internal/utils"
 )
 
 type Migrator interface {

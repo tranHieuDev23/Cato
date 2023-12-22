@@ -368,13 +368,6 @@ func (p problem) UpdateProblem(ctx context.Context, in *rpc.UpdateProblemRequest
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
 	}
 
-	cleanedDisplayName := p.cleanupDisplayName(in.DisplayName)
-	if !p.isValidDisplayName(cleanedDisplayName) {
-		return nil, pjrpc.JRPCErrInvalidParams()
-	}
-
-	cleanedDescription := p.cleanupDescription(in.Description)
-
 	response := &rpc.UpdateProblemResponse{}
 	if txErr := p.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		problem, err := p.problemDataAccessor.WithDB(tx).GetProblem(ctx, in.ID)
@@ -398,27 +391,28 @@ func (p problem) UpdateProblem(ctx context.Context, in *rpc.UpdateProblemRequest
 			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
 		}
 
-		problem.DisplayName = cleanedDisplayName
-		problem.Description = cleanedDescription
-		problem.TimeLimitInMillisecond = in.TimeLimitInMillisecond
-		problem.MemoryLimitInByte = in.MemoryLimitInByte
+		if in.DisplayName != nil {
+			cleanedDisplayName := p.cleanupDisplayName(*in.DisplayName)
+			if !p.isValidDisplayName(cleanedDisplayName) {
+				return pjrpc.JRPCErrInvalidParams()
+			}
+
+			problem.DisplayName = cleanedDisplayName
+		}
+
+		if in.Description != nil {
+			problem.Description = p.cleanupDescription(*in.Description)
+		}
+
+		if in.TimeLimitInMillisecond != nil {
+			problem.TimeLimitInMillisecond = *in.TimeLimitInMillisecond
+		}
+
+		if in.MemoryLimitInByte != nil {
+			problem.MemoryLimitInByte = *in.MemoryLimitInByte
+		}
 
 		if err := p.problemDataAccessor.WithDB(tx).UpdateProblem(ctx, problem); err != nil {
-			return err
-		}
-
-		if err := p.problemExampleDataAccessor.DeleteProblemExampleOfProblem(ctx, uint64(problem.ID)); err != nil {
-			return err
-		}
-
-		problemExampleList := lo.Map(in.ExampleList, func(item rpc.ProblemExample, _ int) *db.ProblemExample {
-			return &db.ProblemExample{
-				OfProblemID: uint64(problem.ID),
-				Input:       item.Input,
-				Output:      item.Output,
-			}
-		})
-		if err := p.problemExampleDataAccessor.WithDB(tx).CreateProblemExampleList(ctx, problemExampleList); err != nil {
 			return err
 		}
 
@@ -429,6 +423,29 @@ func (p problem) UpdateProblem(ctx context.Context, in *rpc.UpdateProblemRequest
 
 		if author == nil {
 			return pjrpc.JRPCErrInternalError()
+		}
+
+		var problemExampleList []*db.ProblemExample
+		if in.ExampleList == nil {
+			problemExampleList, err = p.problemExampleDataAccessor.WithDB(tx).GetProblemExampleListOfProblem(ctx, uint64(problem.ID))
+			if err != nil {
+				return err
+			}
+		} else {
+			if err := p.problemExampleDataAccessor.DeleteProblemExampleOfProblem(ctx, uint64(problem.ID)); err != nil {
+				return err
+			}
+
+			problemExampleList = lo.Map(*in.ExampleList, func(item rpc.ProblemExample, _ int) *db.ProblemExample {
+				return &db.ProblemExample{
+					OfProblemID: uint64(problem.ID),
+					Input:       item.Input,
+					Output:      item.Output,
+				}
+			})
+			if err := p.problemExampleDataAccessor.WithDB(tx).CreateProblemExampleList(ctx, problemExampleList); err != nil {
+				return err
+			}
 		}
 
 		response.Problem = p.dbProblemToRPCProblem(problem, author, problemExampleList)

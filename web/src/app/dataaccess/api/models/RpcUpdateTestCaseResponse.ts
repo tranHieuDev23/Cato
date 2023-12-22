@@ -13,12 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { RpcGetTestCaseResponseTestCase } from './RpcGetTestCaseResponseTestCase';
+import type { RpcCreateTestCaseResponseTestCaseSnippet } from './RpcCreateTestCaseResponseTestCaseSnippet';
 import {
-    RpcGetTestCaseResponseTestCaseFromJSON,
-    RpcGetTestCaseResponseTestCaseFromJSONTyped,
-    RpcGetTestCaseResponseTestCaseToJSON,
-} from './RpcGetTestCaseResponseTestCase';
+    RpcCreateTestCaseResponseTestCaseSnippetFromJSON,
+    RpcCreateTestCaseResponseTestCaseSnippetFromJSONTyped,
+    RpcCreateTestCaseResponseTestCaseSnippetToJSON,
+} from './RpcCreateTestCaseResponseTestCaseSnippet';
 
 /**
  * 
@@ -28,10 +28,10 @@ import {
 export interface RpcUpdateTestCaseResponse {
     /**
      * 
-     * @type {RpcGetTestCaseResponseTestCase}
+     * @type {RpcCreateTestCaseResponseTestCaseSnippet}
      * @memberof RpcUpdateTestCaseResponse
      */
-    testCase: RpcGetTestCaseResponseTestCase;
+    testCaseSnippet: RpcCreateTestCaseResponseTestCaseSnippet;
 }
 
 /**
@@ -39,7 +39,7 @@ export interface RpcUpdateTestCaseResponse {
  */
 export function instanceOfRpcUpdateTestCaseResponse(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "testCase" in value;
+    isInstance = isInstance && "testCaseSnippet" in value;
 
     return isInstance;
 }
@@ -54,7 +54,7 @@ export function RpcUpdateTestCaseResponseFromJSONTyped(json: any, ignoreDiscrimi
     }
     return {
         
-        'testCase': RpcGetTestCaseResponseTestCaseFromJSON(json['TestCase']),
+        'testCaseSnippet': RpcCreateTestCaseResponseTestCaseSnippetFromJSON(json['TestCaseSnippet']),
     };
 }
 
@@ -67,7 +67,7 @@ export function RpcUpdateTestCaseResponseToJSON(value?: RpcUpdateTestCaseRespons
     }
     return {
         
-        'TestCase': RpcGetTestCaseResponseTestCaseToJSON(value.testCase),
+        'TestCaseSnippet': RpcCreateTestCaseResponseTestCaseSnippetToJSON(value.testCaseSnippet),
     };
 }
 

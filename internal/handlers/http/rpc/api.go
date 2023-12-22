@@ -87,8 +87,8 @@ type GetAccountResponse struct {
 
 type UpdateAccountRequest struct {
 	ID          uint64
-	DisplayName string      `validate:"min=1,max=32"`
-	Role        AccountRole `validate:"oneof=admin problem_setter contestant worker"`
+	DisplayName *string      `validate:"min=1,max=32"`
+	Role        *AccountRole `validate:"oneof=admin problem_setter contestant worker"`
 }
 
 type UpdateAccountResponse struct {
@@ -140,11 +140,11 @@ type GetProblemResponse struct {
 
 type UpdateProblemRequest struct {
 	ID                     uint64
-	DisplayName            string           `validate:"min=1,max=256"`
-	Description            string           `validate:"max=5000"`
-	TimeLimitInMillisecond uint64           `validate:"max=10000"`
-	MemoryLimitInByte      uint64           `validate:"max=8589934592"`
-	ExampleList            []ProblemExample `validate:"max=5"`
+	DisplayName            *string           `validate:"min=1,max=256"`
+	Description            *string           `validate:"max=5000"`
+	TimeLimitInMillisecond *uint64           `validate:"max=10000"`
+	MemoryLimitInByte      *uint64           `validate:"max=8589934592"`
+	ExampleList            *[]ProblemExample `validate:"max=5"`
 }
 
 type UpdateProblemResponse struct {
@@ -196,13 +196,13 @@ type GetTestCaseResponse struct {
 
 type UpdateTestCaseRequest struct {
 	ID       uint64
-	Input    string `validate:"max=5000"`
-	Output   string `validate:"max=5000"`
-	IsHidden bool
+	Input    *string `validate:"max=5000"`
+	Output   *string `validate:"max=5000"`
+	IsHidden *bool
 }
 
 type UpdateTestCaseResponse struct {
-	TestCase TestCase
+	TestCaseSnippet TestCaseSnippet
 }
 
 type DeleteTestCaseRequest struct {
