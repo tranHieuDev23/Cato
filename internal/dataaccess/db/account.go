@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"errors"
 
 	"gorm.io/gorm"
 )
@@ -57,6 +58,10 @@ func (a accountDataAccessor) GetAccount(ctx context.Context, id uint64) (*Accoun
 	db := a.db.WithContext(ctx)
 	account := new(Account)
 	if err := db.First(account).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
 		return nil, err
 	}
 
@@ -69,6 +74,10 @@ func (a accountDataAccessor) GetAccountByAccountName(ctx context.Context, accoun
 	if err := db.Model(new(Account)).Where(&Account{
 		AccountName: accountName,
 	}).First(account).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
 		return nil, err
 	}
 

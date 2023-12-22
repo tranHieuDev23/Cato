@@ -141,7 +141,7 @@ func (a account) CreateAccount(ctx context.Context, in *rpc.CreateAccountRequest
 			OfAccountID: uint64(account.ID),
 			Hash:        hashedPassword,
 		}
-		if err := a.accountPasswordDataAccessor.CreateAccountPassword(ctx, accountPassword); err != nil {
+		if err := a.accountPasswordDataAccessor.WithDB(tx).CreateAccountPassword(ctx, accountPassword); err != nil {
 			return err
 		}
 

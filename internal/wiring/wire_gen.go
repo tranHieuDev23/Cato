@@ -8,7 +8,6 @@ package wiring
 
 import (
 	"github.com/google/wire"
-
 	"github.com/tranHieuDev23/cato/internal/app"
 	"github.com/tranHieuDev23/cato/internal/configs"
 	"github.com/tranHieuDev23/cato/internal/dataaccess"
@@ -27,19 +26,21 @@ func InitializeCato(filePath configs.ConfigFilePath) (app.Cato, func(), error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	hash := config.Hash
+	database := config.Database
+	gormDB, err := db.InitializeDB(database)
+	if err != nil {
+		return nil, nil, err
+	}
+	migrator := db.NewMigrator(gormDB)
+	auth := config.Auth
+	hash := auth.Hash
 	logger, cleanup, err := utils.InitializeLogger()
 	if err != nil {
 		return nil, nil, err
 	}
 	logicHash := logic.NewHash(hash, logger)
-	gormDB, err := db.InitializeDB()
-	if err != nil {
-		cleanup()
-		return nil, nil, err
-	}
 	accountDataAccessor := db.NewAccountDataAccessor(gormDB)
-	token := config.Token
+	token := auth.Token
 	logicToken, err := logic.NewToken(accountDataAccessor, token, logger)
 	if err != nil {
 		cleanup()
@@ -49,15 +50,17 @@ func InitializeCato(filePath configs.ConfigFilePath) (app.Cato, func(), error) {
 	accountPasswordDataAccessor := db.NewAccountPasswordDataAccessor(gormDB)
 	account := logic.NewAccount(logicHash, logicToken, role, accountDataAccessor, accountPasswordDataAccessor, gormDB, logger)
 	apiServer := http.NewAPIServerHandler(account)
-	auth, err := middlewares.NewAuth(logicToken, token, logger)
+	v := middlewares.InitializePJRPCMiddlewareList()
+	httpAuth, err := middlewares.NewHTTPAuth(logicToken, token, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
-	v := http.InitializeMiddlewareList(auth)
+	v2 := middlewares.InitalizeHTTPMiddlewareList(httpAuth)
 	spaHandler := http.NewSPAHandler()
-	server := http.NewServer(apiServer, v, spaHandler)
-	cato := app.NewCato(server, logger)
+	configsHTTP := config.HTTP
+	server := http.NewServer(apiServer, v, v2, spaHandler, logger, configsHTTP)
+	cato := app.NewCato(migrator, server, logger)
 	return cato, func() {
 		cleanup()
 	}, nil

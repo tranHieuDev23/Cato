@@ -1,29 +1,38 @@
 package middlewares
 
 import (
-	"context"
-	"encoding/json"
+	"fmt"
+	"net/http"
+	"strings"
 	"time"
 
-	"gitlab.com/pjrpc/pjrpc/v2"
 	"go.uber.org/zap"
 
 	"github.com/tranHieuDev23/cato/internal/configs"
-	"github.com/tranHieuDev23/cato/internal/handlers/http/utils"
 	"github.com/tranHieuDev23/cato/internal/logic"
 )
 
-const (
-	AuthContextFieldToken = "Token"
-)
+type HTTPAuth func(http.Handler) http.Handler
 
-type Auth pjrpc.Middleware
+func getAuthorizationBearerToken(request *http.Request) string {
+	authorizationHeader := request.Header.Get("Authorization")
+	authorizationHeaderParts := strings.Split(authorizationHeader, "Bearer ")
+	if len(authorizationHeaderParts) != 2 {
+		return ""
+	}
 
-func NewAuth(
+	return authorizationHeaderParts[1]
+}
+
+func setAuthorizationBearerToken(w http.ResponseWriter, token string) {
+	w.Header().Set("Authorization", fmt.Sprintf("Bearer %s", token))
+}
+
+func NewHTTPAuth(
 	tokenLogic logic.Token,
 	tokenConfig configs.Token,
 	logger *zap.Logger,
-) (Auth, error) {
+) (HTTPAuth, error) {
 	regenerateTokenBeforeExpiryDuration, err := tokenConfig.GetRegenerateTokenBeforeExpiryDuration()
 	if err != nil {
 		logger.
@@ -33,31 +42,38 @@ func NewAuth(
 		return nil, err
 	}
 
-	return func(next pjrpc.Handler) pjrpc.Handler {
-		return func(ctx context.Context, params json.RawMessage) (any, error) {
-			currentTime := time.Now()
+	return func(baseHandler http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			inMemoryWriter := newInMemoryResponseWriter()
+			baseHandler.ServeHTTP(inMemoryWriter, r)
 
-			token := utils.GetAuthorizationBearerToken(ctx)
-			ctx = context.WithValue(ctx, AuthContextFieldToken, token)
-			response, err := next(ctx, params)
-
-			if token != "" {
-				accountID, expiresAt, tokenErr := tokenLogic.GetAccountIDAndExpireTime(ctx, token)
-				if tokenErr != nil {
-					return nil, tokenErr
-				}
-
-				if currentTime.Add(regenerateTokenBeforeExpiryDuration).After(expiresAt) {
-					newToken, newTokenErr := tokenLogic.GetToken(ctx, accountID)
-					if err != nil {
-						return nil, newTokenErr
-					}
-
-					utils.SetAuthorizationBearerToken(ctx, newToken)
-				}
+			postRequestToken := getAuthorizationBearerToken(r)
+			if postRequestToken == "" {
+				inMemoryWriter.Apply(w)
+				return
 			}
 
-			return response, err
-		}
+			ctx := r.Context()
+			accountID, expiredAt, err := tokenLogic.GetAccountIDAndExpireTime(ctx, postRequestToken)
+			if err != nil {
+				w.WriteHeader(http.StatusUnauthorized)
+				w.Write(make([]byte, 0))
+				return
+			}
+
+			if time.Now().Add(regenerateTokenBeforeExpiryDuration).After(expiredAt) {
+				newToken, err := tokenLogic.GetToken(ctx, accountID)
+				if err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					w.Write(make([]byte, 0))
+					return
+				}
+
+				postRequestToken = newToken
+			}
+
+			setAuthorizationBearerToken(inMemoryWriter, postRequestToken)
+			inMemoryWriter.Apply(w)
+		})
 	}, nil
 }
