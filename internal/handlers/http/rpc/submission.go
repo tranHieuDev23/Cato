@@ -27,7 +27,7 @@ type Submission struct {
 	Author      Account
 	Content     string           `validate:"max=5120"`
 	Language    string           `validate:"max=32"`
-	Status      SubmissionStatus `validate:"enum=1,2,3"`
+	Status      SubmissionStatus `validate:"oneof=1 2 3"`
 	Result      SubmissionResult
 	CreatedTime uint64
 }
@@ -37,7 +37,7 @@ type SubmissionSnippet struct {
 	Problem     SubmissionProblemSnippet
 	Author      Account
 	Language    string           `validate:"max=32"`
-	Status      SubmissionStatus `validate:"enum=1,2,3"`
-	Result      SubmissionResult `validate:"enum=1,2,3,4,5,6"`
+	Status      SubmissionStatus `validate:"oneof=1 2 3"`
+	Result      SubmissionResult `validate:"oneof=1 2 3 4 5 6"`
 	CreatedTime uint64
 }

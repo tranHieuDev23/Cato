@@ -50,7 +50,7 @@ func InitializeCato(filePath configs.ConfigFilePath) (app.Cato, func(), error) {
 	role := logic.NewRole(logger)
 	accountPasswordDataAccessor := db.NewAccountPasswordDataAccessor(gormDB)
 	account := logic.NewAccount(logicHash, logicToken, role, accountDataAccessor, accountPasswordDataAccessor, gormDB, logger)
-	apiServer := http.NewAPIServerHandler(account)
+	apiServer := http.NewAPIServerHandler(account, logger)
 	v := middlewares.InitializePJRPCMiddlewareList()
 	httpAuth, err := middlewares.NewHTTPAuth(logicToken, token, logger)
 	if err != nil {

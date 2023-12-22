@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+	"regexp"
 	"strings"
 	"time"
 
@@ -13,6 +14,10 @@ import (
 	"github.com/tranHieuDev23/cato/internal/dataaccess/db"
 	"github.com/tranHieuDev23/cato/internal/handlers/http/rpc"
 	"github.com/tranHieuDev23/cato/internal/utils"
+)
+
+var (
+	accountDisplayNameRegex = regexp.MustCompile("^[\\p{L}\\p{N}\\s]+$")
 )
 
 type Account interface {
@@ -61,7 +66,7 @@ func (a account) cleanupDisplayName(displayName string) string {
 }
 
 func (a account) isValidDisplayName(displayName string) bool {
-	return displayName != ""
+	return displayName != "" && accountDisplayNameRegex.Match([]byte(displayName))
 }
 
 func (a account) canAccountBeCreatedAnonymously(role rpc.AccountRole) bool {

@@ -58,8 +58,8 @@ type API interface {
 
 type CreateAccountRequest struct {
 	AccountName string      `validate:"alphanum,min=6,max=32"`
-	DisplayName string      `validate:"alphanumunicode,min=1,max=32"`
-	Role        AccountRole `validate:"enum=admin,problem_setter,contestant,worker"`
+	DisplayName string      `validate:"min=1,max=32"`
+	Role        AccountRole `validate:"oneof=admin problem_setter contestant worker"`
 	Password    string      `validate:"min=8"`
 }
 
@@ -87,8 +87,8 @@ type GetAccountResponse struct {
 
 type UpdateAccountRequest struct {
 	ID          uint64
-	DisplayName string      `validate:"alphanumunicode,min=1,max=32"`
-	Role        AccountRole `validate:"enum=admin,problem_setter,contestant,worker"`
+	DisplayName string      `validate:"min=1,max=32"`
+	Role        AccountRole `validate:"oneof=admin problem_setter contestant worker"`
 }
 
 type UpdateAccountResponse struct {
@@ -109,7 +109,7 @@ type DeleteSessionRequest struct{}
 type DeleteSessionResponse struct{}
 
 type CreateProblemRequest struct {
-	DisplayName            string           `validate:"alphanumunicode,min=1,max=256"`
+	DisplayName            string           `validate:"min=1,max=256"`
 	Description            string           `validate:"max=5000"`
 	TimeLimitInMillisecond uint64           `validate:"max=10000"`
 	MemoryLimitInByte      uint64           `validate:"max=8589934592"`
@@ -140,7 +140,7 @@ type GetProblemResponse struct {
 
 type UpdateProblemRequest struct {
 	ID                     uint64
-	DisplayName            string           `validate:"alphanumunicode,min=1,max=256"`
+	DisplayName            string           `validate:"min=1,max=256"`
 	Description            string           `validate:"max=5000"`
 	TimeLimitInMillisecond uint64           `validate:"max=10000"`
 	MemoryLimitInByte      uint64           `validate:"max=8589934592"`
