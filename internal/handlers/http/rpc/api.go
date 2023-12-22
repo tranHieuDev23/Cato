@@ -223,14 +223,13 @@ type GetAccountProblemSnippetListResponse struct {
 }
 
 type CreateSubmissionRequest struct {
-	ProblemID       uint64
-	AuthorAccountID uint64
-	Content         string `validate:"max=5120"`
-	Language        string `validate:"max=32"`
+	ProblemID uint64
+	Content   string `validate:"max=5120"`
+	Language  string `validate:"max=32"`
 }
 
 type CreateSubmissionResponse struct {
-	Problem Problem
+	SubmissionSnippet SubmissionSnippet
 }
 
 type GetSubmissionSnippetListRequest struct {

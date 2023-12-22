@@ -13,12 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { RpcCreateProblemResponseProblem } from './RpcCreateProblemResponseProblem';
+import type { RpcCreateSubmissionResponseSubmissionSnippet } from './RpcCreateSubmissionResponseSubmissionSnippet';
 import {
-    RpcCreateProblemResponseProblemFromJSON,
-    RpcCreateProblemResponseProblemFromJSONTyped,
-    RpcCreateProblemResponseProblemToJSON,
-} from './RpcCreateProblemResponseProblem';
+    RpcCreateSubmissionResponseSubmissionSnippetFromJSON,
+    RpcCreateSubmissionResponseSubmissionSnippetFromJSONTyped,
+    RpcCreateSubmissionResponseSubmissionSnippetToJSON,
+} from './RpcCreateSubmissionResponseSubmissionSnippet';
 
 /**
  * 
@@ -28,10 +28,10 @@ import {
 export interface RpcCreateSubmissionResponse {
     /**
      * 
-     * @type {RpcCreateProblemResponseProblem}
+     * @type {RpcCreateSubmissionResponseSubmissionSnippet}
      * @memberof RpcCreateSubmissionResponse
      */
-    problem: RpcCreateProblemResponseProblem;
+    submissionSnippet: RpcCreateSubmissionResponseSubmissionSnippet;
 }
 
 /**
@@ -39,7 +39,7 @@ export interface RpcCreateSubmissionResponse {
  */
 export function instanceOfRpcCreateSubmissionResponse(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "problem" in value;
+    isInstance = isInstance && "submissionSnippet" in value;
 
     return isInstance;
 }
@@ -54,7 +54,7 @@ export function RpcCreateSubmissionResponseFromJSONTyped(json: any, ignoreDiscri
     }
     return {
         
-        'problem': RpcCreateProblemResponseProblemFromJSON(json['Problem']),
+        'submissionSnippet': RpcCreateSubmissionResponseSubmissionSnippetFromJSON(json['SubmissionSnippet']),
     };
 }
 
@@ -67,7 +67,7 @@ export function RpcCreateSubmissionResponseToJSON(value?: RpcCreateSubmissionRes
     }
     return {
         
-        'Problem': RpcCreateProblemResponseProblemToJSON(value.problem),
+        'SubmissionSnippet': RpcCreateSubmissionResponseSubmissionSnippetToJSON(value.submissionSnippet),
     };
 }
 

@@ -27,12 +27,6 @@ export interface RpcCreateSubmissionRequest {
     problemID: number;
     /**
      * 
-     * @type {number}
-     * @memberof RpcCreateSubmissionRequest
-     */
-    authorAccountID: number;
-    /**
-     * 
      * @type {string}
      * @memberof RpcCreateSubmissionRequest
      */
@@ -51,7 +45,6 @@ export interface RpcCreateSubmissionRequest {
 export function instanceOfRpcCreateSubmissionRequest(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "problemID" in value;
-    isInstance = isInstance && "authorAccountID" in value;
     isInstance = isInstance && "content" in value;
     isInstance = isInstance && "language" in value;
 
@@ -69,7 +62,6 @@ export function RpcCreateSubmissionRequestFromJSONTyped(json: any, ignoreDiscrim
     return {
         
         'problemID': json['ProblemID'],
-        'authorAccountID': json['AuthorAccountID'],
         'content': json['Content'],
         'language': json['Language'],
     };
@@ -85,7 +77,6 @@ export function RpcCreateSubmissionRequestToJSON(value?: RpcCreateSubmissionRequ
     return {
         
         'ProblemID': value.problemID,
-        'AuthorAccountID': value.authorAccountID,
         'Content': value.content,
         'Language': value.language,
     };

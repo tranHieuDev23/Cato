@@ -209,7 +209,7 @@ func (t testCase) GetProblemTestCaseSnippetList(ctx context.Context, in *rpc.Get
 		return nil, err
 	}
 
-	testCaseList, err := t.testCaseDataAccessor.GetTestCaseListOfProblem(ctx, in.ProblemID, in.Limit, in.Offset)
+	testCaseList, err := t.testCaseDataAccessor.GetTestCaseListOfProblem(ctx, in.ProblemID, in.Offset, in.Limit)
 	if err != nil {
 		return nil, err
 	}

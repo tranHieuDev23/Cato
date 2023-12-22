@@ -13,12 +13,14 @@ import (
 )
 
 var (
-	PermissionAccountsRead   = gorbac.NewStdPermission("accounts.read")
-	PermissionAccountsWrite  = gorbac.NewStdPermission("accounts.write")
-	PermissionProblemsRead   = gorbac.NewStdPermission("problems.read")
-	PermissionProblemsWrite  = gorbac.NewStdPermission("problems.write")
-	PermissionTestCasesRead  = gorbac.NewStdPermission("test_cases.read")
-	PermissionTestCasesWrite = gorbac.NewStdPermission("test_cases.write")
+	PermissionAccountsRead     = gorbac.NewStdPermission("accounts.read")
+	PermissionAccountsWrite    = gorbac.NewStdPermission("accounts.write")
+	PermissionProblemsRead     = gorbac.NewStdPermission("problems.read")
+	PermissionProblemsWrite    = gorbac.NewStdPermission("problems.write")
+	PermissionTestCasesRead    = gorbac.NewStdPermission("test_cases.read")
+	PermissionTestCasesWrite   = gorbac.NewStdPermission("test_cases.write")
+	PermissionSubmissionsRead  = gorbac.NewStdPermission("submissions.read")
+	PermissionSubmissionsWrite = gorbac.NewStdPermission("submissions.write")
 )
 
 type Role interface {
@@ -62,6 +64,9 @@ func initializeGoRBAC() *gorbac.RBAC {
 	goRBACRoleProblemSetter.Assign(PermissionTestCasesWrite)
 
 	goRBACRoleContestant.Assign(PermissionTestCasesRead)
+
+	goRBACRoleContestant.Assign(PermissionTestCasesRead)
+	goRBACRoleContestant.Assign(PermissionTestCasesWrite)
 
 	return rbac
 }

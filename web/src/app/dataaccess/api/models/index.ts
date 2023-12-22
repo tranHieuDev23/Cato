@@ -60,6 +60,7 @@ export * from './RpcCreateSessionRequest';
 export * from './RpcCreateSessionResponse';
 export * from './RpcCreateSubmissionRequest';
 export * from './RpcCreateSubmissionResponse';
+export * from './RpcCreateSubmissionResponseSubmissionSnippet';
 export * from './RpcCreateTestCaseListRequest';
 export * from './RpcCreateTestCaseRequest';
 export * from './RpcCreateTestCaseResponse';

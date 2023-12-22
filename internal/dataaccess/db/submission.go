@@ -38,6 +38,7 @@ type Submission struct {
 type SubmissionDataAccessor interface {
 	CreateSubmission(ctx context.Context, submission *Submission) error
 	UpdateSubmission(ctx context.Context, submission *Submission) error
+	DeleteSubmission(ctx context.Context, id uint64) error
 	GetSubmission(ctx context.Context, id uint64) (*Submission, error)
 	GetSubmissionList(ctx context.Context, offset, limit uint64) ([]*Submission, error)
 	GetAccountSubmissionList(ctx context.Context, accountID uint64, offset, limit uint64) ([]*Submission, error)
@@ -72,6 +73,10 @@ func (a submissionDataAccessor) GetSubmission(ctx context.Context, id uint64) (*
 }
 
 func (a submissionDataAccessor) UpdateSubmission(ctx context.Context, submission *Submission) error {
+	panic("unimplemented")
+}
+
+func (a submissionDataAccessor) DeleteSubmission(ctx context.Context, id uint64) error {
 	panic("unimplemented")
 }
 
