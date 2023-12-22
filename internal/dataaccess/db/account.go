@@ -17,7 +17,7 @@ const (
 
 type Account struct {
 	gorm.Model
-	AccountName string
+	AccountName string `gorm:"uniqueIndex"`
 	DisplayName string
 	Role        AccountRole
 }
@@ -26,6 +26,7 @@ type AccountDataAccessor interface {
 	CreateAccount(ctx context.Context, account *Account) error
 	UpdateAccount(ctx context.Context, account *Account) error
 	GetAccount(ctx context.Context, id uint64) (*Account, error)
+	GetAccountByAccountName(ctx context.Context, accountName string) (*Account, error)
 	GetAccountList(ctx context.Context, offset, limit uint64) ([]*Account, error)
 	GetAccountCount(ctx context.Context) (uint64, error)
 	WithDB(db *gorm.DB) AccountDataAccessor
@@ -55,7 +56,19 @@ func (a accountDataAccessor) CreateAccount(ctx context.Context, account *Account
 func (a accountDataAccessor) GetAccount(ctx context.Context, id uint64) (*Account, error) {
 	db := a.db.WithContext(ctx)
 	account := new(Account)
-	if err := db.First(account, id).Error; err != nil {
+	if err := db.First(account).Error; err != nil {
+		return nil, err
+	}
+
+	return account, nil
+}
+
+func (a accountDataAccessor) GetAccountByAccountName(ctx context.Context, accountName string) (*Account, error) {
+	db := a.db.WithContext(ctx)
+	account := new(Account)
+	if err := db.Model(new(Account)).Where(&Account{
+		AccountName: accountName,
+	}).First(account).Error; err != nil {
 		return nil, err
 	}
 

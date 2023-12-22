@@ -1,5 +1,27 @@
 package rpc
 
+type ErrorCode int
+
+const (
+	ErrorCodeOK                 ErrorCode = 1
+	ErrorCodeCanceled           ErrorCode = 2
+	ErrorCodeUnknown            ErrorCode = 3
+	ErrorCodeInvalidArgument    ErrorCode = 4
+	ErrorCodeDeadlineExceeded   ErrorCode = 5
+	ErrorCodeNotFound           ErrorCode = 6
+	ErrorCodeAlreadyExists      ErrorCode = 7
+	ErrorCodePermissionDenied   ErrorCode = 8
+	ErrorCodeResourceExhausted  ErrorCode = 9
+	ErrorCodeFailedPrecondition ErrorCode = 10
+	ErrorCodeAborted            ErrorCode = 11
+	ErrorCodeOutOfRange         ErrorCode = 12
+	ErrorCodeUnimplemented      ErrorCode = 13
+	ErrorCodeInternal           ErrorCode = 14
+	ErrorCodeUnavailable        ErrorCode = 15
+	ErrorCodeDataLoss           ErrorCode = 16
+	ErrorCodeUnauthenticated    ErrorCode = 17
+)
+
 //go:generate genpjrpc -search.name=API -print.place.path_swagger_file=../../../../api/swagger.json
 type API interface {
 	CreateAccount(CreateAccountRequest) CreateAccountResponse
@@ -60,7 +82,7 @@ type GetAccountRequest struct {
 }
 
 type GetAccountResponse struct {
-	Account *Account
+	Account Account
 }
 
 type UpdateAccountRequest struct {
@@ -113,7 +135,7 @@ type GetProblemRequest struct {
 }
 
 type GetProblemResponse struct {
-	Problem *Problem
+	Problem Problem
 }
 
 type UpdateProblemRequest struct {
@@ -226,7 +248,7 @@ type GetSubmissionRequest struct {
 }
 
 type GetSubmissionResponse struct {
-	Submission *Submission
+	Submission Submission
 }
 
 type DeleteSubmissionRequest struct {
