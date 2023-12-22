@@ -17,8 +17,9 @@ type Problem struct {
 }
 
 type ProblemDataAccessor interface {
-	CreateProblem(ctx context.Context, Problem *Problem) error
-	UpdateProblem(ctx context.Context, Problem *Problem) error
+	CreateProblem(ctx context.Context, problem *Problem) error
+	UpdateProblem(ctx context.Context, problem *Problem) error
+	DeleteProblem(ctx context.Context, id uint64) error
 	GetProblem(ctx context.Context, id uint64) (*Problem, error)
 	GetProblemList(ctx context.Context, offset, limit uint64) ([]*Problem, error)
 	GetAccountProblemList(ctx context.Context, accountID uint64, offset, limit uint64) ([]*Problem, error)
@@ -37,7 +38,7 @@ func NewProblemDataAccessor(db *gorm.DB) ProblemDataAccessor {
 	}
 }
 
-func (*problemDataAccessor) CreateProblem(ctx context.Context, Problem *Problem) error {
+func (*problemDataAccessor) CreateProblem(ctx context.Context, problem *Problem) error {
 	panic("unimplemented")
 }
 
@@ -61,7 +62,11 @@ func (*problemDataAccessor) GetAccountProblemList(ctx context.Context, accountID
 	panic("unimplemented")
 }
 
-func (*problemDataAccessor) UpdateProblem(ctx context.Context, Problem *Problem) error {
+func (*problemDataAccessor) UpdateProblem(ctx context.Context, problem *Problem) error {
+	panic("unimplemented")
+}
+
+func (*problemDataAccessor) DeleteProblem(ctx context.Context, id uint64) error {
 	panic("unimplemented")
 }
 

@@ -21,24 +21,24 @@ import {
 } from './RpcProblem';
 
 /**
- * @type RpcCreateSubmissionResponseProblem
+ * @type RpcCreateProblemResponseProblem
  * 
  * @export
  */
-export type RpcCreateSubmissionResponseProblem = RpcProblem;
+export type RpcCreateProblemResponseProblem = RpcProblem;
 
-export function RpcCreateSubmissionResponseProblemFromJSON(json: any): RpcCreateSubmissionResponseProblem {
-    return RpcCreateSubmissionResponseProblemFromJSONTyped(json, false);
+export function RpcCreateProblemResponseProblemFromJSON(json: any): RpcCreateProblemResponseProblem {
+    return RpcCreateProblemResponseProblemFromJSONTyped(json, false);
 }
 
-export function RpcCreateSubmissionResponseProblemFromJSONTyped(json: any, ignoreDiscriminator: boolean): RpcCreateSubmissionResponseProblem {
+export function RpcCreateProblemResponseProblemFromJSONTyped(json: any, ignoreDiscriminator: boolean): RpcCreateProblemResponseProblem {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return { ...RpcProblemFromJSONTyped(json, true) };
 }
 
-export function RpcCreateSubmissionResponseProblemToJSON(value?: RpcCreateSubmissionResponseProblem | null): any {
+export function RpcCreateProblemResponseProblemToJSON(value?: RpcCreateProblemResponseProblem | null): any {
     if (value === undefined) {
         return undefined;
     }

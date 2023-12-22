@@ -57,11 +57,11 @@ models/RpcCreateAccountResponse.ts
 models/RpcCreateAccountResponseAccount.ts
 models/RpcCreateProblemRequest.ts
 models/RpcCreateProblemResponse.ts
+models/RpcCreateProblemResponseProblem.ts
 models/RpcCreateSessionRequest.ts
 models/RpcCreateSessionResponse.ts
 models/RpcCreateSubmissionRequest.ts
 models/RpcCreateSubmissionResponse.ts
-models/RpcCreateSubmissionResponseProblem.ts
 models/RpcCreateTestCaseListRequest.ts
 models/RpcCreateTestCaseRequest.ts
 models/RpcCreateTestCaseResponse.ts
@@ -96,6 +96,7 @@ models/RpcGetTestCaseResponse.ts
 models/RpcGetTestCaseResponseTestCase.ts
 models/RpcProblem.ts
 models/RpcProblemExample.ts
+models/RpcProblemSnippet.ts
 models/RpcSubmission.ts
 models/RpcSubmissionProblem.ts
 models/RpcSubmissionProblemSnippet.ts

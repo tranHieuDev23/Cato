@@ -324,6 +324,8 @@ func (a account) UpdateAccount(ctx context.Context, in *rpc.UpdateAccountRequest
 func (a account) WithDB(db *gorm.DB) Account {
 	return &account{
 		hash:                        a.hash,
+		token:                       a.token.WithDB(db),
+		role:                        a.role,
 		accountDataAccessor:         a.accountDataAccessor.WithDB(db),
 		accountPasswordDataAccessor: a.accountPasswordDataAccessor.WithDB(db),
 		db:                          db,

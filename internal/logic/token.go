@@ -8,6 +8,7 @@ import (
 	"github.com/golang-jwt/jwt"
 	"gitlab.com/pjrpc/pjrpc/v2"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 
 	"github.com/tranHieuDev23/cato/internal/configs"
 	"github.com/tranHieuDev23/cato/internal/dataaccess/db"
@@ -19,6 +20,7 @@ type Token interface {
 	GetToken(ctx context.Context, accountID uint64) (string, time.Time, error)
 	GetAccountIDAndExpireTime(ctx context.Context, token string) (uint64, time.Time, error)
 	GetAccount(ctx context.Context, token string) (*db.Account, error)
+	WithDB(db *gorm.DB) Token
 }
 
 type token struct {
@@ -136,4 +138,15 @@ func (t token) GetAccount(ctx context.Context, token string) (*db.Account, error
 	}
 
 	return account, nil
+}
+
+func (t token) WithDB(db *gorm.DB) Token {
+	return &token{
+		accountDataAccessor: t.accountDataAccessor.WithDB(db),
+		expiresIn:           t.expiresIn,
+		privateKey:          t.privateKey,
+		publicKey:           t.publicKey,
+		tokenConfig:         t.tokenConfig,
+		logger:              t.logger,
+	}
 }

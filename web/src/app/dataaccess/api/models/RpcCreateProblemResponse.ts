@@ -13,18 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { RpcCreateAccountResponseAccount } from './RpcCreateAccountResponseAccount';
+import type { RpcCreateProblemResponseProblem } from './RpcCreateProblemResponseProblem';
 import {
-    RpcCreateAccountResponseAccountFromJSON,
-    RpcCreateAccountResponseAccountFromJSONTyped,
-    RpcCreateAccountResponseAccountToJSON,
-} from './RpcCreateAccountResponseAccount';
-import type { RpcProblemExample } from './RpcProblemExample';
-import {
-    RpcProblemExampleFromJSON,
-    RpcProblemExampleFromJSONTyped,
-    RpcProblemExampleToJSON,
-} from './RpcProblemExample';
+    RpcCreateProblemResponseProblemFromJSON,
+    RpcCreateProblemResponseProblemFromJSONTyped,
+    RpcCreateProblemResponseProblemToJSON,
+} from './RpcCreateProblemResponseProblem';
 
 /**
  * 
@@ -34,58 +28,10 @@ import {
 export interface RpcCreateProblemResponse {
     /**
      * 
-     * @type {number}
+     * @type {RpcCreateProblemResponseProblem}
      * @memberof RpcCreateProblemResponse
      */
-    iD: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof RpcCreateProblemResponse
-     */
-    displayName: string;
-    /**
-     * 
-     * @type {RpcCreateAccountResponseAccount}
-     * @memberof RpcCreateProblemResponse
-     */
-    author: RpcCreateAccountResponseAccount;
-    /**
-     * 
-     * @type {string}
-     * @memberof RpcCreateProblemResponse
-     */
-    description: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof RpcCreateProblemResponse
-     */
-    timeLimitInMillisecond: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof RpcCreateProblemResponse
-     */
-    memoryLimitInByte: number;
-    /**
-     * 
-     * @type {Array<RpcProblemExample>}
-     * @memberof RpcCreateProblemResponse
-     */
-    exampleList: Array<RpcProblemExample>;
-    /**
-     * 
-     * @type {number}
-     * @memberof RpcCreateProblemResponse
-     */
-    createdTime: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof RpcCreateProblemResponse
-     */
-    updatedTime: number;
+    problem: RpcCreateProblemResponseProblem;
 }
 
 /**
@@ -93,15 +39,7 @@ export interface RpcCreateProblemResponse {
  */
 export function instanceOfRpcCreateProblemResponse(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "iD" in value;
-    isInstance = isInstance && "displayName" in value;
-    isInstance = isInstance && "author" in value;
-    isInstance = isInstance && "description" in value;
-    isInstance = isInstance && "timeLimitInMillisecond" in value;
-    isInstance = isInstance && "memoryLimitInByte" in value;
-    isInstance = isInstance && "exampleList" in value;
-    isInstance = isInstance && "createdTime" in value;
-    isInstance = isInstance && "updatedTime" in value;
+    isInstance = isInstance && "problem" in value;
 
     return isInstance;
 }
@@ -116,15 +54,7 @@ export function RpcCreateProblemResponseFromJSONTyped(json: any, ignoreDiscrimin
     }
     return {
         
-        'iD': json['ID'],
-        'displayName': json['DisplayName'],
-        'author': RpcCreateAccountResponseAccountFromJSON(json['Author']),
-        'description': json['Description'],
-        'timeLimitInMillisecond': json['TimeLimitInMillisecond'],
-        'memoryLimitInByte': json['MemoryLimitInByte'],
-        'exampleList': ((json['ExampleList'] as Array<any>).map(RpcProblemExampleFromJSON)),
-        'createdTime': json['CreatedTime'],
-        'updatedTime': json['UpdatedTime'],
+        'problem': RpcCreateProblemResponseProblemFromJSON(json['Problem']),
     };
 }
 
@@ -137,15 +67,7 @@ export function RpcCreateProblemResponseToJSON(value?: RpcCreateProblemResponse 
     }
     return {
         
-        'ID': value.iD,
-        'DisplayName': value.displayName,
-        'Author': RpcCreateAccountResponseAccountToJSON(value.author),
-        'Description': value.description,
-        'TimeLimitInMillisecond': value.timeLimitInMillisecond,
-        'MemoryLimitInByte': value.memoryLimitInByte,
-        'ExampleList': ((value.exampleList as Array<any>).map(RpcProblemExampleToJSON)),
-        'CreatedTime': value.createdTime,
-        'UpdatedTime': value.updatedTime,
+        'Problem': RpcCreateProblemResponseProblemToJSON(value.problem),
     };
 }
 

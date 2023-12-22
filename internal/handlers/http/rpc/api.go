@@ -117,7 +117,7 @@ type CreateProblemRequest struct {
 }
 
 type CreateProblemResponse struct {
-	Problem
+	Problem Problem
 }
 
 type GetProblemSnippetListRequest struct {
@@ -127,7 +127,7 @@ type GetProblemSnippetListRequest struct {
 
 type GetProblemSnippetListResponse struct {
 	TotalProblemCount  uint64
-	ProblemSnippetList []Problem
+	ProblemSnippetList []ProblemSnippet
 }
 
 type GetProblemRequest struct {
@@ -219,7 +219,7 @@ type GetAccountProblemSnippetListRequest struct {
 
 type GetAccountProblemSnippetListResponse struct {
 	TotalProblemCount  uint64
-	ProblemSnippetList []Problem
+	ProblemSnippetList []ProblemSnippet
 }
 
 type CreateSubmissionRequest struct {

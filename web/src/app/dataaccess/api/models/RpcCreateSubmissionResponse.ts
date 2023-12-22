@@ -13,12 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { RpcCreateSubmissionResponseProblem } from './RpcCreateSubmissionResponseProblem';
+import type { RpcCreateProblemResponseProblem } from './RpcCreateProblemResponseProblem';
 import {
-    RpcCreateSubmissionResponseProblemFromJSON,
-    RpcCreateSubmissionResponseProblemFromJSONTyped,
-    RpcCreateSubmissionResponseProblemToJSON,
-} from './RpcCreateSubmissionResponseProblem';
+    RpcCreateProblemResponseProblemFromJSON,
+    RpcCreateProblemResponseProblemFromJSONTyped,
+    RpcCreateProblemResponseProblemToJSON,
+} from './RpcCreateProblemResponseProblem';
 
 /**
  * 
@@ -28,10 +28,10 @@ import {
 export interface RpcCreateSubmissionResponse {
     /**
      * 
-     * @type {RpcCreateSubmissionResponseProblem}
+     * @type {RpcCreateProblemResponseProblem}
      * @memberof RpcCreateSubmissionResponse
      */
-    problem: RpcCreateSubmissionResponseProblem;
+    problem: RpcCreateProblemResponseProblem;
 }
 
 /**
@@ -54,7 +54,7 @@ export function RpcCreateSubmissionResponseFromJSONTyped(json: any, ignoreDiscri
     }
     return {
         
-        'problem': RpcCreateSubmissionResponseProblemFromJSON(json['Problem']),
+        'problem': RpcCreateProblemResponseProblemFromJSON(json['Problem']),
     };
 }
 
@@ -67,7 +67,7 @@ export function RpcCreateSubmissionResponseToJSON(value?: RpcCreateSubmissionRes
     }
     return {
         
-        'Problem': RpcCreateSubmissionResponseProblemToJSON(value.problem),
+        'Problem': RpcCreateProblemResponseProblemToJSON(value.problem),
     };
 }
 

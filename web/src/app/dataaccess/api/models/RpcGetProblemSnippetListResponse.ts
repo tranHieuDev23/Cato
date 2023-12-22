@@ -13,12 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { RpcProblem } from './RpcProblem';
+import type { RpcProblemSnippet } from './RpcProblemSnippet';
 import {
-    RpcProblemFromJSON,
-    RpcProblemFromJSONTyped,
-    RpcProblemToJSON,
-} from './RpcProblem';
+    RpcProblemSnippetFromJSON,
+    RpcProblemSnippetFromJSONTyped,
+    RpcProblemSnippetToJSON,
+} from './RpcProblemSnippet';
 
 /**
  * 
@@ -34,10 +34,10 @@ export interface RpcGetProblemSnippetListResponse {
     totalProblemCount: number;
     /**
      * 
-     * @type {Array<RpcProblem>}
+     * @type {Array<RpcProblemSnippet>}
      * @memberof RpcGetProblemSnippetListResponse
      */
-    problemSnippetList: Array<RpcProblem>;
+    problemSnippetList: Array<RpcProblemSnippet>;
 }
 
 /**
@@ -62,7 +62,7 @@ export function RpcGetProblemSnippetListResponseFromJSONTyped(json: any, ignoreD
     return {
         
         'totalProblemCount': json['TotalProblemCount'],
-        'problemSnippetList': ((json['ProblemSnippetList'] as Array<any>).map(RpcProblemFromJSON)),
+        'problemSnippetList': ((json['ProblemSnippetList'] as Array<any>).map(RpcProblemSnippetFromJSON)),
     };
 }
 
@@ -76,7 +76,7 @@ export function RpcGetProblemSnippetListResponseToJSON(value?: RpcGetProblemSnip
     return {
         
         'TotalProblemCount': value.totalProblemCount,
-        'ProblemSnippetList': ((value.problemSnippetList as Array<any>).map(RpcProblemToJSON)),
+        'ProblemSnippetList': ((value.problemSnippetList as Array<any>).map(RpcProblemSnippetToJSON)),
     };
 }
 
