@@ -3,6 +3,8 @@ package db
 import (
 	"context"
 
+	"github.com/tranHieuDev23/cato/internal/utils"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -11,12 +13,17 @@ type Migrator interface {
 }
 
 type migrator struct {
-	db *gorm.DB
+	db     *gorm.DB
+	logger *zap.Logger
 }
 
-func NewMigrator(db *gorm.DB) Migrator {
+func NewMigrator(
+	db *gorm.DB,
+	logger *zap.Logger,
+) Migrator {
 	return &migrator{
-		db: db,
+		db:     db,
+		logger: logger,
 	}
 }
 
@@ -29,6 +36,9 @@ func (m migrator) Migrate(ctx context.Context) error {
 		new(TestCase),
 		new(Submission),
 	); err != nil {
+		utils.LoggerWithContext(ctx, m.logger).
+			With(zap.Error(err)).
+			Error("failed to migrate database")
 		return err
 	}
 

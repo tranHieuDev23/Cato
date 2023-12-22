@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -48,12 +49,17 @@ type SubmissionDataAccessor interface {
 }
 
 type submissionDataAccessor struct {
-	db *gorm.DB
+	db     *gorm.DB
+	logger *zap.Logger
 }
 
-func NewSubmissionDataAccessor(db *gorm.DB) SubmissionDataAccessor {
+func NewSubmissionDataAccessor(
+	db *gorm.DB,
+	logger *zap.Logger,
+) SubmissionDataAccessor {
 	return &submissionDataAccessor{
-		db: db,
+		db:     db,
+		logger: logger,
 	}
 }
 
@@ -95,6 +101,7 @@ func (a submissionDataAccessor) GetProblemSubmissionList(ctx context.Context, pr
 
 func (a submissionDataAccessor) WithDB(db *gorm.DB) SubmissionDataAccessor {
 	return &submissionDataAccessor{
-		db: db,
+		db:     db,
+		logger: a.logger,
 	}
 }

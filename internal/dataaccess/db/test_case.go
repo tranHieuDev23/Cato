@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -30,14 +31,17 @@ type TestCaseDataAccessor interface {
 }
 
 type testCaseDataAccessor struct {
-	db *gorm.DB
+	db     *gorm.DB
+	logger *zap.Logger
 }
 
 func NewTestCaseDataAccessor(
 	db *gorm.DB,
+	logger *zap.Logger,
 ) TestCaseDataAccessor {
 	return &testCaseDataAccessor{
-		db: db,
+		db:     db,
+		logger: logger,
 	}
 }
 
@@ -111,6 +115,7 @@ func (a testCaseDataAccessor) GetTestCaseCountOfProblem(ctx context.Context, pro
 
 func (a testCaseDataAccessor) WithDB(db *gorm.DB) TestCaseDataAccessor {
 	return &testCaseDataAccessor{
-		db: db,
+		db:     db,
+		logger: a.logger,
 	}
 }

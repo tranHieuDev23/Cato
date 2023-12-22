@@ -32,15 +32,15 @@ func InitializeCato(filePath configs.ConfigFilePath) (app.Cato, func(), error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	migrator := db.NewMigrator(gormDB)
-	auth := config.Auth
-	hash := auth.Hash
 	logger, cleanup, err := utils.InitializeLogger()
 	if err != nil {
 		return nil, nil, err
 	}
+	migrator := db.NewMigrator(gormDB, logger)
+	auth := config.Auth
+	hash := auth.Hash
 	logicHash := logic.NewHash(hash, logger)
-	accountDataAccessor := db.NewAccountDataAccessor(gormDB)
+	accountDataAccessor := db.NewAccountDataAccessor(gormDB, logger)
 	token := auth.Token
 	logicToken, err := logic.NewToken(accountDataAccessor, token, logger)
 	if err != nil {
@@ -48,10 +48,10 @@ func InitializeCato(filePath configs.ConfigFilePath) (app.Cato, func(), error) {
 		return nil, nil, err
 	}
 	role := logic.NewRole(logger)
-	accountPasswordDataAccessor := db.NewAccountPasswordDataAccessor(gormDB)
+	accountPasswordDataAccessor := db.NewAccountPasswordDataAccessor(gormDB, logger)
 	account := logic.NewAccount(logicHash, logicToken, role, accountDataAccessor, accountPasswordDataAccessor, gormDB, logger)
-	problemDataAccessor := db.NewProblemDataAccessor(gormDB)
-	problemExampleDataAccessor := db.NewProblemExampleDataAccessor(gormDB)
+	problemDataAccessor := db.NewProblemDataAccessor(gormDB, logger)
+	problemExampleDataAccessor := db.NewProblemExampleDataAccessor(gormDB, logger)
 	problem := logic.NewProblem(logicToken, role, accountDataAccessor, problemDataAccessor, problemExampleDataAccessor, logger, gormDB)
 	apiServer := http.NewAPIServerHandler(account, problem, logger)
 	v := middlewares.InitializePJRPCMiddlewareList()

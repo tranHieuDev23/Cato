@@ -4,7 +4,10 @@ import (
 	"context"
 	"errors"
 
+	"go.uber.org/zap"
 	"gorm.io/gorm"
+
+	"github.com/tranHieuDev23/cato/internal/utils"
 )
 
 type AccountPassword struct {
@@ -22,20 +25,25 @@ type AccountPasswordDataAccessor interface {
 }
 
 type accountPasswordDataAccessor struct {
-	db *gorm.DB
+	db     *gorm.DB
+	logger *zap.Logger
 }
 
 func NewAccountPasswordDataAccessor(
 	db *gorm.DB,
+	logger *zap.Logger,
 ) AccountPasswordDataAccessor {
 	return &accountPasswordDataAccessor{
-		db: db,
+		db:     db,
+		logger: logger,
 	}
 }
 
 func (a accountPasswordDataAccessor) CreateAccountPassword(ctx context.Context, accountPassword *AccountPassword) error {
+	logger := utils.LoggerWithContext(ctx, a.logger)
 	db := a.db.WithContext(ctx)
 	if err := db.Create(accountPassword).Error; err != nil {
+		logger.With(zap.Error(err)).Error("failed to create account password")
 		return err
 	}
 
@@ -43,6 +51,7 @@ func (a accountPasswordDataAccessor) CreateAccountPassword(ctx context.Context, 
 }
 
 func (a accountPasswordDataAccessor) GetAccountPasswordOfAccountID(ctx context.Context, ofAccountID uint64) (*AccountPassword, error) {
+	logger := utils.LoggerWithContext(ctx, a.logger)
 	db := a.db.WithContext(ctx)
 	accountPassword := new(AccountPassword)
 	if err := db.Model(new(AccountPassword)).
@@ -55,6 +64,7 @@ func (a accountPasswordDataAccessor) GetAccountPasswordOfAccountID(ctx context.C
 			return nil, nil
 		}
 
+		logger.With(zap.Error(err)).Error("failed to get account password")
 		return nil, err
 	}
 
@@ -62,8 +72,10 @@ func (a accountPasswordDataAccessor) GetAccountPasswordOfAccountID(ctx context.C
 }
 
 func (a accountPasswordDataAccessor) UpdateAccountPassword(ctx context.Context, accountPassword *AccountPassword) error {
+	logger := utils.LoggerWithContext(ctx, a.logger)
 	db := a.db.WithContext(ctx)
 	if err := db.Save(accountPassword).Error; err != nil {
+		logger.With(zap.Error(err)).Error("failed to update account password")
 		return err
 	}
 
@@ -72,6 +84,7 @@ func (a accountPasswordDataAccessor) UpdateAccountPassword(ctx context.Context, 
 
 func (a accountPasswordDataAccessor) WithDB(db *gorm.DB) AccountPasswordDataAccessor {
 	return &accountPasswordDataAccessor{
-		db: db,
+		db:     db,
+		logger: a.logger,
 	}
 }

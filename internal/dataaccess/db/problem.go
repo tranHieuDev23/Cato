@@ -2,8 +2,12 @@ package db
 
 import (
 	"context"
+	"errors"
 
+	"go.uber.org/zap"
 	"gorm.io/gorm"
+
+	"github.com/tranHieuDev23/cato/internal/utils"
 )
 
 type Problem struct {
@@ -29,49 +33,155 @@ type ProblemDataAccessor interface {
 }
 
 type problemDataAccessor struct {
-	db *gorm.DB
+	db     *gorm.DB
+	logger *zap.Logger
 }
 
-func NewProblemDataAccessor(db *gorm.DB) ProblemDataAccessor {
+func NewProblemDataAccessor(
+	db *gorm.DB,
+	logger *zap.Logger,
+) ProblemDataAccessor {
 	return &problemDataAccessor{
-		db: db,
+		db:     db,
+		logger: logger,
 	}
 }
 
-func (*problemDataAccessor) CreateProblem(ctx context.Context, problem *Problem) error {
-	panic("unimplemented")
+func (a problemDataAccessor) CreateProblem(ctx context.Context, problem *Problem) error {
+	logger := utils.LoggerWithContext(ctx, a.logger)
+	db := a.db.WithContext(ctx)
+	if err := db.Create(problem).Error; err != nil {
+		logger.
+			With(zap.Any("problem", problem)).
+			With(zap.Error(err)).
+			Error("failed to create problem")
+		return err
+	}
+
+	return nil
 }
 
-func (*problemDataAccessor) GetProblem(ctx context.Context, id uint64) (*Problem, error) {
-	panic("unimplemented")
+func (a problemDataAccessor) GetProblem(ctx context.Context, id uint64) (*Problem, error) {
+	logger := utils.LoggerWithContext(ctx, a.logger)
+	db := a.db.WithContext(ctx)
+	problem := new(Problem)
+	if err := db.First(problem).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		logger.
+			With(zap.Uint64("id", id)).
+			With(zap.Error(err)).
+			Error("failed to get problem")
+		return nil, err
+	}
+
+	return problem, nil
 }
 
-func (*problemDataAccessor) GetProblemCount(ctx context.Context) (uint64, error) {
-	panic("unimplemented")
+func (a problemDataAccessor) GetProblemCount(ctx context.Context) (uint64, error) {
+	logger := utils.LoggerWithContext(ctx, a.logger)
+	db := a.db.WithContext(ctx)
+	count := int64(0)
+	if err := db.Model(new(Problem)).Count(&count).Error; err != nil {
+		logger.
+			With(zap.Error(err)).
+			Error("failed to get problem account")
+		return 0, err
+	}
+
+	return uint64(count), nil
 }
 
-func (*problemDataAccessor) GetAccountProblemCount(ctx context.Context, accountID uint64) (uint64, error) {
-	panic("unimplemented")
+func (a problemDataAccessor) GetAccountProblemCount(ctx context.Context, accountID uint64) (uint64, error) {
+	logger := utils.LoggerWithContext(ctx, a.logger)
+	db := a.db.WithContext(ctx)
+	count := int64(0)
+	if err := db.Model(new(Problem)).Where(&Problem{
+		AuthorAccountID: accountID,
+	}).Count(&count).Error; err != nil {
+		logger.
+			With(zap.Uint64("account_id", accountID)).
+			With(zap.Error(err)).
+			Error("failed to get account problem account")
+		return 0, err
+	}
+
+	return uint64(count), nil
 }
 
-func (*problemDataAccessor) GetProblemList(ctx context.Context, offset uint64, limit uint64) ([]*Problem, error) {
-	panic("unimplemented")
+func (a problemDataAccessor) GetProblemList(ctx context.Context, offset uint64, limit uint64) ([]*Problem, error) {
+	logger := utils.LoggerWithContext(ctx, a.logger)
+	db := a.db.WithContext(ctx)
+	problemList := make([]*Problem, 0)
+	if err := db.Model(new(Problem)).Limit(int(limit)).Offset(int(offset)).Find(&problemList).Error; err != nil {
+		logger.
+			With(zap.Uint64("limit", limit)).
+			With(zap.Uint64("offset", offset)).
+			With(zap.Error(err)).
+			Error("failed to get problem list")
+		return make([]*Problem, 0), err
+	}
+
+	return problemList, nil
 }
 
-func (*problemDataAccessor) GetAccountProblemList(ctx context.Context, accountID uint64, offset, limit uint64) ([]*Problem, error) {
-	panic("unimplemented")
+func (a problemDataAccessor) GetAccountProblemList(ctx context.Context, accountID uint64, offset, limit uint64) ([]*Problem, error) {
+	logger := utils.LoggerWithContext(ctx, a.logger)
+	db := a.db.WithContext(ctx)
+	problemList := make([]*Problem, 0)
+	if err := db.Model(new(Problem)).
+		Limit(int(limit)).
+		Offset(int(offset)).
+		Where(&Problem{
+			AuthorAccountID: accountID,
+		}).
+		Find(&problemList).
+		Error; err != nil {
+		logger.
+			With(zap.Uint64("account_id", accountID)).
+			With(zap.Uint64("limit", limit)).
+			With(zap.Uint64("offset", offset)).
+			With(zap.Error(err)).
+			Error("failed to get account problem list")
+		return make([]*Problem, 0), err
+	}
+
+	return problemList, nil
 }
 
-func (*problemDataAccessor) UpdateProblem(ctx context.Context, problem *Problem) error {
-	panic("unimplemented")
+func (a problemDataAccessor) UpdateProblem(ctx context.Context, problem *Problem) error {
+	logger := utils.LoggerWithContext(ctx, a.logger)
+	db := a.db.WithContext(ctx)
+	if err := db.Save(problem).Error; err != nil {
+		logger.
+			With(zap.Any("problem", problem)).
+			With(zap.Error(err)).
+			Error("failed to update problem")
+		return err
+	}
+
+	return nil
 }
 
-func (*problemDataAccessor) DeleteProblem(ctx context.Context, id uint64) error {
-	panic("unimplemented")
+func (a problemDataAccessor) DeleteProblem(ctx context.Context, id uint64) error {
+	logger := utils.LoggerWithContext(ctx, a.logger)
+	db := a.db.WithContext(ctx)
+	if err := db.Model(new(Problem)).Delete(id).Error; err != nil {
+		logger.
+			With(zap.Uint64("id", id)).
+			With(zap.Error(err)).
+			Error("failed to delete problem")
+		return err
+	}
+
+	return nil
 }
 
 func (a problemDataAccessor) WithDB(db *gorm.DB) ProblemDataAccessor {
 	return &problemDataAccessor{
-		db: db,
+		db:     db,
+		logger: a.logger,
 	}
 }
