@@ -1,6 +1,8 @@
 package logic
 
 import (
+	"archive/zip"
+	"bytes"
 	"context"
 
 	"gitlab.com/pjrpc/pjrpc/v2"
@@ -20,7 +22,7 @@ const (
 
 type TestCase interface {
 	CreateTestCase(ctx context.Context, in *rpc.CreateTestCaseRequest, token string) (*rpc.CreateTestCaseResponse, error)
-	CreateTestCaseList(ctx context.Context, in *rpc.CreateTestCaseListRequest, token string) (*rpc.CreateTestCaseListResponse, error)
+	CreateTestCaseList(ctx context.Context, in *rpc.CreateTestCaseListRequest, token string) error
 	GetProblemTestCaseSnippetList(ctx context.Context, in *rpc.GetProblemTestCaseSnippetListRequest, token string) (*rpc.GetProblemTestCaseSnippetListResponse, error)
 	GetTestCase(ctx context.Context, in *rpc.GetTestCaseRequest, token string) (*rpc.GetTestCaseResponse, error)
 	UpdateTestCase(ctx context.Context, in *rpc.UpdateTestCaseRequest, token string) (*rpc.UpdateTestCaseResponse, error)
@@ -128,8 +130,58 @@ func (t testCase) CreateTestCase(ctx context.Context, in *rpc.CreateTestCaseRequ
 	return response, nil
 }
 
-func (t testCase) CreateTestCaseList(ctx context.Context, in *rpc.CreateTestCaseListRequest, token string) (*rpc.CreateTestCaseListResponse, error) {
-	panic("unimplemented")
+func (t testCase) CreateTestCaseList(ctx context.Context, in *rpc.CreateTestCaseListRequest, token string) error {
+	logger := utils.LoggerWithContext(ctx, t.logger)
+
+	account, err := t.token.GetAccount(ctx, token)
+	if err != nil {
+		return err
+	}
+
+	if hasPermission, err := t.role.AccountHasPermission(ctx, string(account.Role), PermissionTestCasesWrite); err != nil {
+		return err
+	} else if !hasPermission {
+		return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+	}
+
+	problem, err := t.problemDataAccessor.GetProblem(ctx, in.ProblemID)
+	if err != nil {
+		return err
+	}
+
+	if problem == nil {
+		logger.With(zap.Uint64("problem_id", in.ProblemID)).Error("cannot find problem")
+		return pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
+	}
+
+	if hasAccess, err := t.role.AccountCanAccessResource(
+		ctx,
+		uint64(account.ID),
+		string(account.Role),
+		problem.AuthorAccountID,
+	); err != nil {
+		return err
+	} else if !hasAccess {
+		return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+	}
+
+	_, err = zip.NewReader(bytes.NewReader([]byte(in.ZippedTestData)), int64(len(in.ZippedTestData)))
+	if err != nil {
+		logger.With(zap.Error(err)).Error("failed to open zip reader")
+		return pjrpc.JRPCErrInternalError()
+	}
+
+	return t.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		testCase := &db.TestCase{
+			OfProblemID: in.ProblemID,
+			IsHidden:    true,
+		}
+		if err := t.testCaseDataAccessor.WithDB(tx).CreateTestCase(ctx, testCase); err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
 
 func (t testCase) DeleteTestCase(ctx context.Context, in *rpc.DeleteTestCaseRequest, token string) error {

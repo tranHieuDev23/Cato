@@ -139,7 +139,11 @@ func (a apiServerHandler) CreateTestCaseList(ctx context.Context, in *rpc.Create
 	}
 
 	token := a.getAuthorizationBearerToken(ctx)
-	return a.testCaseLogic.CreateTestCaseList(ctx, in, token)
+	if err := a.testCaseLogic.CreateTestCaseList(ctx, in, token); err != nil {
+		return nil, err
+	}
+
+	return &rpc.CreateTestCaseListResponse{}, nil
 }
 
 func (a apiServerHandler) DeleteProblem(ctx context.Context, in *rpc.DeleteProblemRequest) (*rpc.DeleteProblemResponse, error) {
