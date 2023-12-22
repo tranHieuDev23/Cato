@@ -60,6 +60,8 @@ func initializeGoRBAC() *gorbac.RBAC {
 	goRBACRoleProblemSetter.Assign(PermissionProblemsRead)
 	goRBACRoleProblemSetter.Assign(PermissionProblemsWrite)
 
+	goRBACRoleContestant.Assign(PermissionProblemsRead)
+
 	goRBACRoleProblemSetter.Assign(PermissionTestCasesRead)
 	goRBACRoleProblemSetter.Assign(PermissionTestCasesWrite)
 
