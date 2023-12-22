@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import {
   Configuration,
   DefaultApi,
-  RpcEchoRequest,
-  RpcEchoResponse,
+  RpcCreateUserRequest,
+  RpcCreateUserResponse,
 } from './api';
 
 const jsonRPCVersion = '2.0';
@@ -23,13 +23,15 @@ export class ApiService {
     );
   }
 
-  public async echo(request: RpcEchoRequest): Promise<RpcEchoResponse> {
+  public async createUser(
+    request: RpcCreateUserRequest
+  ): Promise<RpcCreateUserResponse> {
     try {
-      const { error, result } = await this.api.echo({
-        requestBodyOfTheEchoMethod: {
+      const { error, result } = await this.api.createUser({
+        requestBodyOfTheCreateUserMethod: {
           jsonrpc: jsonRPCVersion,
           id: clientID,
-          method: 'echo',
+          method: 'create_user',
           params: request,
         },
       });

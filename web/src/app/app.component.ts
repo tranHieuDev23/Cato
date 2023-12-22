@@ -17,10 +17,5 @@ export class AppComponent {
 
   constructor(private readonly apiService: ApiService) {}
 
-  public async onEchoClicked(): Promise<void> {
-    const response = await this.apiService.echo({
-      message: this.message,
-    });
-    this.echoMessage = response?.message || 'No message returned!';
-  }
+  public async onEchoClicked(): Promise<void> {}
 }
