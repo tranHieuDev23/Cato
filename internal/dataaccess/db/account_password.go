@@ -51,7 +51,8 @@ func (a accountPasswordDataAccessor) CreateAccountPassword(ctx context.Context, 
 }
 
 func (a accountPasswordDataAccessor) GetAccountPasswordOfAccountID(ctx context.Context, ofAccountID uint64) (*AccountPassword, error) {
-	logger := utils.LoggerWithContext(ctx, a.logger)
+	logger := utils.LoggerWithContext(ctx, a.logger).
+		With(zap.Uint64("of_account_id", ofAccountID))
 	db := a.db.WithContext(ctx)
 	accountPassword := new(AccountPassword)
 	if err := db.Model(new(AccountPassword)).

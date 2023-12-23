@@ -52,13 +52,11 @@ func NewAccountDataAccessor(
 }
 
 func (a accountDataAccessor) CreateAccount(ctx context.Context, account *Account) error {
-	logger := utils.LoggerWithContext(ctx, a.logger)
+	logger := utils.LoggerWithContext(ctx, a.logger).
+		With(zap.Any("account", account))
 	db := a.db.WithContext(ctx)
 	if err := db.Create(account).Error; err != nil {
-		logger.
-			With(zap.Any("account", account)).
-			With(zap.Error(err)).
-			Error("failed to create account")
+		logger.With(zap.Error(err)).Error("failed to create account")
 		return err
 	}
 
@@ -66,18 +64,16 @@ func (a accountDataAccessor) CreateAccount(ctx context.Context, account *Account
 }
 
 func (a accountDataAccessor) GetAccount(ctx context.Context, id uint64) (*Account, error) {
-	logger := utils.LoggerWithContext(ctx, a.logger)
+	logger := utils.LoggerWithContext(ctx, a.logger).
+		With(zap.Any("id", id))
 	db := a.db.WithContext(ctx)
 	account := new(Account)
-	if err := db.First(account).Error; err != nil {
+	if err := db.First(account, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 
-		logger.
-			With(zap.Uint64("id", id)).
-			With(zap.Error(err)).
-			Error("failed to get account")
+		logger.With(zap.Error(err)).Error("failed to get account")
 		return nil, err
 	}
 
@@ -85,7 +81,8 @@ func (a accountDataAccessor) GetAccount(ctx context.Context, id uint64) (*Accoun
 }
 
 func (a accountDataAccessor) GetAccountByAccountName(ctx context.Context, accountName string) (*Account, error) {
-	logger := utils.LoggerWithContext(ctx, a.logger)
+	logger := utils.LoggerWithContext(ctx, a.logger).
+		With(zap.String("account_name", accountName))
 	db := a.db.WithContext(ctx)
 	account := new(Account)
 	if err := db.Model(new(Account)).Where(&Account{
@@ -95,10 +92,7 @@ func (a accountDataAccessor) GetAccountByAccountName(ctx context.Context, accoun
 			return nil, nil
 		}
 
-		logger.
-			With(zap.String("account_name", accountName)).
-			With(zap.Error(err)).
-			Error("failed to get account by account name")
+		logger.With(zap.Error(err)).Error("failed to get account by account name")
 		return nil, err
 	}
 
@@ -118,15 +112,13 @@ func (a accountDataAccessor) GetAccountCount(ctx context.Context) (uint64, error
 }
 
 func (a accountDataAccessor) GetAccountList(ctx context.Context, offset uint64, limit uint64) ([]*Account, error) {
-	logger := utils.LoggerWithContext(ctx, a.logger)
+	logger := utils.LoggerWithContext(ctx, a.logger).
+		With(zap.Uint64("limit", limit)).
+		With(zap.Uint64("offset", offset))
 	db := a.db.WithContext(ctx)
 	accountList := make([]*Account, 0)
 	if err := db.Model(new(Account)).Limit(int(limit)).Offset(int(offset)).Find(&accountList).Error; err != nil {
-		logger.
-			With(zap.Uint64("limit", limit)).
-			With(zap.Uint64("offset", offset)).
-			With(zap.Error(err)).
-			Error("failed to get account list")
+		logger.With(zap.Error(err)).Error("failed to get account list")
 		return make([]*Account, 0), err
 	}
 
@@ -134,13 +126,11 @@ func (a accountDataAccessor) GetAccountList(ctx context.Context, offset uint64, 
 }
 
 func (a accountDataAccessor) UpdateAccount(ctx context.Context, account *Account) error {
-	logger := utils.LoggerWithContext(ctx, a.logger)
+	logger := utils.LoggerWithContext(ctx, a.logger).
+		With(zap.Any("account", account))
 	db := a.db.WithContext(ctx)
 	if err := db.Save(account).Error; err != nil {
-		logger.
-			With(zap.Any("account", account)).
-			With(zap.Error(err)).
-			Error("failed to update account")
+		logger.With(zap.Error(err)).Error("failed to update account")
 		return err
 	}
 

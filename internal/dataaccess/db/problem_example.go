@@ -44,13 +44,11 @@ func NewProblemExampleDataAccessor(
 }
 
 func (a problemExampleDataAccessor) CreateProblemExampleList(ctx context.Context, problemExampleList []*ProblemExample) error {
-	logger := utils.LoggerWithContext(ctx, a.logger)
+	logger := utils.LoggerWithContext(ctx, a.logger).
+		With(zap.Any("problem_example_list", problemExampleList))
 	db := a.db.WithContext(ctx)
 	if err := db.CreateInBatches(problemExampleList, createProblemExampleListBatchSize).Error; err != nil {
-		logger.
-			With(zap.Any("problem_example_list", problemExampleList)).
-			With(zap.Error(err)).
-			Error("failed to create problem example list")
+		logger.With(zap.Error(err)).Error("failed to create problem example list")
 		return err
 	}
 
@@ -58,17 +56,15 @@ func (a problemExampleDataAccessor) CreateProblemExampleList(ctx context.Context
 }
 
 func (a problemExampleDataAccessor) DeleteProblemExampleOfProblem(ctx context.Context, problemID uint64) error {
-	logger := utils.LoggerWithContext(ctx, a.logger)
+	logger := utils.LoggerWithContext(ctx, a.logger).
+		With(zap.Any("problem_id", problemID))
 	db := a.db.WithContext(ctx)
 	if err := db.Model(new(ProblemExample)).
 		Where(&ProblemExample{
 			OfProblemID: problemID,
 		}).
 		Error; err != nil {
-		logger.
-			With(zap.Any("problem_id", problemID)).
-			With(zap.Error(err)).
-			Error("failed to delete problem example list")
+		logger.With(zap.Error(err)).Error("failed to delete problem example list")
 		return err
 	}
 
@@ -76,7 +72,8 @@ func (a problemExampleDataAccessor) DeleteProblemExampleOfProblem(ctx context.Co
 }
 
 func (a problemExampleDataAccessor) GetProblemExampleListOfProblem(ctx context.Context, problemID uint64) ([]*ProblemExample, error) {
-	logger := utils.LoggerWithContext(ctx, a.logger)
+	logger := utils.LoggerWithContext(ctx, a.logger).
+		With(zap.Any("problem_id", problemID))
 	db := a.db.WithContext(ctx)
 	problemExampleList := make([]*ProblemExample, 0)
 	if err := db.Model(new(ProblemExample)).
@@ -85,10 +82,7 @@ func (a problemExampleDataAccessor) GetProblemExampleListOfProblem(ctx context.C
 		}).
 		Find(problemExampleList).
 		Error; err != nil {
-		logger.
-			With(zap.Any("problem_id", problemID)).
-			With(zap.Error(err)).
-			Error("failed to get problem example list")
+		logger.With(zap.Error(err)).Error("failed to get problem example list")
 		return make([]*ProblemExample, 0), err
 	}
 
