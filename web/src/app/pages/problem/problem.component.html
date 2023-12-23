@@ -27,28 +27,6 @@
     </div>
 
     <div *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'contestant'" nz-col nzSpan="16">
-        <ul nz-menu nzMode="horizontal" class="code-editor-menu">
-            <li nz-menu-item>
-                <nz-select style="width: 120px;" [(ngModel)]="submissionLanguage"
-                    (ngModelChange)="onSubmissionLanguageChange($event)">
-                    <nz-option nzValue="cpp" nzLabel="C++"></nz-option>
-                    <nz-option nzValue="java" nzLabel="Java"></nz-option>
-                    <nz-option nzValue="python" nzLabel="Python"></nz-option>
-                </nz-select>
-            </li>
-            <li nz-menu-item>
-                <nz-upload nzAction="https://www.mocky.io/v2/5cc8019d300000980a055e76">
-                    <span nz-icon nzType="file" nzTheme="outline"></span>
-                    Load file
-                </nz-upload>
-            </li>
-            <li nz-menu-item nzDanger="true">
-                <span nz-icon nzType="upload" nzTheme="outline"></span>
-                Submit
-            </li>
-        </ul>
-        <ngx-codemirror [(ngModel)]="submissionContent"
-            [options]="{lineNumbers: true, theme: 'material', mode: submissionEditorMode}" class="code-editor">
-        </ngx-codemirror>
+        <app-code-editor [(content)]="submissionContent"></app-code-editor>
     </div>
 </div>

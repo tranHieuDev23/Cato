@@ -176,7 +176,7 @@ export class ProblemEditorComponent implements OnInit, OnDestroy {
         memoryLimit * memoryLimitUnitInByte
       );
       this.notificationService.success('Problem saved successfully!', '');
-      this.router.navigateByUrl('/problem-list');
+      this.router.navigateByUrl(`/problem/${problem.iD}`);
     } catch (e) {
       if (e instanceof UnauthenticatedError) {
         this.notificationService.error(

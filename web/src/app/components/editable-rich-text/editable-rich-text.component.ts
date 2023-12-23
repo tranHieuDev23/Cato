@@ -56,7 +56,6 @@ export class EditableRichTextComponent implements ControlValueAccessor {
   constructor() {}
 
   public onContentChanged(value: string): void {
-    console.log(value);
     this.onChange(value);
     this.textChange.emit(value);
   }

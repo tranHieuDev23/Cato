@@ -1,0 +1,22 @@
+<ul nz-menu nzMode="horizontal" class="menu">
+    <li nz-menu-item>
+        <nz-select style="width: 120px;" [(ngModel)]="language" (ngModelChange)="onSubmissionLanguageChange($event)">
+            <nz-option nzValue="cpp" nzLabel="C++"></nz-option>
+            <nz-option nzValue="java" nzLabel="Java"></nz-option>
+            <nz-option nzValue="python" nzLabel="Python"></nz-option>
+        </nz-select>
+    </li>
+    <li nz-menu-item>
+        <nz-upload nzAction="/#" [nzBeforeUpload]="onLoadFile">
+            <span nz-icon nzType="file" nzTheme="outline"></span>
+            Load file
+        </nz-upload>
+    </li>
+    <li nz-menu-item nzDanger="true">
+        <span nz-icon nzType="upload" nzTheme="outline"></span>
+        Submit
+    </li>
+</ul>
+<ngx-codemirror [(ngModel)]="content" [options]="{lineNumbers: true, theme: 'material', mode: editorMode}"
+    class="editor">
+</ngx-codemirror>

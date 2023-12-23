@@ -1,9 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import {
   RpcAccount,
   RpcProblem,
-  RpcSubmission,
   RpcSubmissionSnippet,
 } from '../../dataaccess/api';
 import { CommonModule, Location } from '@angular/common';
@@ -32,6 +31,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { SubmissionListComponent } from './submission-list/submission-list.component';
+import { CodeEditorComponent } from './code-editor/code-editor.component';
 
 @Component({
   selector: 'app-problem',
@@ -53,11 +53,12 @@ import { SubmissionListComponent } from './submission-list/submission-list.compo
     NzTableModule,
     NzTabsModule,
     SubmissionListComponent,
+    CodeEditorComponent,
   ],
   templateUrl: './problem.component.html',
   styleUrl: './problem.component.scss',
 })
-export class ProblemComponent {
+export class ProblemComponent implements OnInit, OnDestroy {
   public sessionAccount: RpcAccount | null | undefined;
   public problem: RpcProblem | undefined;
 
@@ -142,13 +143,5 @@ export class ProblemComponent {
     if (language === 'python') {
       this.submissionEditorMode = 'text/x-python';
     }
-  }
-
-  public async onPageIndexChange(index: number): Promise<void> {
-    this.pageIndex = index;
-  }
-
-  public async onPageSizeChange(size: number): Promise<void> {
-    this.pageSize = size;
   }
 }
