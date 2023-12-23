@@ -30,6 +30,7 @@ type API interface {
 	UpdateAccount(UpdateAccountRequest) UpdateAccountResponse
 
 	CreateSession(CreateSessionRequest) CreateSessionResponse
+	GetSession(GetSessionRequest) GetSessionResponse
 	DeleteSession(DeleteSessionRequest) DeleteSessionResponse
 
 	CreateProblem(CreateProblemRequest) CreateProblemResponse
@@ -101,6 +102,12 @@ type CreateSessionRequest struct {
 }
 
 type CreateSessionResponse struct {
+	Account Account
+}
+
+type GetSessionRequest struct{}
+
+type GetSessionResponse struct {
 	Account Account
 }
 

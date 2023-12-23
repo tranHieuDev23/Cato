@@ -32,6 +32,7 @@ import {
   RpcGetProblemSubmissionSnippetListResponse,
   RpcGetProblemTestCaseSnippetListRequest,
   RpcGetProblemTestCaseSnippetListResponse,
+  RpcGetSessionResponse,
   RpcGetSubmissionRequest,
   RpcGetSubmissionResponse,
   RpcGetSubmissionSnippetListRequest,
@@ -44,10 +45,34 @@ import {
   RpcUpdateProblemResponse,
   RpcUpdateTestCaseRequest,
   RpcUpdateTestCaseResponse,
+  instanceOfRpcError,
 } from './api';
 
 const jsonRPCVersion = '2.0';
 const clientID = 'cato-judge';
+
+export enum ErrorCode {
+  OK = 1,
+  Canceled = 2,
+  Unknown = 3,
+  InvalidArgument = 4,
+  DeadlineExceeded = 5,
+  NotFound = 6,
+  AlreadyExists = 7,
+  PermissionDenied = 8,
+  ResourceExhausted = 9,
+  FailedPrecondition = 10,
+  Aborted = 11,
+  OutOfRange = 12,
+  Unimplemented = 13,
+  Internal = 14,
+  Unavailable = 15,
+  DataLoss = 16,
+  Unauthenticated = 17,
+
+  JRPCErrorInvalidParams = -32602,
+  JRPCErrorInternal = -32602,
+}
 
 @Injectable({
   providedIn: 'root',
@@ -85,7 +110,7 @@ export class ApiService {
     return result;
   }
 
-  public async RpcGetAccountList(
+  public async getAccountList(
     request: RpcGetAccountListRequest
   ): Promise<RpcGetAccountListResponse> {
     const { error, result } = await this.api.getAccountList({
@@ -107,7 +132,7 @@ export class ApiService {
     return result;
   }
 
-  public async RpcGetAccount(
+  public async getAccount(
     request: RpcGetAccountRequest
   ): Promise<RpcGetAccountResponse> {
     const { error, result } = await this.api.getAccount({
@@ -213,7 +238,7 @@ export class ApiService {
     return result;
   }
 
-  public async RpcGetProblemSnippetList(
+  public async getProblemSnippetList(
     request: RpcGetProblemSnippetListRequest
   ): Promise<RpcGetProblemSnippetListResponse> {
     const { error, result } = await this.api.getProblemSnippetList({
@@ -235,7 +260,7 @@ export class ApiService {
     return result;
   }
 
-  public async RpcGetProblem(
+  public async getProblem(
     request: RpcGetProblemRequest
   ): Promise<RpcGetProblemResponse> {
     const { error, result } = await this.api.getProblem({
@@ -339,7 +364,7 @@ export class ApiService {
     }
   }
 
-  public async RpcGetProblemTestCaseSnippetList(
+  public async getProblemTestCaseSnippetList(
     request: RpcGetProblemTestCaseSnippetListRequest
   ): Promise<RpcGetProblemTestCaseSnippetListResponse> {
     const { error, result } = await this.api.getProblemTestCaseSnippetList({
@@ -361,7 +386,7 @@ export class ApiService {
     return result;
   }
 
-  public async RpcGetTestCase(
+  public async getTestCase(
     request: RpcGetTestCaseRequest
   ): Promise<RpcGetTestCaseResponse> {
     const { error, result } = await this.api.getTestCase({
@@ -425,7 +450,7 @@ export class ApiService {
     }
   }
 
-  public async RpcGetAccountProblemSnippetList(
+  public async getAccountProblemSnippetList(
     request: RpcGetAccountProblemSnippetListRequest
   ): Promise<RpcGetAccountProblemSnippetListResponse> {
     const { error, result } = await this.api.getAccountProblemSnippetList({
@@ -469,7 +494,7 @@ export class ApiService {
     return result;
   }
 
-  public async RpcGetSubmissionSnippetList(
+  public async getSubmissionSnippetList(
     request: RpcGetSubmissionSnippetListRequest
   ): Promise<RpcGetSubmissionSnippetListResponse> {
     const { error, result } = await this.api.getSubmissionSnippetList({
@@ -491,7 +516,7 @@ export class ApiService {
     return result;
   }
 
-  public async RpcGetSubmission(
+  public async getSubmission(
     request: RpcGetSubmissionRequest
   ): Promise<RpcGetSubmissionResponse> {
     const { error, result } = await this.api.getSubmission({
@@ -533,7 +558,7 @@ export class ApiService {
     }
   }
 
-  public async RpcGetAccountSubmissionSnippetList(
+  public async getAccountSubmissionSnippetList(
     request: RpcGetAccountSubmissionSnippetListRequest
   ): Promise<RpcGetAccountSubmissionSnippetListResponse> {
     const { error, result } = await this.api.getAccountSubmissionSnippetList({
@@ -555,7 +580,7 @@ export class ApiService {
     return result;
   }
 
-  public async RpcGetProblemSubmissionSnippetList(
+  public async getProblemSubmissionSnippetList(
     request: RpcGetProblemSubmissionSnippetListRequest
   ): Promise<RpcGetProblemSubmissionSnippetListResponse> {
     const { error, result } = await this.api.getProblemSubmissionSnippetList({
@@ -575,5 +600,33 @@ export class ApiService {
     }
 
     return result;
+  }
+
+  public async getSession(): Promise<RpcGetSessionResponse> {
+    const { error, result } = await this.api.getSession({
+      requestBodyOfTheGetSessionMethod: {
+        jsonrpc: jsonRPCVersion,
+        id: clientID,
+        method: 'get_session',
+        params: {},
+      },
+    });
+    if (error) {
+      throw error;
+    }
+
+    if (!result) {
+      throw new Error('No response received');
+    }
+
+    return result;
+  }
+
+  public isRpcError(e: unknown): boolean {
+    if (!(e instanceof Object)) {
+      return false;
+    }
+
+    return instanceOfRpcError(e);
   }
 }

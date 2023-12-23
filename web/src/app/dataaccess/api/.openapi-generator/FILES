@@ -20,6 +20,7 @@ models/RequestBodyOfTheGetProblemMethod.ts
 models/RequestBodyOfTheGetProblemSnippetListMethod.ts
 models/RequestBodyOfTheGetProblemSubmissionSnippetListMethod.ts
 models/RequestBodyOfTheGetProblemTestCaseSnippetListMethod.ts
+models/RequestBodyOfTheGetSessionMethod.ts
 models/RequestBodyOfTheGetSubmissionMethod.ts
 models/RequestBodyOfTheGetSubmissionSnippetListMethod.ts
 models/RequestBodyOfTheGetTestCaseMethod.ts
@@ -44,6 +45,7 @@ models/ResponseBodyOfTheGetProblemMethod.ts
 models/ResponseBodyOfTheGetProblemSnippetListMethod.ts
 models/ResponseBodyOfTheGetProblemSubmissionSnippetListMethod.ts
 models/ResponseBodyOfTheGetProblemTestCaseSnippetListMethod.ts
+models/ResponseBodyOfTheGetSessionMethod.ts
 models/ResponseBodyOfTheGetSubmissionMethod.ts
 models/ResponseBodyOfTheGetSubmissionSnippetListMethod.ts
 models/ResponseBodyOfTheGetTestCaseMethod.ts
@@ -86,6 +88,7 @@ models/RpcGetProblemSubmissionSnippetListRequest.ts
 models/RpcGetProblemSubmissionSnippetListResponse.ts
 models/RpcGetProblemTestCaseSnippetListRequest.ts
 models/RpcGetProblemTestCaseSnippetListResponse.ts
+models/RpcGetSessionResponse.ts
 models/RpcGetSubmissionRequest.ts
 models/RpcGetSubmissionResponse.ts
 models/RpcGetSubmissionResponseSubmission.ts

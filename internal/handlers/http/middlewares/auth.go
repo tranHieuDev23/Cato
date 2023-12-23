@@ -56,6 +56,13 @@ func NewHTTPAuth(
 
 			postRequestToken := getAuthorizationBearerToken(r)
 			if postRequestToken == "" {
+				http.SetCookie(inMemoryWriter, &http.Cookie{
+					Name:     AuthorizationCookie,
+					Value:    "",
+					HttpOnly: true,
+					Expires:  time.Unix(0, 0),
+					SameSite: http.SameSiteStrictMode,
+				})
 				inMemoryWriter.Apply(w)
 				return
 			}

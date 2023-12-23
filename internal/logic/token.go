@@ -78,7 +78,7 @@ func (t token) GetAccountIDAndExpireTime(ctx context.Context, tokenString string
 	})
 	if err != nil {
 		logger.With(zap.Error(err)).Error("failed to parse token")
-		return 0, time.Time{}, err
+		return 0, time.Time{}, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeUnauthenticated))
 	}
 
 	if !parsedToken.Valid {

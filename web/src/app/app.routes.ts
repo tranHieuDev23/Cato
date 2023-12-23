@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { LoggedOutGuard } from './components/utils/logged-out-guard';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: '/login' },
@@ -6,6 +7,7 @@ export const routes: Routes = [
     path: 'login',
     loadChildren: () =>
       import('./pages/login/login.routes').then((m) => m.LOGIN_ROUTES),
+    canActivate: [LoggedOutGuard],
   },
   {
     path: 'welcome',

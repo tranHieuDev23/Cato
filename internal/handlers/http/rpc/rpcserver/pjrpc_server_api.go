@@ -21,6 +21,7 @@ const (
 	JSONRPCMethodGetAccount                      = "get_account"
 	JSONRPCMethodUpdateAccount                   = "update_account"
 	JSONRPCMethodCreateSession                   = "create_session"
+	JSONRPCMethodGetSession                      = "get_session"
 	JSONRPCMethodDeleteSession                   = "delete_session"
 	JSONRPCMethodCreateProblem                   = "create_problem"
 	JSONRPCMethodGetProblemSnippetList           = "get_problem_snippet_list"
@@ -49,6 +50,7 @@ type APIServer interface {
 	GetAccount(ctx context.Context, in *rpc.GetAccountRequest) (*rpc.GetAccountResponse, error)
 	UpdateAccount(ctx context.Context, in *rpc.UpdateAccountRequest) (*rpc.UpdateAccountResponse, error)
 	CreateSession(ctx context.Context, in *rpc.CreateSessionRequest) (*rpc.CreateSessionResponse, error)
+	GetSession(ctx context.Context, in *rpc.GetSessionRequest) (*rpc.GetSessionResponse, error)
 	DeleteSession(ctx context.Context, in *rpc.DeleteSessionRequest) (*rpc.DeleteSessionResponse, error)
 	CreateProblem(ctx context.Context, in *rpc.CreateProblemRequest) (*rpc.CreateProblemResponse, error)
 	GetProblemSnippetList(ctx context.Context, in *rpc.GetProblemSnippetListRequest) (*rpc.GetProblemSnippetListResponse, error)
@@ -83,6 +85,7 @@ func RegisterAPIServer(srv pjrpc.Registrator, svc APIServer, middlewares ...pjrp
 	srv.RegisterMethod(JSONRPCMethodGetAccount, r.regGetAccount)
 	srv.RegisterMethod(JSONRPCMethodUpdateAccount, r.regUpdateAccount)
 	srv.RegisterMethod(JSONRPCMethodCreateSession, r.regCreateSession)
+	srv.RegisterMethod(JSONRPCMethodGetSession, r.regGetSession)
 	srv.RegisterMethod(JSONRPCMethodDeleteSession, r.regDeleteSession)
 	srv.RegisterMethod(JSONRPCMethodCreateProblem, r.regCreateProblem)
 	srv.RegisterMethod(JSONRPCMethodGetProblemSnippetList, r.regGetProblemSnippetList)
@@ -181,6 +184,22 @@ func (r *regAPI) regCreateSession(ctx context.Context, params json.RawMessage) (
 	res, err := r.svc.CreateSession(ctx, in)
 	if err != nil {
 		return nil, fmt.Errorf("failed CreateSession: %w", err)
+	}
+
+	return res, nil
+}
+
+func (r *regAPI) regGetSession(ctx context.Context, params json.RawMessage) (any, error) {
+	in := new(rpc.GetSessionRequest)
+	if len(params) != 0 {
+		if err := pjson.Unmarshal(params, in); err != nil {
+			return nil, pjrpc.JRPCErrParseError("failed to parse params")
+		}
+	}
+
+	res, err := r.svc.GetSession(ctx, in)
+	if err != nil {
+		return nil, fmt.Errorf("failed GetSession: %w", err)
 	}
 
 	return res, nil

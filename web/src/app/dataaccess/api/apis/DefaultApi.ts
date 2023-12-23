@@ -33,6 +33,7 @@ import type {
   RequestBodyOfTheGetProblemSnippetListMethod,
   RequestBodyOfTheGetProblemSubmissionSnippetListMethod,
   RequestBodyOfTheGetProblemTestCaseSnippetListMethod,
+  RequestBodyOfTheGetSessionMethod,
   RequestBodyOfTheGetSubmissionMethod,
   RequestBodyOfTheGetSubmissionSnippetListMethod,
   RequestBodyOfTheGetTestCaseMethod,
@@ -57,6 +58,7 @@ import type {
   ResponseBodyOfTheGetProblemSnippetListMethod,
   ResponseBodyOfTheGetProblemSubmissionSnippetListMethod,
   ResponseBodyOfTheGetProblemTestCaseSnippetListMethod,
+  ResponseBodyOfTheGetSessionMethod,
   ResponseBodyOfTheGetSubmissionMethod,
   ResponseBodyOfTheGetSubmissionSnippetListMethod,
   ResponseBodyOfTheGetTestCaseMethod,
@@ -101,6 +103,8 @@ import {
     RequestBodyOfTheGetProblemSubmissionSnippetListMethodToJSON,
     RequestBodyOfTheGetProblemTestCaseSnippetListMethodFromJSON,
     RequestBodyOfTheGetProblemTestCaseSnippetListMethodToJSON,
+    RequestBodyOfTheGetSessionMethodFromJSON,
+    RequestBodyOfTheGetSessionMethodToJSON,
     RequestBodyOfTheGetSubmissionMethodFromJSON,
     RequestBodyOfTheGetSubmissionMethodToJSON,
     RequestBodyOfTheGetSubmissionSnippetListMethodFromJSON,
@@ -149,6 +153,8 @@ import {
     ResponseBodyOfTheGetProblemSubmissionSnippetListMethodToJSON,
     ResponseBodyOfTheGetProblemTestCaseSnippetListMethodFromJSON,
     ResponseBodyOfTheGetProblemTestCaseSnippetListMethodToJSON,
+    ResponseBodyOfTheGetSessionMethodFromJSON,
+    ResponseBodyOfTheGetSessionMethodToJSON,
     ResponseBodyOfTheGetSubmissionMethodFromJSON,
     ResponseBodyOfTheGetSubmissionMethodToJSON,
     ResponseBodyOfTheGetSubmissionSnippetListMethodFromJSON,
@@ -233,6 +239,10 @@ export interface GetProblemSubmissionSnippetListRequest {
 
 export interface GetProblemTestCaseSnippetListRequest {
     requestBodyOfTheGetProblemTestCaseSnippetListMethod: RequestBodyOfTheGetProblemTestCaseSnippetListMethod;
+}
+
+export interface GetSessionRequest {
+    requestBodyOfTheGetSessionMethod: RequestBodyOfTheGetSessionMethod;
 }
 
 export interface GetSubmissionRequest {
@@ -819,6 +829,37 @@ export class DefaultApi extends runtime.BaseAPI {
      */
     async getProblemTestCaseSnippetList(requestParameters: GetProblemTestCaseSnippetListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheGetProblemTestCaseSnippetListMethod> {
         const response = await this.getProblemTestCaseSnippetListRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async getSessionRaw(requestParameters: GetSessionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ResponseBodyOfTheGetSessionMethod>> {
+        if (requestParameters.requestBodyOfTheGetSessionMethod === null || requestParameters.requestBodyOfTheGetSessionMethod === undefined) {
+            throw new runtime.RequiredError('requestBodyOfTheGetSessionMethod','Required parameter requestParameters.requestBodyOfTheGetSessionMethod was null or undefined when calling getSession.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/#get_session`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: RequestBodyOfTheGetSessionMethodToJSON(requestParameters.requestBodyOfTheGetSessionMethod),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ResponseBodyOfTheGetSessionMethodFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async getSession(requestParameters: GetSessionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheGetSessionMethod> {
+        const response = await this.getSessionRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

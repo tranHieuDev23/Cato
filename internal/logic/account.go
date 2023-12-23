@@ -26,6 +26,7 @@ type Account interface {
 	GetAccount(ctx context.Context, in *rpc.GetAccountRequest, token string) (*rpc.GetAccountResponse, error)
 	UpdateAccount(ctx context.Context, in *rpc.UpdateAccountRequest, token string) (*rpc.UpdateAccountResponse, error)
 	CreateSession(ctx context.Context, in *rpc.CreateSessionRequest) (*rpc.CreateSessionResponse, string, time.Time, error)
+	GetSession(ctx context.Context, token string) (*rpc.GetSessionResponse, error)
 	DeleteSession(ctx context.Context, token string) error
 	IsAccountNameTaken(ctx context.Context, accountName string) (bool, error)
 	WithDB(db *gorm.DB) Account
@@ -197,6 +198,17 @@ func (a account) CreateSession(ctx context.Context, in *rpc.CreateSessionRequest
 	return &rpc.CreateSessionResponse{
 		Account: a.dbAccountToRPCAccount(account),
 	}, token, expireTime, nil
+}
+
+func (a account) GetSession(ctx context.Context, token string) (*rpc.GetSessionResponse, error) {
+	account, err := a.token.GetAccount(ctx, token)
+	if err != nil {
+		return nil, err
+	}
+
+	return &rpc.GetSessionResponse{
+		Account: a.dbAccountToRPCAccount(account),
+	}, nil
 }
 
 func (a account) DeleteSession(ctx context.Context, token string) error {

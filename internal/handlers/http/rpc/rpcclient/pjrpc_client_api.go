@@ -20,6 +20,7 @@ const (
 	JSONRPCMethodGetAccount_Client                      = "get_account"
 	JSONRPCMethodUpdateAccount_Client                   = "update_account"
 	JSONRPCMethodCreateSession_Client                   = "create_session"
+	JSONRPCMethodGetSession_Client                      = "get_session"
 	JSONRPCMethodDeleteSession_Client                   = "delete_session"
 	JSONRPCMethodCreateProblem_Client                   = "create_problem"
 	JSONRPCMethodGetProblemSnippetList_Client           = "get_problem_snippet_list"
@@ -48,6 +49,7 @@ type APIClient interface {
 	GetAccount(ctx context.Context, in *rpc.GetAccountRequest, mods ...client.Mod) (*rpc.GetAccountResponse, error)
 	UpdateAccount(ctx context.Context, in *rpc.UpdateAccountRequest, mods ...client.Mod) (*rpc.UpdateAccountResponse, error)
 	CreateSession(ctx context.Context, in *rpc.CreateSessionRequest, mods ...client.Mod) (*rpc.CreateSessionResponse, error)
+	GetSession(ctx context.Context, in *rpc.GetSessionRequest, mods ...client.Mod) (*rpc.GetSessionResponse, error)
 	DeleteSession(ctx context.Context, in *rpc.DeleteSessionRequest, mods ...client.Mod) (*rpc.DeleteSessionResponse, error)
 	CreateProblem(ctx context.Context, in *rpc.CreateProblemRequest, mods ...client.Mod) (*rpc.CreateProblemResponse, error)
 	GetProblemSnippetList(ctx context.Context, in *rpc.GetProblemSnippetListRequest, mods ...client.Mod) (*rpc.GetProblemSnippetListResponse, error)
@@ -153,6 +155,22 @@ func (c *implAPIClient) CreateSession(ctx context.Context, in *rpc.CreateSession
 	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodCreateSession_Client, in, result, mods...)
 	if err != nil {
 		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodCreateSession_Client, err)
+	}
+
+	return result, nil
+}
+
+func (c *implAPIClient) GetSession(ctx context.Context, in *rpc.GetSessionRequest, mods ...client.Mod) (result *rpc.GetSessionResponse, err error) {
+	gen, err := uuid.NewUUID()
+	if err != nil {
+		return result, fmt.Errorf("failed to create uuid generator: %w", err)
+	}
+
+	result = new(rpc.GetSessionResponse)
+
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodGetSession_Client, in, result, mods...)
+	if err != nil {
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodGetSession_Client, err)
 	}
 
 	return result, nil

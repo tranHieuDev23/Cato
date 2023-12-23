@@ -64,6 +64,7 @@ func (a apiServerHandler) setAuthorizationBearerToken(ctx context.Context, token
 		return
 	}
 
+	contextData.HTTPRequest.Header.Del("Cookie")
 	contextData.HTTPRequest.AddCookie(&http.Cookie{
 		Name:     middlewares.AuthorizationCookie,
 		Value:    token,
@@ -169,6 +170,7 @@ func (a apiServerHandler) DeleteSession(ctx context.Context, in *rpc.DeleteSessi
 		return nil, err
 	}
 
+	a.setAuthorizationBearerToken(ctx, "", time.Unix(0, 0))
 	return &rpc.DeleteSessionResponse{}, nil
 }
 
@@ -232,6 +234,15 @@ func (a apiServerHandler) GetAccountSubmissionSnippetList(ctx context.Context, i
 
 	token := a.getAuthorizationBearerToken(ctx)
 	return a.submissionLogic.GetAccountSubmissionSnippetList(ctx, in, token)
+}
+
+func (a apiServerHandler) GetSession(ctx context.Context, in *rpc.GetSessionRequest) (*rpc.GetSessionResponse, error) {
+	if err := a.validateRequest(ctx, in); err != nil {
+		return nil, err
+	}
+
+	token := a.getAuthorizationBearerToken(ctx)
+	return a.accountLogic.GetSession(ctx, token)
 }
 
 func (a apiServerHandler) GetProblem(ctx context.Context, in *rpc.GetProblemRequest) (*rpc.GetProblemResponse, error) {
