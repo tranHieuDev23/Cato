@@ -26,26 +26,22 @@ export class ApiService {
   public async createAccount(
     request: RpcCreateAccountRequest
   ): Promise<RpcCreateAccountResponse> {
-    try {
-      const { error, result } = await this.api.createAccount({
-        requestBodyOfTheCreateAccountMethod: {
-          jsonrpc: jsonRPCVersion,
-          id: clientID,
-          method: 'create_account',
-          params: request,
-        },
-      });
-      if (error) {
-        throw error;
-      }
-
-      if (!result) {
-        throw new Error('No response received');
-      }
-
-      return result;
-    } catch (e) {
-      throw e;
+    const { error, result } = await this.api.createAccount({
+      requestBodyOfTheCreateAccountMethod: {
+        jsonrpc: jsonRPCVersion,
+        id: clientID,
+        method: 'create_account',
+        params: request,
+      },
+    });
+    if (error) {
+      throw error;
     }
+
+    if (!result) {
+      throw new Error('No response received');
+    }
+
+    return result;
   }
 }
