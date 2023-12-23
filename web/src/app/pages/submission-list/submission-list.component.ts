@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute, Router, Params } from '@angular/router';
+import { ActivatedRoute, Router, Params, RouterModule } from '@angular/router';
 import {
   NzNotificationModule,
   NzNotificationService,
@@ -23,6 +23,7 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { FormsModule } from '@angular/forms';
+import { LanguagePipe } from '../../components/utils/language.pipe';
 
 const DEFAULT_PAGE_INDEX = 1;
 const DEFAULT_PAGE_SIZE = 10;
@@ -38,6 +39,8 @@ const SUBMISSION_LIST_RELOAD_INTERVAL = 10000;
     NzSwitchModule,
     FormsModule,
     NzNotificationModule,
+    LanguagePipe,
+    RouterModule,
   ],
   templateUrl: './submission-list.component.html',
   styleUrl: './submission-list.component.scss',

@@ -1,10 +1,6 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
-import {
-  RpcAccount,
-  RpcProblem,
-  RpcSubmissionSnippet,
-} from '../../dataaccess/api';
+import { RpcAccount, RpcProblem } from '../../dataaccess/api';
 import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -13,7 +9,10 @@ import {
   PermissionDeniedError,
   UnauthenticatedError,
 } from '../../logic/account.service';
-import { ProblemService } from '../../logic/problem.service';
+import {
+  ProblemNotFoundError,
+  ProblemService,
+} from '../../logic/problem.service';
 import {
   NzNotificationModule,
   NzNotificationService,
@@ -29,9 +28,17 @@ import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzTableModule } from 'ng-zorro-antd/table';
-import { NzTabsModule } from 'ng-zorro-antd/tabs';
+import {
+  NzTabComponent,
+  NzTabSetComponent,
+  NzTabsModule,
+} from 'ng-zorro-antd/tabs';
 import { SubmissionListComponent } from './submission-list/submission-list.component';
 import { CodeEditorComponent } from './code-editor/code-editor.component';
+import {
+  InvalidSubmissionInfo,
+  SubmissionService,
+} from '../../logic/submission.service';
 
 @Component({
   selector: 'app-problem',
@@ -59,24 +66,21 @@ import { CodeEditorComponent } from './code-editor/code-editor.component';
   styleUrl: './problem.component.scss',
 })
 export class ProblemComponent implements OnInit, OnDestroy {
+  @ViewChild('problemTabSet') problemTabSet: NzTabSetComponent | undefined;
+  @ViewChild('submissionTab') submissionTab: NzTabComponent | undefined;
+
   public sessionAccount: RpcAccount | null | undefined;
   public problem: RpcProblem | undefined;
 
   public submissionContent = '';
   public submissionLanguage = 'cpp';
-  public submissionEditorMode = 'text/x-c++src';
-
-  public totalSubmissionCount = 0;
-  public submissionSnippetList: RpcSubmissionSnippet[] = [];
-  public pageIndex = 1;
-  public pageSize = 5;
-  public loadingSubmissionList = false;
 
   private sessionAccountChangedSubscription: Subscription | undefined;
 
   constructor(
     private readonly accountService: AccountService,
     private readonly problemService: ProblemService,
+    private readonly submissionService: SubmissionService,
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
     private readonly location: Location,
@@ -128,20 +132,80 @@ export class ProblemComponent implements OnInit, OnDestroy {
         return;
       }
 
+      if (e instanceof ProblemNotFoundError) {
+        this.notificationService.error(
+          'Failed to load problem',
+          'Problem cannot be found'
+        );
+        this.location.back();
+        return;
+      }
+
       this.notificationService.error('Failed to load problem', 'Unknown error');
       this.location.back();
     }
   }
 
-  public onSubmissionLanguageChange(language: string): void {
-    if (language === 'cpp') {
-      this.submissionEditorMode = 'text/x-c++src';
+  public async onSubmitClicked(): Promise<void> {
+    if (!this.problem) {
+      return;
     }
-    if (language === 'java') {
-      this.submissionEditorMode = 'text/x-java';
-    }
-    if (language === 'python') {
-      this.submissionEditorMode = 'text/x-python';
+
+    try {
+      this.submissionService.createSubmission(
+        this.problem?.iD,
+        this.submissionContent,
+        this.submissionLanguage
+      );
+      this.notificationService.success('Solution submitted successfully', '');
+      if (
+        this.problemTabSet &&
+        this.submissionTab &&
+        this.submissionTab.position
+      ) {
+        this.problemTabSet.setSelectedIndex(this.submissionTab.position);
+      }
+    } catch (e) {
+      if (e instanceof UnauthenticatedError) {
+        this.notificationService.error(
+          'Failed to submit solution',
+          'Not logged in'
+        );
+        this.router.navigateByUrl('/login');
+        return;
+      }
+
+      if (e instanceof PermissionDeniedError) {
+        this.notificationService.error(
+          'Failed to submit solution',
+          'Permission denied'
+        );
+        this.location.back();
+        return;
+      }
+
+      if (e instanceof ProblemNotFoundError) {
+        this.notificationService.error(
+          'Failed to load problem',
+          'Problem not found'
+        );
+        this.location.back();
+        return;
+      }
+
+      if (e instanceof InvalidSubmissionInfo) {
+        this.notificationService.error(
+          'Failed to submit solution',
+          'Submission file is to large'
+        );
+        return;
+      }
+
+      this.notificationService.error(
+        'Failed to submit solution',
+        'Unknown error'
+      );
+      this.location.back();
     }
   }
 }

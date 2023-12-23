@@ -21,9 +21,13 @@
         </thead>
         <tbody>
             <tr *ngFor="let submissionSnippet of table.data">
-                <td>{{ submissionSnippet.problem.displayName }}</td>
+                <td>
+                    <a routerLink="/problem/{{ submissionSnippet.problem.iD }}">
+                        {{ submissionSnippet.problem.displayName }}
+                    </a>
+                </td>
                 <td>{{ submissionSnippet.author.displayName }}</td>
-                <td>{{ submissionSnippet.language }}</td>
+                <td>{{ submissionSnippet.language| language }}</td>
                 <td>{{ submissionSnippet.status }}</td>
                 <td>{{ submissionSnippet.createdTime | date:'short' }}</td>
             </tr>

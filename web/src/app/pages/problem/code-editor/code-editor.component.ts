@@ -28,7 +28,11 @@ export class CodeEditorComponent {
   @Input() public content = '';
   @Output() public contentChange = new EventEmitter<string>();
 
-  public language = 'cpp';
+  @Input() public language = 'cpp';
+  @Output() public languageChange = new EventEmitter<string>();
+
+  @Output() public submitClicked = new EventEmitter<void>();
+
   public editorMode = 'text/x-c++src';
 
   public onLoadFile = (file: NzUploadFile): boolean => {
@@ -51,5 +55,9 @@ export class CodeEditorComponent {
     if (language === 'python') {
       this.editorMode = 'text/x-python';
     }
+  }
+
+  public onSubmitClicked(): void {
+    this.submitClicked.emit();
   }
 }

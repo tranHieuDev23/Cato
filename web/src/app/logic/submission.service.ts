@@ -16,6 +16,12 @@ export class InvalidSubmissionListParam extends Error {
   }
 }
 
+export class InvalidSubmissionInfo extends Error {
+  constructor() {
+    super('Invalid submission information');
+  }
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -144,6 +150,44 @@ export class SubmissionService {
         totalSubmissionCount: response.totalSubmissionCount,
         submissionSnippetList: response.submissionSnippetList,
       };
+    } catch (e) {
+      if (!this.api.isRpcError(e)) {
+        throw e;
+      }
+
+      const apiError = e as RpcError;
+      if (apiError.code == ErrorCode.JRPCErrorInvalidParams) {
+        throw new InvalidSubmissionListParam();
+      }
+
+      if (apiError.code == ErrorCode.Unauthenticated) {
+        throw new UnauthenticatedError();
+      }
+
+      if (apiError.code == ErrorCode.PermissionDenied) {
+        throw new PermissionDeniedError();
+      }
+
+      if (apiError.code == ErrorCode.NotFound) {
+        throw new ProblemNotFoundError();
+      }
+
+      throw e;
+    }
+  }
+
+  public async createSubmission(
+    problemID: number,
+    content: string,
+    language: string
+  ): Promise<RpcSubmissionSnippet> {
+    try {
+      const response = await this.api.createSubmission({
+        problemID,
+        content,
+        language,
+      });
+      return response.submissionSnippet;
     } catch (e) {
       if (!this.api.isRpcError(e)) {
         throw e;

@@ -19,7 +19,7 @@
     <tbody>
         <tr *ngFor="let submissionSnippet of table.data">
             <td>{{ submissionSnippet.author.displayName }}</td>
-            <td>{{ submissionSnippet.language }}</td>
+            <td>{{ submissionSnippet.language | language }}</td>
             <td>{{ submissionSnippet.createdTime | date:'short' }}</td>
             <td>{{ submissionSnippet.status }}</td>
         </tr>

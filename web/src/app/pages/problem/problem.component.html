@@ -1,7 +1,7 @@
 <div nz-row nzGutter="16">
     <div nz-col [nzSpan]="sessionAccount?.role === 'admin' || sessionAccount?.role === 'contestant'? 8 : 24"
         class="inner-content">
-        <nz-tabset>
+        <nz-tabset #problemTabSet>
             <nz-tab nzTitle="Description">
                 <ng-container *ngIf="problem">
                     <h2 nz-typography>{{problem.displayName}}</h2>
@@ -20,13 +20,14 @@
 
             </nz-tab>
 
-            <nz-tab nzTitle="Submissions">
+            <nz-tab nzTitle="Submissions" #submissionTab>
                 <app-submission-list *ngIf="problem" [problemID]="problem.iD"></app-submission-list>
             </nz-tab>
         </nz-tabset>
     </div>
 
     <div *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'contestant'" nz-col nzSpan="16">
-        <app-code-editor [(content)]="submissionContent"></app-code-editor>
+        <app-code-editor [(content)]="submissionContent" [(language)]="submissionLanguage"
+            (submitClicked)="onSubmitClicked()"></app-code-editor>
     </div>
 </div>

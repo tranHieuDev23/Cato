@@ -22,6 +22,8 @@ import {
 } from '../../../logic/submission.service';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { FormsModule } from '@angular/forms';
+import { ProblemNotFoundError } from '../../../logic/problem.service';
+import { LanguagePipe } from '../../../components/utils/language.pipe';
 
 const SUBMISSION_LIST_RELOAD_INTERVAL = 10000;
 
@@ -34,6 +36,7 @@ const SUBMISSION_LIST_RELOAD_INTERVAL = 10000;
     NzNotificationModule,
     NzSwitchModule,
     FormsModule,
+    LanguagePipe,
   ],
   templateUrl: './submission-list.component.html',
   styleUrl: './submission-list.component.scss',
@@ -137,6 +140,15 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
         this.nzNotificationService.error(
           'Failed to load submission list',
           'Account not found'
+        );
+        this.location.back();
+        return;
+      }
+
+      if (e instanceof ProblemNotFoundError) {
+        this.nzNotificationService.error(
+          'Failed to load submission list',
+          'Problem not found'
         );
         this.location.back();
         return;
