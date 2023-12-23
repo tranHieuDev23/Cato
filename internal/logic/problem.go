@@ -129,7 +129,12 @@ func (p problem) CreateProblem(ctx context.Context, in *rpc.CreateProblemRequest
 		return nil, err
 	}
 
-	if hasPermission, err := p.role.AccountHasPermission(ctx, string(account.Role), PermissionProblemsWrite); err != nil {
+	if hasPermission, err := p.role.AccountHasPermission(
+		ctx,
+		string(account.Role),
+		PermissionProblemsSelfWrite,
+		PermissionProblemsAllWrite,
+	); err != nil {
 		return nil, err
 	} else if !hasPermission {
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
@@ -184,7 +189,12 @@ func (p problem) DeleteProblem(ctx context.Context, in *rpc.DeleteProblemRequest
 		return err
 	}
 
-	if hasPermission, err := p.role.AccountHasPermission(ctx, string(account.Role), PermissionProblemsWrite); err != nil {
+	if hasPermission, err := p.role.AccountHasPermission(
+		ctx,
+		string(account.Role),
+		PermissionProblemsSelfWrite,
+		PermissionProblemsAllWrite,
+	); err != nil {
 		return err
 	} else if !hasPermission {
 		return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
@@ -201,15 +211,16 @@ func (p problem) DeleteProblem(ctx context.Context, in *rpc.DeleteProblemRequest
 			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 		}
 
-		if hasAccess, err := p.role.AccountCanAccessResource(
-			ctx,
-			uint64(account.ID),
-			string(account.Role),
-			problem.AuthorAccountID,
-		); err != nil {
-			return err
-		} else if !hasAccess {
-			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+		if problem.AuthorAccountID != uint64(account.ID) {
+			if hasPermission, err := p.role.AccountHasPermission(
+				ctx,
+				string(account.Role),
+				PermissionProblemsAllWrite,
+			); err != nil {
+				return err
+			} else if !hasPermission {
+				return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+			}
 		}
 
 		return p.problemDataAccessor.WithDB(tx).DeleteProblem(ctx, uint64(problem.ID))
@@ -222,10 +233,26 @@ func (p problem) GetAccountProblemSnippetList(ctx context.Context, in *rpc.GetAc
 		return nil, err
 	}
 
-	if hasPermission, err := p.role.AccountHasPermission(ctx, string(account.Role), PermissionProblemsRead); err != nil {
-		return nil, err
-	} else if !hasPermission {
-		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+	if in.AccountID == uint64(account.ID) {
+		if hasPermission, err := p.role.AccountHasPermission(
+			ctx,
+			string(account.Role),
+			PermissionProblemsSelfRead,
+		); err != nil {
+			return nil, err
+		} else if !hasPermission {
+			return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+		}
+	} else {
+		if hasPermission, err := p.role.AccountHasPermission(
+			ctx,
+			string(account.Role),
+			PermissionProblemsAllRead,
+		); err != nil {
+			return nil, err
+		} else if !hasPermission {
+			return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+		}
 	}
 
 	totalProblemCount, err := p.problemDataAccessor.GetAccountProblemCount(ctx, in.AccountID)
@@ -266,7 +293,12 @@ func (p problem) GetProblem(ctx context.Context, in *rpc.GetProblemRequest, toke
 		return nil, err
 	}
 
-	if hasPermission, err := p.role.AccountHasPermission(ctx, string(account.Role), PermissionProblemsRead); err != nil {
+	if hasPermission, err := p.role.AccountHasPermission(
+		ctx,
+		string(account.Role),
+		PermissionProblemsSelfRead,
+		PermissionProblemsAllRead,
+	); err != nil {
 		return nil, err
 	} else if !hasPermission {
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
@@ -282,15 +314,16 @@ func (p problem) GetProblem(ctx context.Context, in *rpc.GetProblemRequest, toke
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 	}
 
-	if hasAccess, err := p.role.AccountCanAccessResource(
-		ctx,
-		uint64(account.ID),
-		string(account.Role),
-		problem.AuthorAccountID,
-	); err != nil {
-		return nil, err
-	} else if !hasAccess {
-		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+	if problem.AuthorAccountID != uint64(account.ID) {
+		if hasPermission, err := p.role.AccountHasPermission(
+			ctx,
+			string(account.Role),
+			PermissionProblemsAllRead,
+		); err != nil {
+			return nil, err
+		} else if !hasPermission {
+			return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+		}
 	}
 
 	author, err := p.accountDataAccessor.GetAccount(ctx, problem.AuthorAccountID)
@@ -318,7 +351,11 @@ func (p problem) GetProblemSnippetList(ctx context.Context, in *rpc.GetProblemSn
 		return nil, err
 	}
 
-	if hasPermission, err := p.role.AccountHasPermission(ctx, string(account.Role), PermissionProblemsRead); err != nil {
+	if hasPermission, err := p.role.AccountHasPermission(
+		ctx,
+		string(account.Role),
+		PermissionProblemsAllRead,
+	); err != nil {
 		return nil, err
 	} else if !hasPermission {
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
@@ -362,7 +399,12 @@ func (p problem) UpdateProblem(ctx context.Context, in *rpc.UpdateProblemRequest
 		return nil, err
 	}
 
-	if hasPermission, err := p.role.AccountHasPermission(ctx, string(account.Role), PermissionProblemsWrite); err != nil {
+	if hasPermission, err := p.role.AccountHasPermission(
+		ctx,
+		string(account.Role),
+		PermissionProblemsSelfWrite,
+		PermissionProblemsAllWrite,
+	); err != nil {
 		return nil, err
 	} else if !hasPermission {
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
@@ -380,15 +422,16 @@ func (p problem) UpdateProblem(ctx context.Context, in *rpc.UpdateProblemRequest
 			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 		}
 
-		if hasAccess, err := p.role.AccountCanAccessResource(
-			ctx,
-			uint64(account.ID),
-			string(account.Role),
-			problem.AuthorAccountID,
-		); err != nil {
-			return err
-		} else if !hasAccess {
-			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+		if problem.AuthorAccountID != uint64(account.ID) {
+			if hasPermission, err := p.role.AccountHasPermission(
+				ctx,
+				string(account.Role),
+				PermissionProblemsAllWrite,
+			); err != nil {
+				return err
+			} else if !hasPermission {
+				return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+			}
 		}
 
 		if in.DisplayName != nil {

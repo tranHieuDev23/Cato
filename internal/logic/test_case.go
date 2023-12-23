@@ -86,7 +86,12 @@ func (t testCase) CreateTestCase(ctx context.Context, in *rpc.CreateTestCaseRequ
 		return nil, err
 	}
 
-	if hasPermission, err := t.role.AccountHasPermission(ctx, string(account.Role), PermissionTestCasesWrite); err != nil {
+	if hasPermission, err := t.role.AccountHasPermission(
+		ctx,
+		string(account.Role),
+		PermissionTestCasesSelfWrite,
+		PermissionTestCasesAllWrite,
+	); err != nil {
 		return nil, err
 	} else if !hasPermission {
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
@@ -104,15 +109,16 @@ func (t testCase) CreateTestCase(ctx context.Context, in *rpc.CreateTestCaseRequ
 			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 		}
 
-		if hasAccess, err := t.role.AccountCanAccessResource(
-			ctx,
-			uint64(account.ID),
-			string(account.Role),
-			problem.AuthorAccountID,
-		); err != nil {
-			return err
-		} else if !hasAccess {
-			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+		if problem.AuthorAccountID != uint64(account.ID) {
+			if hasPermission, err := t.role.AccountHasPermission(
+				ctx,
+				string(account.Role),
+				PermissionTestCasesAllWrite,
+			); err != nil {
+				return err
+			} else if !hasPermission {
+				return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+			}
 		}
 
 		testCase := &db.TestCase{
@@ -218,7 +224,12 @@ func (t testCase) CreateTestCaseList(ctx context.Context, in *rpc.CreateTestCase
 		return err
 	}
 
-	if hasPermission, err := t.role.AccountHasPermission(ctx, string(account.Role), PermissionTestCasesWrite); err != nil {
+	if hasPermission, err := t.role.AccountHasPermission(
+		ctx,
+		string(account.Role),
+		PermissionTestCasesSelfWrite,
+		PermissionTestCasesAllWrite,
+	); err != nil {
 		return err
 	} else if !hasPermission {
 		return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
@@ -234,15 +245,16 @@ func (t testCase) CreateTestCaseList(ctx context.Context, in *rpc.CreateTestCase
 		return pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 	}
 
-	if hasAccess, err := t.role.AccountCanAccessResource(
-		ctx,
-		uint64(account.ID),
-		string(account.Role),
-		problem.AuthorAccountID,
-	); err != nil {
-		return err
-	} else if !hasAccess {
-		return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+	if problem.AuthorAccountID != uint64(account.ID) {
+		if hasPermission, err := t.role.AccountHasPermission(
+			ctx,
+			string(account.Role),
+			PermissionTestCasesAllWrite,
+		); err != nil {
+			return err
+		} else if !hasPermission {
+			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+		}
 	}
 
 	testCaseList, err := t.getTestCaseListFromZippedData(ctx, in.ProblemID, []byte(in.ZippedTestData))
@@ -261,7 +273,12 @@ func (t testCase) DeleteTestCase(ctx context.Context, in *rpc.DeleteTestCaseRequ
 		return err
 	}
 
-	if hasPermission, err := t.role.AccountHasPermission(ctx, string(account.Role), PermissionTestCasesWrite); err != nil {
+	if hasPermission, err := t.role.AccountHasPermission(
+		ctx,
+		string(account.Role),
+		PermissionTestCasesSelfWrite,
+		PermissionTestCasesAllWrite,
+	); err != nil {
 		return err
 	} else if !hasPermission {
 		return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
@@ -282,15 +299,16 @@ func (t testCase) DeleteTestCase(ctx context.Context, in *rpc.DeleteTestCaseRequ
 			return err
 		}
 
-		if hasAccess, err := t.role.AccountCanAccessResource(
-			ctx,
-			uint64(account.ID),
-			string(account.Role),
-			problem.AuthorAccountID,
-		); err != nil {
-			return err
-		} else if !hasAccess {
-			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+		if problem.AuthorAccountID != uint64(account.ID) {
+			if hasPermission, err := t.role.AccountHasPermission(
+				ctx,
+				string(account.Role),
+				PermissionTestCasesAllWrite,
+			); err != nil {
+				return err
+			} else if !hasPermission {
+				return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+			}
 		}
 
 		return t.testCaseDataAccessor.WithDB(tx).DeleteTestCase(ctx, uint64(testCase.ID))
@@ -303,7 +321,12 @@ func (t testCase) GetProblemTestCaseSnippetList(ctx context.Context, in *rpc.Get
 		return nil, err
 	}
 
-	if hasPermission, err := t.role.AccountHasPermission(ctx, string(account.Role), PermissionTestCasesRead); err != nil {
+	if hasPermission, err := t.role.AccountHasPermission(
+		ctx,
+		string(account.Role),
+		PermissionTestCasesSelfRead,
+		PermissionTestCasesAllRead,
+	); err != nil {
 		return nil, err
 	} else if !hasPermission {
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
@@ -314,15 +337,16 @@ func (t testCase) GetProblemTestCaseSnippetList(ctx context.Context, in *rpc.Get
 		return nil, err
 	}
 
-	if hasAccess, err := t.role.AccountCanAccessResource(
-		ctx,
-		uint64(account.ID),
-		string(account.Role),
-		problem.AuthorAccountID,
-	); err != nil {
-		return nil, err
-	} else if !hasAccess {
-		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+	if problem.AuthorAccountID != uint64(account.ID) {
+		if hasPermission, err := t.role.AccountHasPermission(
+			ctx,
+			string(account.Role),
+			PermissionTestCasesAllRead,
+		); err != nil {
+			return nil, err
+		} else if !hasPermission {
+			return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+		}
 	}
 
 	testCaseCount, err := t.testCaseDataAccessor.GetTestCaseCountOfProblem(ctx, in.ProblemID)
@@ -351,7 +375,12 @@ func (t testCase) GetTestCase(ctx context.Context, in *rpc.GetTestCaseRequest, t
 		return nil, err
 	}
 
-	if hasPermission, err := t.role.AccountHasPermission(ctx, string(account.Role), PermissionTestCasesRead); err != nil {
+	if hasPermission, err := t.role.AccountHasPermission(
+		ctx,
+		string(account.Role),
+		PermissionTestCasesSelfRead,
+		PermissionTestCasesAllRead,
+	); err != nil {
 		return nil, err
 	} else if !hasPermission {
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
@@ -373,15 +402,16 @@ func (t testCase) GetTestCase(ctx context.Context, in *rpc.GetTestCaseRequest, t
 			return err
 		}
 
-		if hasAccess, err := t.role.AccountCanAccessResource(
-			ctx,
-			uint64(account.ID),
-			string(account.Role),
-			problem.AuthorAccountID,
-		); err != nil {
-			return err
-		} else if !hasAccess {
-			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+		if problem.AuthorAccountID != uint64(account.ID) {
+			if hasPermission, err := t.role.AccountHasPermission(
+				ctx,
+				string(account.Role),
+				PermissionTestCasesAllRead,
+			); err != nil {
+				return err
+			} else if !hasPermission {
+				return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+			}
 		}
 
 		response.TestCase = rpc.TestCase(t.dbTestCaseToRPCTestCaseSnippet(testCase))
@@ -402,7 +432,12 @@ func (t testCase) UpdateTestCase(ctx context.Context, in *rpc.UpdateTestCaseRequ
 		return nil, err
 	}
 
-	if hasPermission, err := t.role.AccountHasPermission(ctx, string(account.Role), PermissionTestCasesWrite); err != nil {
+	if hasPermission, err := t.role.AccountHasPermission(
+		ctx,
+		string(account.Role),
+		PermissionTestCasesSelfWrite,
+		PermissionTestCasesAllWrite,
+	); err != nil {
 		return nil, err
 	} else if !hasPermission {
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
@@ -424,15 +459,16 @@ func (t testCase) UpdateTestCase(ctx context.Context, in *rpc.UpdateTestCaseRequ
 			return err
 		}
 
-		if hasAccess, err := t.role.AccountCanAccessResource(
-			ctx,
-			uint64(account.ID),
-			string(account.Role),
-			problem.AuthorAccountID,
-		); err != nil {
-			return err
-		} else if !hasAccess {
-			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+		if problem.AuthorAccountID != uint64(account.ID) {
+			if hasPermission, err := t.role.AccountHasPermission(
+				ctx,
+				string(account.Role),
+				PermissionTestCasesAllWrite,
+			); err != nil {
+				return err
+			} else if !hasPermission {
+				return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+			}
 		}
 
 		if in.Input != nil {

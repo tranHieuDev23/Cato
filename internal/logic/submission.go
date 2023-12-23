@@ -104,7 +104,12 @@ func (s submission) CreateSubmission(ctx context.Context, in *rpc.CreateSubmissi
 		return nil, err
 	}
 
-	if hasPermission, err := s.role.AccountHasPermission(ctx, string(account.Role), PermissionSubmissionsWrite); err != nil {
+	if hasPermission, err := s.role.AccountHasPermission(
+		ctx,
+		string(account.Role),
+		PermissionSubmissionsSelfWrite,
+		PermissionSubmissionsAllWrite,
+	); err != nil {
 		return nil, err
 	} else if !hasPermission {
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
@@ -142,7 +147,12 @@ func (s submission) DeleteSubmission(ctx context.Context, in *rpc.DeleteSubmissi
 		return err
 	}
 
-	if hasPermission, err := s.role.AccountHasPermission(ctx, string(account.Role), PermissionSubmissionsWrite); err != nil {
+	if hasPermission, err := s.role.AccountHasPermission(
+		ctx,
+		string(account.Role),
+		PermissionSubmissionsSelfWrite,
+		PermissionSubmissionsAllWrite,
+	); err != nil {
 		return err
 	} else if !hasPermission {
 		return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
@@ -157,15 +167,16 @@ func (s submission) DeleteSubmission(ctx context.Context, in *rpc.DeleteSubmissi
 		return pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 	}
 
-	if hasAccess, err := s.role.AccountCanAccessResource(
-		ctx,
-		uint64(account.ID),
-		string(account.Role),
-		uint64(submission.ID),
-	); err != nil {
-		return err
-	} else if !hasAccess {
-		return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+	if submission.AuthorAccountID != uint64(account.ID) {
+		if hasPermission, err := s.role.AccountHasPermission(
+			ctx,
+			string(account.Role),
+			PermissionSubmissionsAllWrite,
+		); err != nil {
+			return err
+		} else if !hasPermission {
+			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+		}
 	}
 
 	return s.submissionDataAccessor.DeleteSubmission(ctx, in.ID)
@@ -173,15 +184,32 @@ func (s submission) DeleteSubmission(ctx context.Context, in *rpc.DeleteSubmissi
 
 func (s submission) GetAccountSubmissionSnippetList(ctx context.Context, in *rpc.GetAccountSubmissionSnippetListRequest, token string) (*rpc.GetAccountSubmissionSnippetListResponse, error) {
 	logger := utils.LoggerWithContext(ctx, s.logger)
+
 	account, err := s.token.GetAccount(ctx, token)
 	if err != nil {
 		return nil, err
 	}
 
-	if hasPermission, err := s.role.AccountHasPermission(ctx, string(account.Role), PermissionSubmissionsRead); err != nil {
-		return nil, err
-	} else if !hasPermission {
-		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+	if account.ID == uint(in.AccountID) {
+		if hasPermission, err := s.role.AccountHasPermission(
+			ctx,
+			string(account.Role),
+			PermissionSubmissionsSelfRead,
+		); err != nil {
+			return nil, err
+		} else if !hasPermission {
+			return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+		}
+	} else {
+		if hasPermission, err := s.role.AccountHasPermission(
+			ctx,
+			string(account.Role),
+			PermissionSubmissionsAllRead,
+		); err != nil {
+			return nil, err
+		} else if !hasPermission {
+			return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+		}
 	}
 
 	author, err := s.accountDataAccessor.GetAccount(ctx, in.AccountID)
@@ -225,12 +253,18 @@ func (s submission) GetAccountSubmissionSnippetList(ctx context.Context, in *rpc
 
 func (s submission) GetProblemSubmissionSnippetList(ctx context.Context, in *rpc.GetProblemSubmissionSnippetListRequest, token string) (*rpc.GetProblemSubmissionSnippetListResponse, error) {
 	logger := utils.LoggerWithContext(ctx, s.logger)
+
 	account, err := s.token.GetAccount(ctx, token)
 	if err != nil {
 		return nil, err
 	}
 
-	if hasPermission, err := s.role.AccountHasPermission(ctx, string(account.Role), PermissionSubmissionsRead); err != nil {
+	if hasPermission, err := s.role.AccountHasPermission(
+		ctx,
+		string(account.Role),
+		PermissionSubmissionsSelfRead,
+		PermissionSubmissionsAllRead,
+	); err != nil {
 		return nil, err
 	} else if !hasPermission {
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
@@ -244,6 +278,18 @@ func (s submission) GetProblemSubmissionSnippetList(ctx context.Context, in *rpc
 	if problem == nil {
 		logger.With(zap.Uint64("problem_id", in.ProblemID)).Error("problem not found")
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
+	}
+
+	if problem.AuthorAccountID == uint64(account.ID) {
+		if hasPermission, err := s.role.AccountHasPermission(
+			ctx,
+			string(account.Role),
+			PermissionSubmissionsAllRead,
+		); err != nil {
+			return nil, err
+		} else if !hasPermission {
+			return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+		}
 	}
 
 	totalSubmissionCount, err := s.submissionDataAccessor.GetProblemSubmissionCount(ctx, in.ProblemID)
@@ -281,7 +327,12 @@ func (s submission) GetSubmission(ctx context.Context, in *rpc.GetSubmissionRequ
 		return nil, err
 	}
 
-	if hasPermission, err := s.role.AccountHasPermission(ctx, string(account.Role), PermissionSubmissionsRead); err != nil {
+	if hasPermission, err := s.role.AccountHasPermission(
+		ctx,
+		string(account.Role),
+		PermissionSubmissionsSelfRead,
+		PermissionSubmissionsAllRead,
+	); err != nil {
 		return nil, err
 	} else if !hasPermission {
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
@@ -296,15 +347,16 @@ func (s submission) GetSubmission(ctx context.Context, in *rpc.GetSubmissionRequ
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 	}
 
-	if hasAccess, err := s.role.AccountCanAccessResource(
-		ctx,
-		uint64(account.ID),
-		string(account.Role),
-		uint64(submission.ID),
-	); err != nil {
-		return nil, err
-	} else if !hasAccess {
-		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+	if submission.AuthorAccountID != uint64(account.ID) {
+		if hasPermission, err := s.role.AccountHasPermission(
+			ctx,
+			string(account.Role),
+			PermissionSubmissionsAllRead,
+		); err != nil {
+			return nil, err
+		} else if !hasPermission {
+			return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+		}
 	}
 
 	problem, err := s.problemDataAccessor.GetProblem(ctx, submission.OfProblemID)
@@ -328,7 +380,11 @@ func (s submission) GetSubmissionSnippetList(ctx context.Context, in *rpc.GetSub
 		return nil, err
 	}
 
-	if hasPermission, err := s.role.AccountHasPermission(ctx, string(account.Role), PermissionSubmissionsRead); err != nil {
+	if hasPermission, err := s.role.AccountHasPermission(
+		ctx,
+		string(account.Role),
+		PermissionSubmissionsAllRead,
+	); err != nil {
 		return nil, err
 	} else if !hasPermission {
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))

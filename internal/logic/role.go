@@ -13,19 +13,26 @@ import (
 )
 
 var (
-	PermissionAccountsRead     = gorbac.NewStdPermission("accounts.read")
-	PermissionAccountsWrite    = gorbac.NewStdPermission("accounts.write")
-	PermissionProblemsRead     = gorbac.NewStdPermission("problems.read")
-	PermissionProblemsWrite    = gorbac.NewStdPermission("problems.write")
-	PermissionTestCasesRead    = gorbac.NewStdPermission("test_cases.read")
-	PermissionTestCasesWrite   = gorbac.NewStdPermission("test_cases.write")
-	PermissionSubmissionsRead  = gorbac.NewStdPermission("submissions.read")
-	PermissionSubmissionsWrite = gorbac.NewStdPermission("submissions.write")
+	PermissionAccountsSelfRead     = gorbac.NewStdPermission("accounts.self.read")
+	PermissionAccountsSelfWrite    = gorbac.NewStdPermission("accounts.self.write")
+	PermissionAccountsAllRead      = gorbac.NewStdPermission("accounts.all.read")
+	PermissionAccountsAllWrite     = gorbac.NewStdPermission("accounts.all.write")
+	PermissionProblemsSelfRead     = gorbac.NewStdPermission("problems.self.read")
+	PermissionProblemsSelfWrite    = gorbac.NewStdPermission("problems.self.write")
+	PermissionProblemsAllRead      = gorbac.NewStdPermission("problems.all.read")
+	PermissionProblemsAllWrite     = gorbac.NewStdPermission("problems.all.write")
+	PermissionTestCasesSelfRead    = gorbac.NewStdPermission("test_cases.self.read")
+	PermissionTestCasesSelfWrite   = gorbac.NewStdPermission("test_cases.self.write")
+	PermissionTestCasesAllRead     = gorbac.NewStdPermission("test_cases.all.read")
+	PermissionTestCasesAllWrite    = gorbac.NewStdPermission("test_cases.all.write")
+	PermissionSubmissionsSelfRead  = gorbac.NewStdPermission("submissions.self.read")
+	PermissionSubmissionsSelfWrite = gorbac.NewStdPermission("submissions.self.write")
+	PermissionSubmissionsAllRead   = gorbac.NewStdPermission("submissions.all.read")
+	PermissionSubmissionsAllWrite  = gorbac.NewStdPermission("submissions.all.write")
 )
 
 type Role interface {
-	AccountCanAccessResource(ctx context.Context, accountID uint64, accountRole string, resourceOwnerID uint64) (bool, error)
-	AccountHasPermission(ctx context.Context, accountRole string, permission gorbac.Permission) (bool, error)
+	AccountHasPermission(ctx context.Context, accountRole string, permissions ...gorbac.Permission) (bool, error)
 }
 
 type role struct {
@@ -37,8 +44,46 @@ func initializeGoRBAC() *gorbac.RBAC {
 	rbac := gorbac.New()
 
 	goRBACRoleAdmin := gorbac.NewStdRole(string(db.AccountRoleAdmin))
+	goRBACRoleAdmin.Assign(PermissionAccountsSelfRead)
+	goRBACRoleAdmin.Assign(PermissionAccountsSelfWrite)
+	goRBACRoleAdmin.Assign(PermissionAccountsAllRead)
+	goRBACRoleAdmin.Assign(PermissionAccountsAllWrite)
+	goRBACRoleAdmin.Assign(PermissionProblemsSelfRead)
+	goRBACRoleAdmin.Assign(PermissionProblemsSelfWrite)
+	goRBACRoleAdmin.Assign(PermissionProblemsAllRead)
+	goRBACRoleAdmin.Assign(PermissionProblemsAllWrite)
+	goRBACRoleAdmin.Assign(PermissionTestCasesSelfRead)
+	goRBACRoleAdmin.Assign(PermissionTestCasesSelfWrite)
+	goRBACRoleAdmin.Assign(PermissionTestCasesAllRead)
+	goRBACRoleAdmin.Assign(PermissionTestCasesAllWrite)
+	goRBACRoleAdmin.Assign(PermissionSubmissionsSelfRead)
+	goRBACRoleAdmin.Assign(PermissionSubmissionsSelfWrite)
+	goRBACRoleAdmin.Assign(PermissionSubmissionsAllRead)
+	goRBACRoleAdmin.Assign(PermissionSubmissionsAllWrite)
+
 	goRBACRoleProblemSetter := gorbac.NewStdRole(string(db.AccountRoleProblemSetter))
+	goRBACRoleProblemSetter.Assign(PermissionAccountsAllRead)
+	goRBACRoleProblemSetter.Assign(PermissionAccountsSelfRead)
+	goRBACRoleProblemSetter.Assign(PermissionAccountsSelfWrite)
+	goRBACRoleProblemSetter.Assign(PermissionProblemsSelfRead)
+	goRBACRoleProblemSetter.Assign(PermissionProblemsSelfWrite)
+	goRBACRoleProblemSetter.Assign(PermissionProblemsAllRead)
+	goRBACRoleProblemSetter.Assign(PermissionProblemsAllWrite)
+	goRBACRoleProblemSetter.Assign(PermissionTestCasesSelfRead)
+	goRBACRoleProblemSetter.Assign(PermissionTestCasesSelfWrite)
+	goRBACRoleProblemSetter.Assign(PermissionTestCasesAllRead)
+	goRBACRoleProblemSetter.Assign(PermissionTestCasesAllWrite)
+
 	goRBACRoleContestant := gorbac.NewStdRole(string(db.AccountRoleContestant))
+	goRBACRoleProblemSetter.Assign(PermissionAccountsAllRead)
+	goRBACRoleContestant.Assign(PermissionAccountsSelfRead)
+	goRBACRoleContestant.Assign(PermissionAccountsSelfWrite)
+	goRBACRoleContestant.Assign(PermissionProblemsAllRead)
+	goRBACRoleContestant.Assign(PermissionTestCasesAllRead)
+	goRBACRoleContestant.Assign(PermissionSubmissionsSelfRead)
+	goRBACRoleContestant.Assign(PermissionSubmissionsSelfWrite)
+	goRBACRoleContestant.Assign(PermissionSubmissionsAllRead)
+
 	goRBACRoleWorker := gorbac.NewStdRole(string(db.AccountRoleWorker))
 
 	rbac.Add(goRBACRoleAdmin)
@@ -48,29 +93,6 @@ func initializeGoRBAC() *gorbac.RBAC {
 
 	rbac.SetParent(string(db.AccountRoleProblemSetter), string(db.AccountRoleAdmin))
 	rbac.SetParent(string(db.AccountRoleContestant), string(db.AccountRoleAdmin))
-
-	goRBACRoleAdmin.Assign(PermissionAccountsRead)
-	goRBACRoleProblemSetter.Assign(PermissionAccountsRead)
-	goRBACRoleContestant.Assign(PermissionAccountsRead)
-
-	goRBACRoleAdmin.Assign(PermissionAccountsWrite)
-	goRBACRoleProblemSetter.Assign(PermissionAccountsWrite)
-	goRBACRoleContestant.Assign(PermissionAccountsWrite)
-
-	goRBACRoleProblemSetter.Assign(PermissionProblemsRead)
-	goRBACRoleProblemSetter.Assign(PermissionProblemsWrite)
-
-	goRBACRoleContestant.Assign(PermissionProblemsRead)
-
-	goRBACRoleProblemSetter.Assign(PermissionTestCasesRead)
-	goRBACRoleProblemSetter.Assign(PermissionTestCasesWrite)
-
-	goRBACRoleContestant.Assign(PermissionTestCasesRead)
-
-	goRBACRoleProblemSetter.Assign(PermissionTestCasesRead)
-	goRBACRoleProblemSetter.Assign(PermissionTestCasesWrite)
-
-	goRBACRoleContestant.Assign(PermissionTestCasesRead)
 
 	return rbac
 }
@@ -82,30 +104,7 @@ func NewRole(logger *zap.Logger) Role {
 	}
 }
 
-func (r role) AccountCanAccessResource(
-	ctx context.Context,
-	accountID uint64,
-	accountRole string,
-	resourceOwnerID uint64,
-) (bool, error) {
-	logger := utils.LoggerWithContext(ctx, r.logger)
-
-	if _, _, err := r.rbac.Get(accountRole); err != nil {
-		if errors.Is(err, gorbac.ErrRoleNotExist) {
-			logger.With(zap.String("account_role", accountRole)).Error("invalid account role")
-		}
-
-		return false, pjrpc.JRPCErrInternalError()
-	}
-
-	if accountID == resourceOwnerID {
-		return true, nil
-	}
-
-	return accountRole == string(db.AccountRoleAdmin), nil
-}
-
-func (r role) AccountHasPermission(ctx context.Context, accountRole string, permission gorbac.Permission) (bool, error) {
+func (r role) AccountHasPermission(ctx context.Context, accountRole string, permissions ...gorbac.Permission) (bool, error) {
 	logger := utils.LoggerWithContext(ctx, r.logger)
 
 	accountRBACRole, _, err := r.rbac.Get(accountRole)
@@ -117,5 +116,11 @@ func (r role) AccountHasPermission(ctx context.Context, accountRole string, perm
 		return false, pjrpc.JRPCErrInternalError()
 	}
 
-	return accountRBACRole.Permit(permission), nil
+	for i := range permissions {
+		if accountRBACRole.Permit(permissions[i]) {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
