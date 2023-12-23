@@ -1,21 +1,17 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
-import { ApiService } from './dataaccess';
-import { FormsModule } from '@angular/forms';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzLayoutModule } from 'ng-zorro-antd/layout';
+import { NzMenuModule } from 'ng-zorro-antd/menu';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, FormsModule],
+  imports: [CommonModule, RouterOutlet, NzIconModule, NzLayoutModule, NzMenuModule],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.scss',
+  styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  public message = '';
-  public echoMessage = '';
-
-  constructor(private readonly apiService: ApiService) {}
-
-  public async onEchoClicked(): Promise<void> {}
+  isCollapsed = false;
 }

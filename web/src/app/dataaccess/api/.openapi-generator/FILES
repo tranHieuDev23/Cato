@@ -51,7 +51,6 @@ models/ResponseBodyOfTheUpdateAccountMethod.ts
 models/ResponseBodyOfTheUpdateProblemMethod.ts
 models/ResponseBodyOfTheUpdateTestCaseMethod.ts
 models/RpcAccount.ts
-models/RpcAccountRole.ts
 models/RpcCreateAccountRequest.ts
 models/RpcCreateAccountResponse.ts
 models/RpcCreateAccountResponseAccount.ts
@@ -101,9 +100,7 @@ models/RpcProblemSnippet.ts
 models/RpcSubmission.ts
 models/RpcSubmissionProblem.ts
 models/RpcSubmissionProblemSnippet.ts
-models/RpcSubmissionResult.ts
 models/RpcSubmissionSnippet.ts
-models/RpcSubmissionStatus.ts
 models/RpcTestCase.ts
 models/RpcTestCaseSnippet.ts
 models/RpcUpdateAccountRequest.ts

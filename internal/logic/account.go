@@ -69,8 +69,8 @@ func (a account) isValidDisplayName(displayName string) bool {
 	return displayName != "" && accountDisplayNameRegex.Match([]byte(displayName))
 }
 
-func (a account) canAccountBeCreatedAnonymously(role rpc.AccountRole) bool {
-	return role == rpc.AccountRoleContestant || role == rpc.AccountRoleProblemSetter
+func (a account) canAccountBeCreatedAnonymously(role string) bool {
+	return role == string(rpc.AccountRoleContestant) || role == string(rpc.AccountRoleProblemSetter)
 }
 
 func (a account) dbAccountToRPCAccount(account *db.Account) rpc.Account {
@@ -78,7 +78,7 @@ func (a account) dbAccountToRPCAccount(account *db.Account) rpc.Account {
 		ID:          uint64(account.ID),
 		AccountName: account.AccountName,
 		DisplayName: account.DisplayName,
-		Role:        rpc.AccountRole(account.Role),
+		Role:        string(account.Role),
 	}
 }
 

@@ -11,7 +11,7 @@ const (
 
 type Account struct {
 	ID          uint64
-	AccountName string      `validate:"alphanum,min=6,max=32"`
-	DisplayName string      `validate:"min=1,max=32"`
-	Role        AccountRole `validate:"oneof=admin problem_setter contestant worker"`
+	AccountName string `validate:"alphanum,min=6,max=32"`
+	DisplayName string `validate:"min=1,max=32"`
+	Role        string `validate:"oneof=admin problem_setter contestant worker"`
 }

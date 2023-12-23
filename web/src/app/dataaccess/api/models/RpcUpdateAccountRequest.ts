@@ -13,13 +13,6 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { RpcAccountRole } from './RpcAccountRole';
-import {
-    RpcAccountRoleFromJSON,
-    RpcAccountRoleFromJSONTyped,
-    RpcAccountRoleToJSON,
-} from './RpcAccountRole';
-
 /**
  * 
  * @export
@@ -40,10 +33,10 @@ export interface RpcUpdateAccountRequest {
     displayName: string;
     /**
      * 
-     * @type {RpcAccountRole}
+     * @type {string}
      * @memberof RpcUpdateAccountRequest
      */
-    role: RpcAccountRole;
+    role: string;
 }
 
 /**
@@ -70,7 +63,7 @@ export function RpcUpdateAccountRequestFromJSONTyped(json: any, ignoreDiscrimina
         
         'iD': json['ID'],
         'displayName': json['DisplayName'],
-        'role': RpcAccountRoleFromJSON(json['Role']),
+        'role': json['Role'],
     };
 }
 
@@ -85,7 +78,7 @@ export function RpcUpdateAccountRequestToJSON(value?: RpcUpdateAccountRequest | 
         
         'ID': value.iD,
         'DisplayName': value.displayName,
-        'Role': RpcAccountRoleToJSON(value.role),
+        'Role': value.role,
     };
 }
 

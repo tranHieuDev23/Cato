@@ -25,18 +25,6 @@ import {
     RpcSubmissionProblemFromJSONTyped,
     RpcSubmissionProblemToJSON,
 } from './RpcSubmissionProblem';
-import type { RpcSubmissionResult } from './RpcSubmissionResult';
-import {
-    RpcSubmissionResultFromJSON,
-    RpcSubmissionResultFromJSONTyped,
-    RpcSubmissionResultToJSON,
-} from './RpcSubmissionResult';
-import type { RpcSubmissionStatus } from './RpcSubmissionStatus';
-import {
-    RpcSubmissionStatusFromJSON,
-    RpcSubmissionStatusFromJSONTyped,
-    RpcSubmissionStatusToJSON,
-} from './RpcSubmissionStatus';
 
 /**
  * 
@@ -70,16 +58,16 @@ export interface RpcSubmissionSnippet {
     language: string;
     /**
      * 
-     * @type {RpcSubmissionStatus}
+     * @type {number}
      * @memberof RpcSubmissionSnippet
      */
-    status: RpcSubmissionStatus;
+    status: number;
     /**
      * 
-     * @type {RpcSubmissionResult}
+     * @type {number}
      * @memberof RpcSubmissionSnippet
      */
-    result: RpcSubmissionResult;
+    result: number;
     /**
      * 
      * @type {number}
@@ -118,8 +106,8 @@ export function RpcSubmissionSnippetFromJSONTyped(json: any, ignoreDiscriminator
         'problem': RpcSubmissionProblemFromJSON(json['Problem']),
         'author': RpcCreateAccountResponseAccountFromJSON(json['Author']),
         'language': json['Language'],
-        'status': RpcSubmissionStatusFromJSON(json['Status']),
-        'result': RpcSubmissionResultFromJSON(json['Result']),
+        'status': json['Status'],
+        'result': json['Result'],
         'createdTime': json['CreatedTime'],
     };
 }
@@ -137,8 +125,8 @@ export function RpcSubmissionSnippetToJSON(value?: RpcSubmissionSnippet | null):
         'Problem': RpcSubmissionProblemToJSON(value.problem),
         'Author': RpcCreateAccountResponseAccountToJSON(value.author),
         'Language': value.language,
-        'Status': RpcSubmissionStatusToJSON(value.status),
-        'Result': RpcSubmissionResultToJSON(value.result),
+        'Status': value.status,
+        'Result': value.result,
         'CreatedTime': value.createdTime,
     };
 }

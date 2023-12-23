@@ -25,10 +25,10 @@ type Submission struct {
 	ID          uint64
 	Problem     SubmissionProblemSnippet
 	Author      Account
-	Content     string           `validate:"max=5120"`
-	Language    string           `validate:"max=32"`
-	Status      SubmissionStatus `validate:"oneof=1 2 3"`
-	Result      SubmissionResult
+	Content     string `validate:"max=5120"`
+	Language    string `validate:"max=32"`
+	Status      uint8  `validate:"oneof=1 2 3"`
+	Result      uint8
 	CreatedTime uint64
 }
 
@@ -36,8 +36,8 @@ type SubmissionSnippet struct {
 	ID          uint64
 	Problem     SubmissionProblemSnippet
 	Author      Account
-	Language    string           `validate:"max=32"`
-	Status      SubmissionStatus `validate:"oneof=1 2 3"`
-	Result      SubmissionResult `validate:"oneof=1 2 3 4 5 6"`
+	Language    string `validate:"max=32"`
+	Status      uint8  `validate:"oneof=1 2 3"`
+	Result      uint8  `validate:"oneof=1 2 3 4 5 6"`
 	CreatedTime uint64
 }

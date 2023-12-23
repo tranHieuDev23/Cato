@@ -62,12 +62,12 @@ func (s submission) dbSubmissionToRPCSubmission(
 			ID:          uint64(author.ID),
 			AccountName: author.AccountName,
 			DisplayName: author.DisplayName,
-			Role:        rpc.AccountRole(author.Role),
+			Role:        string(author.Role),
 		},
 		Language:    submission.Language,
 		Content:     submission.Content,
-		Status:      rpc.SubmissionStatus(submission.Status),
-		Result:      rpc.SubmissionResult(submission.Result),
+		Status:      uint8(submission.Status),
+		Result:      uint8(submission.Result),
 		CreatedTime: uint64(submission.CreatedAt.Unix()),
 	}
 }
@@ -87,11 +87,11 @@ func (s submission) dbSubmissionToRPCSubmissionSnippet(
 			ID:          uint64(author.ID),
 			AccountName: author.AccountName,
 			DisplayName: author.DisplayName,
-			Role:        rpc.AccountRole(author.Role),
+			Role:        string(author.Role),
 		},
 		Language:    submission.Language,
-		Status:      rpc.SubmissionStatus(submission.Status),
-		Result:      rpc.SubmissionResult(submission.Result),
+		Status:      uint8(submission.Status),
+		Result:      uint8(submission.Result),
 		CreatedTime: uint64(submission.CreatedAt.Unix()),
 	}
 }
