@@ -36,15 +36,15 @@ export class ProblemService {
 
       const apiError = e as RpcError;
       if (apiError.code == ErrorCode.JRPCErrorInvalidParams) {
-        throw new UnauthenticatedError();
+        throw new InvalidProblemListParam();
       }
 
       if (apiError.code == ErrorCode.Unauthenticated) {
-        throw new PermissionDeniedError();
+        throw new UnauthenticatedError();
       }
 
       if (apiError.code == ErrorCode.PermissionDenied) {
-        throw new InvalidProblemListParam();
+        throw new PermissionDeniedError();
       }
 
       throw e;
