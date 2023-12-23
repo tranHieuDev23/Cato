@@ -1,29 +1,31 @@
 <ul nz-menu nzTheme="dark" nzMode="inline" [nzInlineCollapsed]="collapsed">
-    <li nz-menu-item nzMatchRouter>
+    <li *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'problem_setter'|| sessionAccount?.role === 'contestant'"
+        nz-menu-item nzMatchRouter>
         <a routerLink="/problem-list">
             <span nz-icon nzType="question-circle" nzTheme="outline"></span>
             <span *ngIf="!collapsed">Problems</span>
         </a>
     </li>
-    <li nz-menu-item nzMatchRouter>
+    <li *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'problem_setter'|| sessionAccount?.role === 'contestant'"
+        nz-menu-item nzMatchRouter>
         <a routerLink="/submission-list">
             <span nz-icon nzType="exclamation-circle" nzTheme="outline"></span>
             <span *ngIf="!collapsed">Submissions</span>
         </a>
     </li>
-    <li nz-menu-item nzMatchRouter>
+    <li *ngIf="sessionAccount?.role === 'admin'" nz-menu-item nzMatchRouter>
         <a routerLink="/account-list">
             <span nz-icon nzType="team" nzTheme="outline"></span>
             <span *ngIf="!collapsed">Accounts</span>
         </a>
     </li>
-    <li nz-menu-item nzMatchRouter>
+    <li *ngIf="sessionAccount" nz-menu-item nzMatchRouter>
         <a routerLink="/profile">
             <span nz-icon nzType="user" nzTheme="outline"></span>
             <span *ngIf="!collapsed">Profile</span>
         </a>
     </li>
-    <li nz-menu-item (click)="onLogOutClicked()">
+    <li *ngIf="sessionAccount" nz-menu-item (click)="onLogOutClicked()">
         <span nz-icon nzType="logout" nzTheme="outline"></span>
         <span *ngIf="!collapsed">Log out</span>
     </li>

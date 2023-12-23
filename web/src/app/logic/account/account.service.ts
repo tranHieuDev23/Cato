@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { EventEmitter, Injectable } from '@angular/core';
 import { ApiService } from '../../dataaccess';
 import { RpcAccount, RpcError } from '../../dataaccess/api';
 import { ErrorCode } from '../../dataaccess/api.service';
@@ -32,6 +32,8 @@ export class AccountNameTakenError extends Error {
 })
 export class AccountService {
   private sessionAccount: RpcAccount | null | undefined;
+
+  public readonly sessionAccountChanged = new EventEmitter<RpcAccount | null>();
 
   constructor(private readonly api: ApiService) {}
 
@@ -106,6 +108,7 @@ export class AccountService {
         password,
       });
       this.sessionAccount = response.account;
+      this.sessionAccountChanged.emit(this.sessionAccount);
       return response.account;
     } catch (e) {
       if (!this.api.isRpcError(e)) {
@@ -128,7 +131,7 @@ export class AccountService {
   public async deleteSession(): Promise<void> {
     try {
       await this.api.deleteSession();
-      this.sessionAccount = undefined;
+      this.sessionAccount = null;
     } catch (e) {
       if (!this.api.isRpcError(e)) {
         throw e;
@@ -137,6 +140,7 @@ export class AccountService {
       const apiError = e as RpcError;
       if (apiError.code === ErrorCode.Unauthenticated) {
         this.sessionAccount = null;
+        this.sessionAccountChanged.emit(null);
         return;
       }
 
@@ -149,6 +153,7 @@ export class AccountService {
       try {
         const response = await this.api.getSession();
         this.sessionAccount = response.account;
+        this.sessionAccountChanged.emit(this.sessionAccount);
       } catch (e) {
         if (!this.api.isRpcError(e)) {
           throw e;
@@ -157,6 +162,7 @@ export class AccountService {
         const apiError = e as RpcError;
         if (apiError.code === ErrorCode.Unauthenticated) {
           this.sessionAccount = null;
+          this.sessionAccountChanged.emit(null);
         } else {
           throw apiError;
         }
