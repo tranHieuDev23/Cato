@@ -1,1 +1,13 @@
-/* You can add global styles to this file, and also import other style files */
+@import "../node_modules/codemirror/lib/codemirror.css";
+@import "../node_modules/codemirror/theme/material.css";
+
+.inner-content {
+  padding: 24px;
+  background: #fff;
+  height: 100%;
+  min-height: calc(100vh - 112px);
+}
+
+.CodeMirror {
+  height: 100%;
+}

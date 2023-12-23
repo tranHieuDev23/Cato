@@ -1,29 +1,32 @@
-<p nz-typography>
-    <nz-switch [(ngModel)]="autoReloadEnabled" (ngModelChange)="onAutoReloadEnabledChange($event)"></nz-switch>&nbsp;
-    Enable auto-reload
-</p>
-<p *ngIf="lastLoadedTime !== undefined" nz-typography>
-    Last updated at {{ lastLoadedTime | date:'long' }}
-</p>
-<nz-table #table [nzData]="submissionSnippetList" [nzPageIndex]="pageIndex" [nzPageSize]="pageSize"
-    [nzTotal]="totalSubmissionCount" [nzLoading]="loading" (nzPageIndexChange)="onPageIndexChange($event)"
-    (nzPageSizeChange)="onPageSizeChange($event)">
-    <thead>
-        <tr>
-            <th>Problem</th>
-            <th>Author</th>
-            <th>Language</th>
-            <th>Status</th>
-            <th>Created time</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr *ngFor="let submissionSnippet of table.data">
-            <td>{{ submissionSnippet.problem.displayName }}</td>
-            <td>{{ submissionSnippet.author.displayName }}</td>
-            <td>{{ submissionSnippet.language }}</td>
-            <td>{{ submissionSnippet.status }}</td>
-            <td>{{ submissionSnippet.createdTime | date:'short' }}</td>
-        </tr>
-    </tbody>
-</nz-table>
+<div class="inner-content">
+    <p nz-typography>
+        <nz-switch [(ngModel)]="autoReloadEnabled"
+            (ngModelChange)="onAutoReloadEnabledChange($event)"></nz-switch>&nbsp;
+        Enable auto-reload
+    </p>
+    <p *ngIf="lastLoadedTime !== undefined" nz-typography>
+        Last updated at {{ lastLoadedTime | date:'long' }}
+    </p>
+    <nz-table #table [nzData]="submissionSnippetList" [nzPageIndex]="pageIndex" [nzPageSize]="pageSize"
+        [nzTotal]="totalSubmissionCount" [nzLoading]="loading" (nzPageIndexChange)="onPageIndexChange($event)"
+        (nzPageSizeChange)="onPageSizeChange($event)">
+        <thead>
+            <tr>
+                <th>Problem</th>
+                <th>Author</th>
+                <th>Language</th>
+                <th>Status</th>
+                <th>Created time</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let submissionSnippet of table.data">
+                <td>{{ submissionSnippet.problem.displayName }}</td>
+                <td>{{ submissionSnippet.author.displayName }}</td>
+                <td>{{ submissionSnippet.language }}</td>
+                <td>{{ submissionSnippet.status }}</td>
+                <td>{{ submissionSnippet.createdTime | date:'short' }}</td>
+            </tr>
+        </tbody>
+    </nz-table>
+</div>

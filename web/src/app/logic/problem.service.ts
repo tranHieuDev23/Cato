@@ -66,6 +66,28 @@ export class ProblemService {
     }
   }
 
+  public async getProblem(id: number): Promise<RpcProblem> {
+    try {
+      const response = await this.api.getProblem({ iD: id });
+      return response.problem;
+    } catch (e) {
+      if (!this.api.isRpcError(e)) {
+        throw e;
+      }
+
+      const apiError = e as RpcError;
+      if (apiError.code == ErrorCode.Unauthenticated) {
+        throw new UnauthenticatedError();
+      }
+
+      if (apiError.code == ErrorCode.PermissionDenied) {
+        throw new PermissionDeniedError();
+      }
+
+      throw e;
+    }
+  }
+
   public async createProblem(
     displayName: string,
     description: string,

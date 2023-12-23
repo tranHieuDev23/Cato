@@ -10,8 +10,7 @@ import {
   FormsModule,
   NG_VALUE_ACCESSOR,
 } from '@angular/forms';
-import { QuillModules, ContentChange, QuillModule } from 'ngx-quill';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { QuillModules, QuillModule } from 'ngx-quill';
 
 @Component({
   selector: 'app-editable-rich-text',

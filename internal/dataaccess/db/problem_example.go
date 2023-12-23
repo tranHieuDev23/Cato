@@ -80,7 +80,7 @@ func (a problemExampleDataAccessor) GetProblemExampleListOfProblem(ctx context.C
 		Where(&ProblemExample{
 			OfProblemID: problemID,
 		}).
-		Find(problemExampleList).
+		Find(&problemExampleList).
 		Error; err != nil {
 		logger.With(zap.Error(err)).Error("failed to get problem example list")
 		return make([]*ProblemExample, 0), err

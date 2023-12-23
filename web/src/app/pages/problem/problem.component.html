@@ -1,1 +1,19 @@
-<p>problem works!</p>
+<div nz-row>
+    <div nz-col nzSpan="12" class="inner-content">
+        <ng-container *ngIf="problem">
+            <h2 nz-typography>{{problem.displayName}}</h2>
+            <p nz-typography nzType="secondary">
+                Author: {{ problem.author.displayName }}<br />
+                Last updated at {{ problem.updatedTime | date:'short' }}<br />
+                Time limit: {{ problem.timeLimitInMillisecond | timeLimit }}<br />
+                Memory limit:{{ problem.memoryLimitInByte | memory }}
+            </p>
+            <span nz-typography [innerHTML]="problem.description"></span>
+        </ng-container>
+    </div>
+    <div nz-col nzSpan="12">
+        <ngx-codemirror [(ngModel)]="submissionContent"
+            [options]="{lineNumbers: true,theme: 'material',mode: 'markdown'}" class="code-editor">
+        </ngx-codemirror>
+    </div>
+</div>
