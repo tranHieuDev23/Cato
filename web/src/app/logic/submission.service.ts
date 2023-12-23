@@ -8,6 +8,7 @@ import {
   AccountService,
   AccountNotFoundError,
 } from './account.service';
+import { ProblemNotFoundError } from './problem.service';
 
 export class InvalidSubmissionListParam extends Error {
   constructor() {
@@ -123,5 +124,49 @@ export class SubmissionService {
       offset,
       limit
     );
+  }
+
+  public async getProblemSubmissionSnippetList(
+    problemID: number,
+    offset: number,
+    limit: number
+  ): Promise<{
+    totalSubmissionCount: number;
+    submissionSnippetList: RpcSubmissionSnippet[];
+  }> {
+    try {
+      const response = await this.api.getProblemSubmissionSnippetList({
+        problemID: problemID,
+        offset,
+        limit,
+      });
+      return {
+        totalSubmissionCount: response.totalSubmissionCount,
+        submissionSnippetList: response.submissionSnippetList,
+      };
+    } catch (e) {
+      if (!this.api.isRpcError(e)) {
+        throw e;
+      }
+
+      const apiError = e as RpcError;
+      if (apiError.code == ErrorCode.JRPCErrorInvalidParams) {
+        throw new InvalidSubmissionListParam();
+      }
+
+      if (apiError.code == ErrorCode.Unauthenticated) {
+        throw new UnauthenticatedError();
+      }
+
+      if (apiError.code == ErrorCode.PermissionDenied) {
+        throw new PermissionDeniedError();
+      }
+
+      if (apiError.code == ErrorCode.NotFound) {
+        throw new ProblemNotFoundError();
+      }
+
+      throw e;
+    }
   }
 }

@@ -30,6 +30,8 @@ import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzTableModule } from 'ng-zorro-antd/table';
+import { NzTabsModule } from 'ng-zorro-antd/tabs';
+import { SubmissionListComponent } from './submission-list/submission-list.component';
 
 @Component({
   selector: 'app-problem',
@@ -49,6 +51,8 @@ import { NzTableModule } from 'ng-zorro-antd/table';
     NzSelectModule,
     NzIconModule,
     NzTableModule,
+    NzTabsModule,
+    SubmissionListComponent,
   ],
   templateUrl: './problem.component.html',
   styleUrl: './problem.component.scss',
@@ -61,7 +65,6 @@ export class ProblemComponent {
   public submissionLanguage = 'cpp';
   public submissionEditorMode = 'text/x-c++src';
 
-  public submissionStatusVisible = false;
   public totalSubmissionCount = 0;
   public submissionSnippetList: RpcSubmissionSnippet[] = [];
   public pageIndex = 1;
@@ -132,6 +135,9 @@ export class ProblemComponent {
   public onSubmissionLanguageChange(language: string): void {
     if (language === 'cpp') {
       this.submissionEditorMode = 'text/x-c++src';
+    }
+    if (language === 'java') {
+      this.submissionEditorMode = 'text/x-java';
     }
     if (language === 'python') {
       this.submissionEditorMode = 'text/x-python';

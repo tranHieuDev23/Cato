@@ -1,22 +1,38 @@
 <div nz-row nzGutter="16">
     <div nz-col [nzSpan]="sessionAccount?.role === 'admin' || sessionAccount?.role === 'contestant'? 8 : 24"
         class="inner-content">
-        <ng-container *ngIf="problem">
-            <h2 nz-typography>{{problem.displayName}}</h2>
-            <p nz-typography nzType="secondary">
-                Author: {{ problem.author.displayName }}<br />
-                Last updated at {{ problem.updatedTime | date:'short' }}<br />
-                Time limit: {{ problem.timeLimitInMillisecond | timeLimit }}<br />
-                Memory limit:{{ problem.memoryLimitInByte | memory }}
-            </p>
-            <span nz-typography [innerHTML]="problem.description"></span>
-        </ng-container>
+        <nz-tabset>
+            <nz-tab nzTitle="Description">
+                <ng-container *ngIf="problem">
+                    <h2 nz-typography>{{problem.displayName}}</h2>
+                    <p nz-typography nzType="secondary">
+                        Author: {{ problem.author.displayName }}<br />
+                        Last updated at {{ problem.updatedTime | date:'short' }}<br />
+                        Time limit: {{ problem.timeLimitInMillisecond | timeLimit }}<br />
+                        Memory limit:{{ problem.memoryLimitInByte | memory }}
+                    </p>
+                    <span nz-typography [innerHTML]="problem.description"></span>
+                </ng-container>
+            </nz-tab>
+
+            <nz-tab *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'problem_setter'"
+                nzTitle="Test cases">
+
+            </nz-tab>
+
+            <nz-tab nzTitle="Submissions">
+                <app-submission-list *ngIf="problem" [problemID]="problem.iD"></app-submission-list>
+            </nz-tab>
+        </nz-tabset>
     </div>
+
     <div *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'contestant'" nz-col nzSpan="16">
         <ul nz-menu nzMode="horizontal" class="code-editor-menu">
             <li nz-menu-item>
-                <nz-select style="width: 120px;" [(ngModel)]="submissionLanguage">
+                <nz-select style="width: 120px;" [(ngModel)]="submissionLanguage"
+                    (ngModelChange)="onSubmissionLanguageChange($event)">
                     <nz-option nzValue="cpp" nzLabel="C++"></nz-option>
+                    <nz-option nzValue="java" nzLabel="Java"></nz-option>
                     <nz-option nzValue="python" nzLabel="Python"></nz-option>
                 </nz-select>
             </li>
@@ -32,31 +48,7 @@
             </li>
         </ul>
         <ngx-codemirror [(ngModel)]="submissionContent"
-            [options]="{lineNumbers: true, theme: 'material', mode: 'text/x-c++src'}"
-            [class]="submissionStatusVisible? 'code-editor' : 'code-editor-expanded'">
+            [options]="{lineNumbers: true, theme: 'material', mode: submissionEditorMode}" class="code-editor">
         </ngx-codemirror>
-        <div *ngIf="submissionStatusVisible" class="submission-status">
-            <p nz-typography><strong>Submissions</strong></p>
-            <nz-table #table [nzData]="submissionSnippetList" [nzPageIndex]="pageIndex" [nzPageSize]="pageSize"
-                [nzTotal]="totalSubmissionCount" [nzLoading]="loadingSubmissionList" nzSize="small" [nzSimple]="true"
-                (nzPageIndexChange)="onPageIndexChange($event)" (nzPageSizeChange)="onPageSizeChange($event)">
-                <thead>
-                    <tr>
-                        <th>Problem</th>
-                        <th>Language</th>
-                        <th>Status</th>
-                        <th>Created time</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr *ngFor="let submissionSnippet of table.data">
-                        <td>{{ submissionSnippet.problem.displayName }}</td>
-                        <td>{{ submissionSnippet.language }}</td>
-                        <td>{{ submissionSnippet.status }}</td>
-                        <td>{{ submissionSnippet.createdTime | date:'short' }}</td>
-                    </tr>
-                </tbody>
-            </nz-table>
-        </div>
     </div>
 </div>

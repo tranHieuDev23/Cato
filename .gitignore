@@ -22,6 +22,7 @@ go.work
 
 # Built binary
 build/
+__debug_bin__
 
 # Database file
 *.db

@@ -16,6 +16,12 @@ export class InvalidProblemInfo extends Error {
   }
 }
 
+export class ProblemNotFoundError extends Error {
+  constructor() {
+    super('Problem not found');
+  }
+}
+
 @Injectable({
   providedIn: 'root',
 })
