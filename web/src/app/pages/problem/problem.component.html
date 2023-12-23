@@ -1,5 +1,6 @@
-<div nz-row>
-    <div nz-col nzSpan="12" class="inner-content">
+<div nz-row nzGutter="16">
+    <div nz-col [nzSpan]="sessionAccount?.role === 'admin' || sessionAccount?.role === 'contestant'? 8 : 24"
+        class="inner-content">
         <ng-container *ngIf="problem">
             <h2 nz-typography>{{problem.displayName}}</h2>
             <p nz-typography nzType="secondary">
@@ -11,9 +12,51 @@
             <span nz-typography [innerHTML]="problem.description"></span>
         </ng-container>
     </div>
-    <div nz-col nzSpan="12">
+    <div *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'contestant'" nz-col nzSpan="16">
+        <ul nz-menu nzMode="horizontal" class="code-editor-menu">
+            <li nz-menu-item>
+                <nz-select style="width: 120px;" [(ngModel)]="submissionLanguage">
+                    <nz-option nzValue="cpp" nzLabel="C++"></nz-option>
+                    <nz-option nzValue="python" nzLabel="Python"></nz-option>
+                </nz-select>
+            </li>
+            <li nz-menu-item>
+                <nz-upload nzAction="https://www.mocky.io/v2/5cc8019d300000980a055e76">
+                    <span nz-icon nzType="file" nzTheme="outline"></span>
+                    Load file
+                </nz-upload>
+            </li>
+            <li nz-menu-item nzDanger="true">
+                <span nz-icon nzType="upload" nzTheme="outline"></span>
+                Submit
+            </li>
+        </ul>
         <ngx-codemirror [(ngModel)]="submissionContent"
-            [options]="{lineNumbers: true,theme: 'material',mode: 'markdown'}" class="code-editor">
+            [options]="{lineNumbers: true, theme: 'material', mode: 'text/x-c++src'}"
+            [class]="submissionStatusVisible? 'code-editor' : 'code-editor-expanded'">
         </ngx-codemirror>
+        <div *ngIf="submissionStatusVisible" class="submission-status">
+            <p nz-typography><strong>Submissions</strong></p>
+            <nz-table #table [nzData]="submissionSnippetList" [nzPageIndex]="pageIndex" [nzPageSize]="pageSize"
+                [nzTotal]="totalSubmissionCount" [nzLoading]="loadingSubmissionList" nzSize="small" [nzSimple]="true"
+                (nzPageIndexChange)="onPageIndexChange($event)" (nzPageSizeChange)="onPageSizeChange($event)">
+                <thead>
+                    <tr>
+                        <th>Problem</th>
+                        <th>Language</th>
+                        <th>Status</th>
+                        <th>Created time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let submissionSnippet of table.data">
+                        <td>{{ submissionSnippet.problem.displayName }}</td>
+                        <td>{{ submissionSnippet.language }}</td>
+                        <td>{{ submissionSnippet.status }}</td>
+                        <td>{{ submissionSnippet.createdTime | date:'short' }}</td>
+                    </tr>
+                </tbody>
+            </nz-table>
+        </div>
     </div>
 </div>

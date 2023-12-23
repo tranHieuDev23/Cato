@@ -73,7 +73,7 @@ func (p problem) isValidDisplayName(displayName string) bool {
 
 func (p problem) cleanupDescription(description string) string {
 	description = strings.Trim(description, " ")
-	description = p.displayNameSanitizePolicy.Sanitize(description)
+	description = p.descriptionSanitizePolicy.Sanitize(description)
 	return description
 }
 

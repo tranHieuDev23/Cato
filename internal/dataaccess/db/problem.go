@@ -64,7 +64,7 @@ func (a problemDataAccessor) GetProblem(ctx context.Context, id uint64) (*Proble
 		With(zap.Uint64("id", id))
 	db := a.db.WithContext(ctx)
 	problem := new(Problem)
-	if err := db.First(problem).Error; err != nil {
+	if err := db.First(problem, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}

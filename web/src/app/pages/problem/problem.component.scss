@@ -1,4 +1,21 @@
+.code-editor-menu {
+  height: 48px;
+}
+
 .code-editor {
   display: block;
-  height: calc(100vh - 112px);
+  height: calc(100vh - 160px - 16px - 300px);
+  margin-bottom: 16px;
+}
+
+.code-editor-expanded {
+  display: block;
+  height: calc(100vh - 160px);
+}
+
+.submission-status {
+  padding: 24px;
+  background: #fff;
+  height: 300px;
+  overflow-y: scroll;
 }
