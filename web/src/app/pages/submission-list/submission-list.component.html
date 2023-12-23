@@ -1,3 +1,10 @@
+<p nz-typography>
+    <nz-switch [(ngModel)]="autoReloadEnabled" (ngModelChange)="onAutoReloadEnabledChange($event)"></nz-switch>&nbsp;
+    Enable auto-reload
+</p>
+<p *ngIf="lastLoadedTime !== undefined" nz-typography>
+    Last updated at {{ lastLoadedTime | date:'long' }}
+</p>
 <nz-table #table [nzData]="submissionSnippetList" [nzPageIndex]="pageIndex" [nzPageSize]="pageSize"
     [nzTotal]="totalSubmissionCount" [nzLoading]="loading" (nzPageIndexChange)="onPageIndexChange($event)"
     (nzPageSizeChange)="onPageSizeChange($event)">

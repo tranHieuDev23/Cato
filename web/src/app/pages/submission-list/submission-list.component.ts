@@ -17,14 +17,24 @@ import {
 } from '../../logic/submission.service';
 import { CommonModule, Location } from '@angular/common';
 import { NzTableModule } from 'ng-zorro-antd/table';
+import { NzTypographyModule } from 'ng-zorro-antd/typography';
+import { NzSwitchModule } from 'ng-zorro-antd/switch';
+import { FormsModule } from '@angular/forms';
 
 const DEFAULT_PAGE_INDEX = 1;
 const DEFAULT_PAGE_SIZE = 10;
+const SUBMISSION_LIST_RELOAD_INTERVAL = 10000;
 
 @Component({
   selector: 'app-submission-list',
   standalone: true,
-  imports: [NzTableModule, CommonModule],
+  imports: [
+    NzTableModule,
+    CommonModule,
+    NzTypographyModule,
+    NzSwitchModule,
+    FormsModule,
+  ],
   templateUrl: './submission-list.component.html',
   styleUrl: './submission-list.component.scss',
 })
@@ -35,8 +45,13 @@ export class SubmissionListComponent {
   public pageIndex = DEFAULT_PAGE_INDEX;
   public pageSize = DEFAULT_PAGE_SIZE;
   public loading = false;
+  public lastLoadedTime: number | undefined;
+  public autoReloadEnabled = true;
 
   private sessionAccountChangedSubscription: Subscription | undefined;
+  private submissionListReloadInterval:
+    | ReturnType<typeof setInterval>
+    | undefined;
 
   constructor(
     private readonly accountService: AccountService,
@@ -59,10 +74,16 @@ export class SubmissionListComponent {
       this.accountService.sessionAccountChanged.subscribe((account) => {
         this.sessionAccount = account;
       });
+    this.submissionListReloadInterval = setInterval(async () => {
+      await this.loadSubmissionSnippetList();
+    }, SUBMISSION_LIST_RELOAD_INTERVAL);
   }
 
   ngOnDestroy(): void {
     this.sessionAccountChangedSubscription?.unsubscribe();
+    if (this.submissionListReloadInterval !== undefined) {
+      clearInterval(this.submissionListReloadInterval);
+    }
   }
 
   private async onQueryParamsChanged(queryParams: Params): Promise<void> {
@@ -117,6 +138,8 @@ export class SubmissionListComponent {
         this.totalSubmissionCount = totalSubmissionCount;
         this.submissionSnippetList = submissionSnippetList;
       }
+
+      this.lastLoadedTime = Date.now();
     } catch (e) {
       if (e instanceof UnauthenticatedError) {
         this.nzNotificationService.error(
@@ -162,6 +185,25 @@ export class SubmissionListComponent {
     } finally {
       this.loading = false;
     }
+  }
+
+  public onAutoReloadEnabledChange(enabled: boolean): void {
+    if (enabled) {
+      if (this.submissionListReloadInterval !== undefined) {
+        return;
+      }
+
+      this.submissionListReloadInterval = setInterval(async () => {
+        await this.loadSubmissionSnippetList();
+      }, SUBMISSION_LIST_RELOAD_INTERVAL);
+      return;
+    }
+
+    if (this.submissionListReloadInterval === undefined) {
+      return;
+    }
+    clearInterval(this.submissionListReloadInterval);
+    this.submissionListReloadInterval = undefined;
   }
 
   public async onPageIndexChange(index: number): Promise<void> {
