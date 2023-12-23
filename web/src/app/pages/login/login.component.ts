@@ -11,6 +11,7 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzRadioModule } from 'ng-zorro-antd/radio';
 import {
   NzNotificationModule,
   NzNotificationService,
@@ -37,6 +38,7 @@ import { CommonModule } from '@angular/common';
     NzInputModule,
     NzNotificationModule,
     NzButtonModule,
+    NzRadioModule,
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
@@ -62,6 +64,7 @@ export class LoginComponent {
         accountName: ['', [Validators.required, this.accountNameValidator()]],
         password: ['', [Validators.required, this.passwordValidator()]],
         passwordConfirm: ['', [Validators.required]],
+        role: [''],
       },
       {
         validators: [ConfirmedValidator('password', 'passwordConfirm')],
@@ -72,6 +75,7 @@ export class LoginComponent {
       accountName: '',
       password: '',
       passwordType: '',
+      role: 'contestant',
     });
   }
 
@@ -126,12 +130,13 @@ export class LoginComponent {
   }
 
   public async onRegisterClicked(): Promise<void> {
-    const { displayName, accountName, password } = this.registerForm.value;
+    const { displayName, accountName, password, role } =
+      this.registerForm.value;
     try {
       const account = await this.accountService.createAccount(
         accountName,
         displayName,
-        'contestant',
+        role,
         password
       );
       this.notificationService.success(
