@@ -24,6 +24,7 @@ import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { FormsModule } from '@angular/forms';
 import { LanguagePipe } from '../../components/utils/language.pipe';
+import { SubmissionStatusPipe } from '../../components/utils/submission-status.pipe';
 
 const DEFAULT_PAGE_INDEX = 1;
 const DEFAULT_PAGE_SIZE = 10;
@@ -32,6 +33,8 @@ const SUBMISSION_LIST_RELOAD_INTERVAL = 10000;
 @Component({
   selector: 'app-submission-list',
   standalone: true,
+  templateUrl: './submission-list.component.html',
+  styleUrl: './submission-list.component.scss',
   imports: [
     NzTableModule,
     CommonModule,
@@ -41,9 +44,8 @@ const SUBMISSION_LIST_RELOAD_INTERVAL = 10000;
     NzNotificationModule,
     LanguagePipe,
     RouterModule,
+    SubmissionStatusPipe,
   ],
-  templateUrl: './submission-list.component.html',
-  styleUrl: './submission-list.component.scss',
 })
 export class SubmissionListComponent implements OnInit, OnDestroy {
   public sessionAccount: RpcAccount | null | undefined;

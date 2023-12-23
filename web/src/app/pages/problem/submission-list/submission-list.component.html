@@ -21,7 +21,7 @@
             <td>{{ submissionSnippet.author.displayName }}</td>
             <td>{{ submissionSnippet.language | language }}</td>
             <td>{{ submissionSnippet.createdTime | date:'short' }}</td>
-            <td>{{ submissionSnippet.status }}</td>
+            <td>{{ submissionSnippet | submissionStatus }}</td>
         </tr>
     </tbody>
 </nz-table>

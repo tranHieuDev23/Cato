@@ -24,12 +24,15 @@ import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { FormsModule } from '@angular/forms';
 import { ProblemNotFoundError } from '../../../logic/problem.service';
 import { LanguagePipe } from '../../../components/utils/language.pipe';
+import { SubmissionStatusPipe } from '../../../components/utils/submission-status.pipe';
 
 const SUBMISSION_LIST_RELOAD_INTERVAL = 10000;
 
 @Component({
   selector: 'app-submission-list',
   standalone: true,
+  templateUrl: './submission-list.component.html',
+  styleUrl: './submission-list.component.scss',
   imports: [
     NzTableModule,
     CommonModule,
@@ -37,9 +40,8 @@ const SUBMISSION_LIST_RELOAD_INTERVAL = 10000;
     NzSwitchModule,
     FormsModule,
     LanguagePipe,
+    SubmissionStatusPipe,
   ],
-  templateUrl: './submission-list.component.html',
-  styleUrl: './submission-list.component.scss',
 })
 export class SubmissionListComponent implements OnInit, OnDestroy {
   @Input() public problemID = 0;
