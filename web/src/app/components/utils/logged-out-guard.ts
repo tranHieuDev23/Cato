@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Router, UrlTree } from '@angular/router';
-import { AccountService } from '../../logic/account/account.service';
+import { AccountService } from '../../logic/account.service';
 
 @Injectable()
 export class LoggedOutGuard {

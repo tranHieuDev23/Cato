@@ -23,7 +23,7 @@ import {
   AccountService,
   IncorrectPasswordError,
   InvalidAccountInfoError,
-} from '../../logic/account/account.service';
+} from '../../logic/account.service';
 import { ConfirmedValidator } from '../../components/utils/confirmed-validator';
 import { CommonModule } from '@angular/common';
 

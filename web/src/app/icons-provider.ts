@@ -2,6 +2,7 @@ import { EnvironmentProviders, importProvidersFrom } from '@angular/core';
 import {
   MenuFoldOutline,
   MenuUnfoldOutline,
+  PlusCircleOutline,
   QuestionCircleOutline,
   ExclamationCircleOutline,
   TeamOutline,
@@ -13,6 +14,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 const icons = [
   MenuFoldOutline,
   MenuUnfoldOutline,
+  PlusCircleOutline,
   QuestionCircleOutline,
   ExclamationCircleOutline,
   TeamOutline,

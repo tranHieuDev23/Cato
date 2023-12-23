@@ -10,6 +10,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { LoggedOutGuard } from './components/utils/logged-out-guard';
+import { LoggedInGuard } from './components/utils/logged-in-guard';
 
 registerLocaleData(en);
 
@@ -22,5 +23,6 @@ export const appConfig: ApplicationConfig = {
     importProvidersFrom(HttpClientModule),
     provideAnimations(),
     LoggedOutGuard,
+    LoggedInGuard,
   ],
 };

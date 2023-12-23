@@ -1,7 +1,13 @@
 import { EventEmitter, Injectable } from '@angular/core';
-import { ApiService } from '../../dataaccess';
-import { RpcAccount, RpcError } from '../../dataaccess/api';
-import { ErrorCode } from '../../dataaccess/api.service';
+import { ApiService } from '../dataaccess';
+import { RpcAccount, RpcError } from '../dataaccess/api';
+import { ErrorCode } from '../dataaccess/api.service';
+
+export enum Role {
+  Admin = 'admin',
+  ProblemSetter = 'problem_setter',
+  Contestant = 'contestant',
+}
 
 export class AccountNotFoundError extends Error {
   constructor() {
@@ -24,6 +30,18 @@ export class InvalidAccountInfoError extends Error {
 export class AccountNameTakenError extends Error {
   constructor() {
     super('Account name taken');
+  }
+}
+
+export class UnauthenticatedError extends Error {
+  constructor() {
+    super('Not logged in');
+  }
+}
+
+export class PermissionDeniedError extends Error {
+  constructor() {
+    super('Permission denied');
   }
 }
 

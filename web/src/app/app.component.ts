@@ -5,7 +5,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { SideMenuComponent } from './components/side-menu/side-menu.component';
-import { AccountService } from './logic/account/account.service';
+import { AccountService } from './logic/account.service';
 
 @Component({
   selector: 'app-root',

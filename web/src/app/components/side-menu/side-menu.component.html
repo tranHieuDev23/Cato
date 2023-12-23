@@ -1,4 +1,11 @@
 <ul nz-menu nzTheme="dark" nzMode="inline" [nzInlineCollapsed]="collapsed">
+    <li *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'problem_setter'" nz-menu-item
+        nzMatchRouter>
+        <a routerLink="/problem-editor">
+            <span nz-icon nzType="plus-circle" nzTheme="outline"></span>
+            <span *ngIf="!collapsed">New problem</span>
+        </a>
+    </li>
     <li *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'problem_setter'|| sessionAccount?.role === 'contestant'"
         nz-menu-item nzMatchRouter>
         <a routerLink="/problem-list">

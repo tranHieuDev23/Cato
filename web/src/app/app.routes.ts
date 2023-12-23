@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { LoggedOutGuard } from './components/utils/logged-out-guard';
+import { LoggedInGuard } from './components/utils/logged-in-guard';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: '/login' },
@@ -13,11 +14,13 @@ export const routes: Routes = [
     path: 'welcome',
     loadChildren: () =>
       import('./pages/welcome/welcome.routes').then((m) => m.WELCOME_ROUTES),
+    canActivate: [LoggedInGuard],
   },
   {
     path: 'profile',
     loadChildren: () =>
       import('./pages/profile/profile.routes').then((m) => m.PROFILE_ROUTES),
+    canActivate: [LoggedInGuard],
   },
   {
     path: 'account-list',
@@ -25,6 +28,7 @@ export const routes: Routes = [
       import('./pages/account-list/account-list.routes').then(
         (m) => m.ACCOUNT_LIST_ROUTES
       ),
+    canActivate: [LoggedInGuard],
   },
   {
     path: 'problem-list',
@@ -32,6 +36,7 @@ export const routes: Routes = [
       import('./pages/problem-list/problem-list.routes').then(
         (m) => m.PROBLEM_LIST_ROUTES
       ),
+    canActivate: [LoggedInGuard],
   },
   {
     path: 'submission-list',
@@ -44,6 +49,7 @@ export const routes: Routes = [
     path: 'problem',
     loadChildren: () =>
       import('./pages/problem/problem.routes').then((m) => m.PROBLEM_ROUTES),
+    canActivate: [LoggedInGuard],
   },
   {
     path: 'problem-editor',
@@ -51,6 +57,7 @@ export const routes: Routes = [
       import('./pages/problem-editor/problem-editor.routes').then(
         (m) => m.PROBLEM_EDITOR_ROUTES
       ),
+    canActivate: [LoggedInGuard],
   },
   {
     path: 'submission',
@@ -58,5 +65,6 @@ export const routes: Routes = [
       import('./pages/submission/submission.routes').then(
         (m) => m.SUBMISSION_ROUTES
       ),
+    canActivate: [LoggedInGuard],
   },
 ];
