@@ -102,8 +102,8 @@ func (p problem) dbProblemToRPCProblem(problem *db.Problem, author *db.Account, 
 				return p.dbProblemExampleToRPCProblemExample(item)
 			},
 		),
-		CreatedTime: uint64(problem.CreatedAt.Unix()),
-		UpdatedTime: uint64(problem.UpdatedAt.Unix()),
+		CreatedTime: uint64(problem.CreatedAt.UnixMilli()),
+		UpdatedTime: uint64(problem.UpdatedAt.UnixMilli()),
 	}
 }
 
@@ -118,8 +118,8 @@ func (p problem) dbProblemToRPCProblemSnippet(problem *db.Problem, author *db.Ac
 		},
 		TimeLimitInMillisecond: problem.TimeLimitInMillisecond,
 		MemoryLimitInByte:      problem.MemoryLimitInByte,
-		CreatedTime:            uint64(problem.CreatedAt.Unix()),
-		UpdatedTime:            uint64(problem.UpdatedAt.Unix()),
+		CreatedTime:            uint64(problem.CreatedAt.UnixMilli()),
+		UpdatedTime:            uint64(problem.UpdatedAt.UnixMilli()),
 	}
 }
 

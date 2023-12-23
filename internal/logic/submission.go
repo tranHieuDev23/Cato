@@ -68,7 +68,7 @@ func (s submission) dbSubmissionToRPCSubmission(
 		Content:     submission.Content,
 		Status:      uint8(submission.Status),
 		Result:      uint8(submission.Result),
-		CreatedTime: uint64(submission.CreatedAt.Unix()),
+		CreatedTime: uint64(submission.CreatedAt.UnixMilli()),
 	}
 }
 
@@ -92,7 +92,7 @@ func (s submission) dbSubmissionToRPCSubmissionSnippet(
 		Language:    submission.Language,
 		Status:      uint8(submission.Status),
 		Result:      uint8(submission.Result),
-		CreatedTime: uint64(submission.CreatedAt.Unix()),
+		CreatedTime: uint64(submission.CreatedAt.UnixMilli()),
 	}
 }
 
