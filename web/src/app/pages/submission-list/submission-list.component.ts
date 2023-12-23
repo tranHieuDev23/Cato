@@ -1,6 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, Params } from '@angular/router';
-import { NzNotificationService } from 'ng-zorro-antd/notification';
+import {
+  NzNotificationModule,
+  NzNotificationService,
+} from 'ng-zorro-antd/notification';
 import { Subscription } from 'rxjs';
 import { RpcAccount, RpcSubmissionSnippet } from '../../dataaccess/api';
 import {
@@ -34,11 +37,12 @@ const SUBMISSION_LIST_RELOAD_INTERVAL = 10000;
     NzTypographyModule,
     NzSwitchModule,
     FormsModule,
+    NzNotificationModule,
   ],
   templateUrl: './submission-list.component.html',
   styleUrl: './submission-list.component.scss',
 })
-export class SubmissionListComponent {
+export class SubmissionListComponent implements OnInit, OnDestroy {
   public sessionAccount: RpcAccount | null | undefined;
   public submissionSnippetList: RpcSubmissionSnippet[] = [];
   public totalSubmissionCount = 0;

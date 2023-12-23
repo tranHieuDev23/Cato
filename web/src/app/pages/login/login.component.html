@@ -43,7 +43,7 @@
                                         Display name must be at least 1 character long
                                     </ng-container>
                                     <ng-container *ngIf="control.errors.maxLength">
-                                        Display name must not be longer than 256 character
+                                        Display name must not be longer than 32 character
                                     </ng-container>
                                 </ng-template>
                             </nz-input-group>
@@ -63,7 +63,7 @@
                                         Account name must be at least 6 character long
                                     </ng-container>
                                     <ng-container *ngIf="control.errors.maxLength">
-                                        Account name must not be longer than 64 character
+                                        Account name must not be longer than 32 character
                                     </ng-container>
                                     <ng-container *ngIf="control.errors.pattern">
                                         Account name must only contain English letters and digits

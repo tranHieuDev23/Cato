@@ -1,1 +1,94 @@
-<p>problem-editor works!</p>
+<form nz-form nzLayout="vertical" [formGroup]="formGroup" nz-row nzJustify="start">
+    <nz-form-item nz-col [nzSpan]="24">
+        <nz-form-label nzFor="displayName">Name</nz-form-label>
+        <nz-form-control [nzErrorTip]="displayNameErrorTpl">
+            <nz-input-group>
+                <input nz-input type="text" formControlName="displayName" name="displayName" id="displayName"
+                    autocomplete="off" [disabled]="saving">
+                <ng-template #displayNameErrorTpl let-control>
+                    <ng-container *ngIf="control.errors.required">
+                        Name is required
+                    </ng-container>
+                    <ng-container *ngIf="control.errors.maxLength">
+                        Name must not be longer than 256 character
+                    </ng-container>
+                </ng-template>
+            </nz-input-group>
+        </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item nz-col [nzSpan]="24">
+        <nz-form-label nzFor="description">Description</nz-form-label>
+        <nz-form-control [nzErrorTip]="descriptionErrorTpl">
+            <app-editable-rich-text formControlName="description" name="description" id="description"
+                [disabled]="saving">
+            </app-editable-rich-text>
+            <ng-template #descriptionErrorTpl let-control>
+                <ng-container *ngIf="control.errors.required">
+                    Description is required
+                </ng-container>
+                <ng-container *ngIf="control.errors.maxlength">
+                    Description is too long
+                </ng-container>
+            </ng-template>
+        </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item nz-col [nzSpan]="4">
+        <nz-form-label nzFor="timeLimit">Time limit</nz-form-label>
+        <nz-form-control [nzErrorTip]="timeLimitErrorTpl">
+            <nz-input-number-group [nzAddOnAfter]="timeLimitAddOnAfterTemplate">
+                <nz-input-number nz-input style="width: 100px;" type="number" min="1" max="1000"
+                    formControlName="timeLimit" name="timeLimit" id="timeLimit" autocomplete="off" [disabled]="saving">
+                </nz-input-number>
+                <ng-template #timeLimitAddOnAfterTemplate>
+                    <nz-select style="width: 100px;" formControlName="timeLimitUnitInMillisecond"
+                        name="timeLimitUnitInMillisecond">
+                        <nz-option nzValue="1" nzLabel="ms"></nz-option>
+                        <nz-option nzValue="1000" nzLabel="second"></nz-option>
+                    </nz-select>
+                </ng-template>
+            </nz-input-number-group>
+            <ng-template #timeLimitErrorTpl let-control>
+                <ng-container *ngIf="control.errors.minimum">
+                    Time limit is too small
+                </ng-container>
+                <ng-container *ngIf="control.errors.maximum">
+                    Time limit is too large
+                </ng-container>
+            </ng-template>
+        </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item nz-col [nzSpan]="4">
+        <nz-form-label nzFor="memoryLimit">Memory limit</nz-form-label>
+        <nz-form-control [nzErrorTip]="memoryLimitErrorTpl">
+            <nz-input-number-group [nzAddOnAfter]="memoryLimitAddOnAfterTemplate">
+                <nz-input-number nz-input style="width: 100px;" type="number" min="1" max="1024"
+                    formControlName="memoryLimit" name="memoryLimit" id="memoryLimit" autocomplete="off"
+                    [disabled]="saving">
+                </nz-input-number>
+                <ng-template #memoryLimitAddOnAfterTemplate>
+                    <nz-select style="width: 100px;" formControlName="memoryLimitUnitInByte"
+                        name="memoryLimitUnitInByte">
+                        <nz-option nzValue="1024" nzLabel="kB"></nz-option>
+                        <nz-option nzValue="1048576" nzLabel="MB"></nz-option>
+                        <nz-option nzValue="1073741824" nzLabel="GB"></nz-option>
+                    </nz-select>
+                </ng-template>
+            </nz-input-number-group>
+            <ng-template #memoryLimitErrorTpl let-control>
+                <ng-container *ngIf="control.errors.minimum">
+                    Memory limit is too small
+                </ng-container>
+                <ng-container *ngIf="control.errors.maximum">
+                    Memory limit is too large
+                </ng-container>
+            </ng-template>
+        </nz-form-control>
+    </nz-form-item>
+</form>
+
+<button nz-button nzType="primary" [disabled]="!formGroup.valid || saving" (click)="onSaveClicked()">
+    Save
+</button>

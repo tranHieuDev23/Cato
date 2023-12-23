@@ -1,0 +1,6 @@
+<form class="form">
+  <quill-editor [modules]="quillModules" name="text" [placeholder]="placeholder" [(ngModel)]="text"
+    [defaultEmptyValue]="''" class="text-input" (ngModelChange)="onContentChanged($event)">
+  </quill-editor>
+</form>
+<br />
