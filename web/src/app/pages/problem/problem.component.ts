@@ -40,6 +40,7 @@ import {
   SubmissionService,
 } from '../../logic/submission.service';
 import { PageTitleService } from '../../logic/page-title.service';
+import { KatexPipe } from '../../components/utils/katex.pipe';
 
 @Component({
   selector: 'app-problem',
@@ -63,6 +64,7 @@ import { PageTitleService } from '../../logic/page-title.service';
     SubmissionListComponent,
     CodeEditorComponent,
     NzDescriptionsModule,
+    KatexPipe,
   ],
   templateUrl: './problem.component.html',
   styleUrl: './problem.component.scss',

@@ -1,0 +1,11 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "Cato",
+            "database": "${workspaceFolder:cato}/cmd/cato/cato.db"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
+}

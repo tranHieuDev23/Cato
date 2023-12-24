@@ -19,7 +19,7 @@
                             {{ problem.memoryLimitInByte | memory}}
                         </nz-descriptions-item>
                     </nz-descriptions><br />
-                    <span nz-typography [innerHTML]="problem.description"></span>
+                    <span nz-typography [innerHTML]="problem.description | katex"></span>
                 </ng-container>
             </nz-tab>
 
