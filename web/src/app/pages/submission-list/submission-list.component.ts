@@ -196,12 +196,13 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
     }
   }
 
-  public onAutoReloadEnabledChange(enabled: boolean): void {
+  public async onAutoReloadEnabledChange(enabled: boolean): Promise<void> {
     if (enabled) {
       if (this.submissionListReloadInterval !== undefined) {
         return;
       }
 
+      await this.loadSubmissionSnippetList();
       this.submissionListReloadInterval = setInterval(async () => {
         await this.loadSubmissionSnippetList();
       }, SUBMISSION_LIST_RELOAD_INTERVAL);

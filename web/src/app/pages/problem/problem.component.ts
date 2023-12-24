@@ -152,7 +152,7 @@ export class ProblemComponent implements OnInit, OnDestroy {
     }
 
     try {
-      this.submissionService.createSubmission(
+      await this.submissionService.createSubmission(
         this.problem?.iD,
         this.submissionContent,
         this.submissionLanguage
@@ -196,7 +196,7 @@ export class ProblemComponent implements OnInit, OnDestroy {
       if (e instanceof InvalidSubmissionInfo) {
         this.notificationService.error(
           'Failed to submit solution',
-          'Submission file is to large'
+          'Invalid submission file'
         );
         return;
       }

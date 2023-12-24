@@ -17,6 +17,6 @@
         Submit
     </li>
 </ul>
-<ngx-codemirror [(ngModel)]="content" [options]="{lineNumbers: true, theme: 'material', mode: editorMode}"
-    class="editor">
+<ngx-codemirror [(ngModel)]="content" (ngModelChange)="onContentChange($event)"
+    [options]="{lineNumbers: true, theme: 'material', mode: editorMode}" class="editor">
 </ngx-codemirror>

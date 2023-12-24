@@ -6,8 +6,9 @@
     Last updated at {{ lastLoadedTime | date:'long' }}
 </p>
 <nz-table #table [nzData]="submissionSnippetList" [nzPageIndex]="pageIndex" [nzPageSize]="pageSize"
-    [nzTotal]="totalSubmissionCount" [nzLoading]="loading" nzSize="small" [nzSimple]="true"
-    (nzPageIndexChange)="onPageIndexChange($event)" (nzPageSizeChange)="onPageSizeChange($event)">
+    [nzTotal]="totalSubmissionCount" [nzLoading]="loading" nzSize="small" [nzShowSizeChanger]="true"
+    [nzPageSizeOptions]="[10, 20, 50, 100]" (nzPageIndexChange)="onPageIndexChange($event)"
+    (nzPageSizeChange)="onPageSizeChange($event)">
     <thead>
         <tr>
             <th>Author</th>

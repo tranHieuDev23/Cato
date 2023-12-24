@@ -38,7 +38,6 @@ export class CodeEditorComponent {
   public onLoadFile = (file: NzUploadFile): boolean => {
     const fileReader = new FileReader();
     fileReader.onload = (event) => {
-      console.log(event);
       this.content = `${event.target?.result || ''}`;
     };
     fileReader.readAsText(file as any);
@@ -55,6 +54,11 @@ export class CodeEditorComponent {
     if (language === 'python') {
       this.editorMode = 'text/x-python';
     }
+    this.languageChange.emit(language);
+  }
+
+  public onContentChange(content: string): void {
+    this.contentChange.emit(content);
   }
 
   public onSubmitClicked(): void {

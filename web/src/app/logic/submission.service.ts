@@ -195,7 +195,7 @@ export class SubmissionService {
 
       const apiError = e as RpcError;
       if (apiError.code == ErrorCode.JRPCErrorInvalidParams) {
-        throw new InvalidSubmissionListParam();
+        throw new InvalidSubmissionInfo();
       }
 
       if (apiError.code == ErrorCode.Unauthenticated) {

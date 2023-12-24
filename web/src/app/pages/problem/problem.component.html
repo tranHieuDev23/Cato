@@ -21,7 +21,9 @@
             </nz-tab>
 
             <nz-tab nzTitle="Submissions" #submissionTab>
-                <app-submission-list *ngIf="problem" [problemID]="problem.iD"></app-submission-list>
+                <ng-template nz-tab>
+                    <app-submission-list *ngIf="problem" [problemID]="problem.iD"></app-submission-list>
+                </ng-template>
             </nz-tab>
         </nz-tabset>
     </div>

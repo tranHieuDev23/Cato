@@ -4,7 +4,8 @@
         Create problem
     </button>
     <nz-table #table [nzData]="problemSnippetList" [nzPageIndex]="pageIndex" [nzPageSize]="pageSize"
-        [nzTotal]="totalProblemCount" [nzLoading]="loading" (nzPageIndexChange)="onPageIndexChange($event)"
+        [nzTotal]="totalProblemCount" [nzLoading]="loading" [nzShowSizeChanger]="true"
+        [nzPageSizeOptions]="[10, 20, 50, 100]" (nzPageIndexChange)="onPageIndexChange($event)"
         (nzPageSizeChange)="onPageSizeChange($event)">
         <thead>
             <tr>

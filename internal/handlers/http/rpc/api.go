@@ -231,7 +231,7 @@ type GetAccountProblemSnippetListResponse struct {
 
 type CreateSubmissionRequest struct {
 	ProblemID uint64
-	Content   string `validate:"max=5120"`
+	Content   string `validate:"min=1,max=5120"`
 	Language  string `validate:"max=32"`
 }
 
