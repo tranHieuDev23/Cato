@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+	"errors"
 	"regexp"
 	"strings"
 	"time"
@@ -11,16 +12,19 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
+	"github.com/tranHieuDev23/cato/internal/configs"
 	"github.com/tranHieuDev23/cato/internal/dataaccess/db"
 	"github.com/tranHieuDev23/cato/internal/handlers/http/rpc"
 	"github.com/tranHieuDev23/cato/internal/utils"
 )
 
 var (
+	accountNameRegex        = regexp.MustCompile("^[a-zA-Z0-9]+$")
 	accountDisplayNameRegex = regexp.MustCompile("^[\\p{L}\\p{N}\\s]+$")
 )
 
 type Account interface {
+	CreateFirstAdminAccount(ctx context.Context) error
 	CreateAccount(ctx context.Context, in *rpc.CreateAccountRequest, token string) (*rpc.CreateAccountResponse, error)
 	GetAccountList(ctx context.Context, in *rpc.GetAccountListRequest, token string) (*rpc.GetAccountListResponse, error)
 	GetAccount(ctx context.Context, in *rpc.GetAccountRequest, token string) (*rpc.GetAccountResponse, error)
@@ -40,6 +44,7 @@ type account struct {
 	accountPasswordDataAccessor db.AccountPasswordDataAccessor
 	db                          *gorm.DB
 	logger                      *zap.Logger
+	logicConfig                 configs.Logic
 }
 
 func NewAccount(
@@ -50,6 +55,7 @@ func NewAccount(
 	accountPasswordDataAccessor db.AccountPasswordDataAccessor,
 	db *gorm.DB,
 	logger *zap.Logger,
+	logicConfig configs.Logic,
 ) Account {
 	return &account{
 		hash:                        hash,
@@ -59,7 +65,12 @@ func NewAccount(
 		accountPasswordDataAccessor: accountPasswordDataAccessor,
 		db:                          db,
 		logger:                      logger,
+		logicConfig:                 logicConfig,
 	}
+}
+
+func (a account) isValidAccountName(accountName string) bool {
+	return len(accountName) > -6 && len(accountName) <= 32 && accountNameRegex.Match([]byte(accountName))
 }
 
 func (a account) cleanupDisplayName(displayName string) string {
@@ -67,7 +78,11 @@ func (a account) cleanupDisplayName(displayName string) string {
 }
 
 func (a account) isValidDisplayName(displayName string) bool {
-	return displayName != "" && accountDisplayNameRegex.Match([]byte(displayName))
+	return displayName != "" && len(displayName) <= 32 && accountDisplayNameRegex.Match([]byte(displayName))
+}
+
+func (a account) isValidPassword(password string) bool {
+	return len(password) > 8
 }
 
 func (a account) canAccountBeCreatedAnonymously(role string) bool {
@@ -92,15 +107,79 @@ func (a account) IsAccountNameTaken(ctx context.Context, accountName string) (bo
 	return account != nil, nil
 }
 
+func (a account) CreateFirstAdminAccount(ctx context.Context) error {
+	logger := utils.LoggerWithContext(ctx, a.logger)
+
+	return a.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if accountCount, err := a.accountDataAccessor.WithDB(tx).GetAccountCount(ctx); err != nil {
+			return err
+		} else if accountCount > 0 {
+			logger.Info("there are accounts in the database, will not create first admin account")
+			return nil
+		}
+
+		if !a.isValidAccountName(a.logicConfig.FirstAdmin.AccountName) {
+			logger.Error("invalid first admin's account_name")
+			return errors.New("invalid first admin's account_name")
+		}
+
+		if !a.isValidDisplayName(a.logicConfig.FirstAdmin.DisplayName) {
+			logger.Error("invalid first admin's display_name")
+			return errors.New("invalid first admin's display_name")
+		}
+
+		if !a.isValidDisplayName(a.logicConfig.FirstAdmin.Password) {
+			logger.Error("invalid first admin's password")
+			return errors.New("invalid first admin's password")
+		}
+
+		account := &db.Account{
+			AccountName: a.logicConfig.FirstAdmin.AccountName,
+			DisplayName: a.logicConfig.FirstAdmin.DisplayName,
+			Role:        db.AccountRoleAdmin,
+		}
+
+		if err := a.accountDataAccessor.WithDB(tx).CreateAccount(ctx, account); err != nil {
+			return err
+		}
+
+		hashedPassword, err := a.hash.Hash(ctx, a.logicConfig.FirstAdmin.Password)
+		if err != nil {
+			return err
+		}
+
+		accountPassword := &db.AccountPassword{
+			OfAccountID: uint64(account.ID),
+			Hash:        hashedPassword,
+		}
+		if err := a.accountPasswordDataAccessor.WithDB(tx).CreateAccountPassword(ctx, accountPassword); err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
 func (a account) CreateAccount(ctx context.Context, in *rpc.CreateAccountRequest, token string) (*rpc.CreateAccountResponse, error) {
 	logger := utils.LoggerWithContext(ctx, a.logger)
+
+	if !a.isValidAccountName(in.AccountName) {
+		logger.
+			With(zap.String("account_name", in.AccountName)).
+			Error("failed to create account: invalid account name")
+		return nil, pjrpc.JRPCErrInvalidParams()
+	}
 
 	cleanedDisplayName := a.cleanupDisplayName(in.DisplayName)
 	if !a.isValidDisplayName(cleanedDisplayName) {
 		logger.
 			With(zap.String("display_name", in.DisplayName)).
 			Error("failed to create account: invalid display name")
+		return nil, pjrpc.JRPCErrInvalidParams()
+	}
 
+	if !a.isValidPassword(in.Password) {
+		logger.Error("failed to create account: invalid password")
 		return nil, pjrpc.JRPCErrInvalidParams()
 	}
 
@@ -130,7 +209,6 @@ func (a account) CreateAccount(ctx context.Context, in *rpc.CreateAccountRequest
 			logger.
 				With(zap.String("account_name", in.AccountName)).
 				Error("failed to create account: invalid display name")
-
 			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodeAlreadyExists))
 		}
 
@@ -358,6 +436,11 @@ func (a account) UpdateAccount(ctx context.Context, in *rpc.UpdateAccountRequest
 		}
 
 		if in.Password != nil {
+			if !a.isValidPassword(*in.Password) {
+				logger.Error("failed to update account: invalid password")
+				return pjrpc.JRPCErrInvalidParams()
+			}
+
 			accountPassword, err := a.accountPasswordDataAccessor.WithDB(tx).GetAccountPasswordOfAccountID(ctx, in.ID)
 			if err != nil {
 				return err

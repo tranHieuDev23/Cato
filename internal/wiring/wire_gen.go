@@ -16,6 +16,7 @@ import (
 	"github.com/tranHieuDev23/cato/internal/handlers"
 	"github.com/tranHieuDev23/cato/internal/handlers/http"
 	"github.com/tranHieuDev23/cato/internal/handlers/http/middlewares"
+	"github.com/tranHieuDev23/cato/internal/handlers/jobs"
 	"github.com/tranHieuDev23/cato/internal/logic"
 	"github.com/tranHieuDev23/cato/internal/utils"
 )
@@ -49,7 +50,9 @@ func InitializeCato(filePath configs.ConfigFilePath) (app.Cato, func(), error) {
 	}
 	role := logic.NewRole(logger)
 	accountPasswordDataAccessor := db.NewAccountPasswordDataAccessor(gormDB, logger)
-	account := logic.NewAccount(logicHash, logicToken, role, accountDataAccessor, accountPasswordDataAccessor, gormDB, logger)
+	configsLogic := config.Logic
+	account := logic.NewAccount(logicHash, logicToken, role, accountDataAccessor, accountPasswordDataAccessor, gormDB, logger, configsLogic)
+	createFirstAdminAccount := jobs.NewCreateFirstAdminAccount(account)
 	problemDataAccessor := db.NewProblemDataAccessor(gormDB, logger)
 	problemExampleDataAccessor := db.NewProblemExampleDataAccessor(gormDB, logger)
 	problem := logic.NewProblem(logicToken, role, accountDataAccessor, problemDataAccessor, problemExampleDataAccessor, logger, gormDB)
@@ -68,7 +71,7 @@ func InitializeCato(filePath configs.ConfigFilePath) (app.Cato, func(), error) {
 	spaHandler := http.NewSPAHandler()
 	configsHTTP := config.HTTP
 	server := http.NewServer(apiServer, v, v2, spaHandler, logger, configsHTTP)
-	cato := app.NewCato(migrator, server, logger)
+	cato := app.NewCato(migrator, createFirstAdminAccount, server, logger)
 	return cato, func() {
 		cleanup()
 	}, nil

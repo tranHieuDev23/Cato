@@ -75,3 +75,8 @@ auth:
     regenerate_token_before_expiry: 1h
 http:
   address: ":8080"
+logic:
+  first_admin:
+    account_name: system
+    display_name: System
+    password: changeme

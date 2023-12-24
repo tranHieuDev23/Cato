@@ -15,6 +15,7 @@ type Config struct {
 	Database Database `yaml:"database"`
 	Auth     Auth     `yaml:"auth"`
 	HTTP     HTTP     `yaml:"http"`
+	Logic    Logic    `yaml:"logic"`
 }
 
 func NewConfig(filePath ConfigFilePath) (config Config, err error) {
