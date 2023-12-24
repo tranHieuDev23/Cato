@@ -113,6 +113,15 @@ func (t testCase) dbTestCaseToRPCTestCaseSnippet(testCase *db.TestCase, shouldHi
 	}
 }
 
+func (t testCase) calculateTestCaseHash(input, output string) string {
+	fnvHash := fnv.New64a()
+	fnvHash.Write([]byte(input))
+	fnvHash.Write([]byte{0})
+	fnvHash.Write([]byte(output))
+	fnvHash.Write([]byte{0})
+	return base64.StdEncoding.EncodeToString(fnvHash.Sum(nil))
+}
+
 func (t testCase) CalculateProblemTestCaseHash(ctx context.Context, problemID uint64) (string, error) {
 	fnvHash := fnv.New64a()
 	if txErr := t.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
@@ -122,15 +131,15 @@ func (t testCase) CalculateProblemTestCaseHash(ctx context.Context, problemID ui
 		}
 
 		for i := uint64(0); i < totalTestCaseCount; i += t.logicConfig.ProblemTestCaseHash.BatchSize {
-			testCaseList, err := t.testCaseDataAccessor.
+			hashList, err := t.testCaseDataAccessor.
 				WithDB(tx).
-				GetTestCaseListOfProblem(ctx, problemID, i, t.logicConfig.ProblemTestCaseHash.BatchSize)
+				GetTestCaseHashListOfProblem(ctx, problemID, i, t.logicConfig.ProblemTestCaseHash.BatchSize)
 			if err != nil {
 				return err
 			}
 
-			for _, testCase := range testCaseList {
-				fnvHash.Write([]byte(testCase.Hash))
+			for _, hash := range hashList {
+				fnvHash.Write([]byte(hash))
 				fnvHash.Write([]byte{0})
 			}
 		}
@@ -219,6 +228,7 @@ func (t testCase) CreateTestCase(ctx context.Context, in *rpc.CreateTestCaseRequ
 			Input:       in.Input,
 			Output:      in.Output,
 			IsHidden:    in.IsHidden,
+			Hash:        t.calculateTestCaseHash(in.Input, in.Output),
 		}
 		if err := t.testCaseDataAccessor.WithDB(tx).CreateTestCase(ctx, testCase); err != nil {
 			return err
@@ -307,6 +317,7 @@ func (t testCase) getTestCaseListFromZippedData(ctx context.Context, problemID u
 			Input:       *unzippedTestCase.Input,
 			Output:      *unzippedTestCase.Output,
 			IsHidden:    true,
+			Hash:        t.calculateTestCaseHash(*unzippedTestCase.Input, *unzippedTestCase.Output),
 		})
 	}
 
@@ -596,6 +607,10 @@ func (t testCase) UpdateTestCase(ctx context.Context, in *rpc.UpdateTestCaseRequ
 
 		if in.IsHidden != nil {
 			testCase.IsHidden = *in.IsHidden
+		}
+
+		if in.Input != nil || in.Output != nil {
+			testCase.Hash = t.calculateTestCaseHash(testCase.Input, testCase.Output)
 		}
 
 		if err := t.testCaseDataAccessor.WithDB(tx).UpdateTestCase(ctx, testCase); err != nil {

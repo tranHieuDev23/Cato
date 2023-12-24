@@ -2,9 +2,7 @@ package db
 
 import (
 	"context"
-	"encoding/base64"
 	"errors"
-	"hash/fnv"
 
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -26,20 +24,12 @@ type TestCase struct {
 	IsHidden    bool
 }
 
-func (t *TestCase) BeforeCreate(*gorm.DB) error {
-	fnvHash := fnv.New64a()
-	fnvHash.Write([]byte(t.Input))
-	fnvHash.Write([]byte{0})
-	fnvHash.Write([]byte(t.Output))
-	t.Hash = base64.StdEncoding.EncodeToString(fnvHash.Sum(nil))
-	return nil
-}
-
 type TestCaseDataAccessor interface {
 	CreateTestCase(ctx context.Context, testCase *TestCase) error
 	CreateTestCaseList(ctx context.Context, testCaseList []*TestCase) error
 	GetTestCase(ctx context.Context, id uint64) (*TestCase, error)
 	GetTestCaseListOfProblem(ctx context.Context, problemID uint64, offset uint64, limit uint64) ([]*TestCase, error)
+	GetTestCaseHashListOfProblem(ctx context.Context, problemID uint64, offset uint64, limit uint64) ([]string, error)
 	GetTestCaseCountOfProblem(ctx context.Context, problemID uint64) (uint64, error)
 	UpdateTestCase(ctx context.Context, testCase *TestCase) error
 	DeleteTestCase(ctx context.Context, id uint64) error
@@ -139,6 +129,29 @@ func (a testCaseDataAccessor) GetTestCaseListOfProblem(ctx context.Context, prob
 	}
 
 	return testCaseList, nil
+}
+
+func (a testCaseDataAccessor) GetTestCaseHashListOfProblem(
+	ctx context.Context,
+	problemID uint64,
+	offset uint64,
+	limit uint64,
+) ([]string, error) {
+	logger := utils.LoggerWithContext(ctx, a.logger).
+		With(zap.Uint64("problem_id", problemID))
+	db := a.db.WithContext(ctx)
+	hashList := make([]string, 0)
+	if err := db.Model(new(TestCase)).
+		Where(&TestCase{
+			OfProblemID: problemID,
+		}).
+		Pluck("hash", &hashList).
+		Error; err != nil {
+		logger.With(zap.Error(err)).Error("failed to get test case hash list of problem")
+		return make([]string, 0), err
+	}
+
+	return hashList, nil
 }
 
 func (a testCaseDataAccessor) GetTestCaseCountOfProblem(ctx context.Context, problemID uint64) (uint64, error) {
