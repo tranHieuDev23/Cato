@@ -181,7 +181,6 @@ export class TestCaseListComponent implements OnInit {
         'Failed to load test case list',
         'Unknown error'
       );
-      this.location.back();
     } finally {
       this.loading = false;
     }

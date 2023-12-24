@@ -290,7 +290,6 @@ export class AccountListComponent implements OnInit {
             'Failed to update profile',
             'Unknown error'
           );
-          return;
         }
       },
     });
@@ -346,7 +345,6 @@ export class AccountListComponent implements OnInit {
             'Failed to create profile',
             'Unknown error'
           );
-          return;
         }
       },
     });

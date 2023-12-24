@@ -42,6 +42,7 @@ import {
 import { PageTitleService } from '../../logic/page-title.service';
 import { KatexPipe } from '../../components/utils/katex.pipe';
 import { TestCaseListComponent } from './test-case-list/test-case-list.component';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 
 @Component({
   selector: 'app-problem',
@@ -68,6 +69,7 @@ import { TestCaseListComponent } from './test-case-list/test-case-list.component
     KatexPipe,
     TestCaseListComponent,
     RouterModule,
+    NzModalModule,
   ],
   templateUrl: './problem.component.html',
   styleUrl: './problem.component.scss',
@@ -90,6 +92,7 @@ export class ProblemComponent implements OnInit {
     private readonly router: Router,
     private readonly location: Location,
     private readonly notificationService: NzNotificationService,
+    private readonly modalService: NzModalService,
     private readonly pageTitleService: PageTitleService
   ) {}
 
@@ -155,6 +158,57 @@ export class ProblemComponent implements OnInit {
     }
   }
 
+  public onDeleteClicked(): void {
+    if (!this.problem) {
+      return;
+    }
+
+    const problemID = this.problem.iD;
+    this.modalService.create({
+      nzContent: 'Are you sure? This action is <b>irreversible</b>',
+      nzOkDanger: true,
+      nzOnOk: async () => {
+        try {
+          await this.problemService.deleteProblem(problemID);
+          this.notificationService.success('Problem deleted successfully', '');
+          this.location.back();
+        } catch (e) {
+          if (e instanceof UnauthenticatedError) {
+            this.notificationService.error(
+              'Failed to delete problem',
+              'Not logged in'
+            );
+            this.router.navigateByUrl('/login');
+            return;
+          }
+
+          if (e instanceof PermissionDeniedError) {
+            this.notificationService.error(
+              'Failed to delete problem',
+              'Permission denied'
+            );
+            this.location.back();
+            return;
+          }
+
+          if (e instanceof ProblemNotFoundError) {
+            this.notificationService.error(
+              'Failed to delete problem',
+              'Problem not found'
+            );
+            this.location.back();
+            return;
+          }
+
+          this.notificationService.error(
+            'Failed to delete problem',
+            'Unknown error'
+          );
+        }
+      },
+    });
+  }
+
   public async onSubmitClicked(): Promise<void> {
     if (!this.problem) {
       return;
@@ -214,7 +268,6 @@ export class ProblemComponent implements OnInit {
         'Failed to submit solution',
         'Unknown error'
       );
-      this.location.back();
     }
   }
 }

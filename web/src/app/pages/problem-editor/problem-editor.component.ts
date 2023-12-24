@@ -284,7 +284,6 @@ export class ProblemEditorComponent implements OnInit {
       }
 
       this.notificationService.error('Failed to save problem', 'Unknown error');
-      this.location.back();
     } finally {
       this.saving = false;
     }

@@ -19,9 +19,16 @@
                         </nz-descriptions-item>
                     </nz-descriptions><br />
                     <p *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'problem_setter'">
-                        <button nz-button routerLink="/problem-editor/{{problem.iD}}">
-                            Edit problem
-                        </button>
+                        <nz-button-group>
+                            <button nz-button routerLink="/problem-editor/{{problem.iD}}">
+                                <span nz-icon nzType="edit" nzTheme="outline"></span>
+                                Edit
+                            </button>
+                            <button nz-button nzDanger (click)="onDeleteClicked()">
+                                <span nz-icon nzType="delete" nzTheme="outline"></span>
+                                Delete
+                            </button>
+                        </nz-button-group>
                     </p>
                     <span nz-typography [innerHTML]="problem.description | katex"></span>
                 </ng-container>

@@ -110,7 +110,9 @@ func (a submissionDataAccessor) DeleteSubmission(ctx context.Context, id uint64)
 	logger := utils.LoggerWithContext(ctx, a.logger).
 		With(zap.Any("id", id))
 	db := a.db.WithContext(ctx)
-	if err := db.Delete(new(Submission), id).Error; err != nil {
+	if err := db.Delete(&Submission{
+		Model: gorm.Model{ID: uint(id)},
+	}).Error; err != nil {
 		logger.With(zap.Error(err)).Error("failed to delete submission")
 		return pjrpc.JRPCErrInternalError()
 	}

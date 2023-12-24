@@ -172,7 +172,6 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
         'Failed to load submission list',
         'Unknown error'
       );
-      this.location.back();
     } finally {
       this.loading = false;
     }

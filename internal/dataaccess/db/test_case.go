@@ -113,9 +113,9 @@ func (a testCaseDataAccessor) DeleteTestCase(ctx context.Context, id uint64) err
 	logger := utils.LoggerWithContext(ctx, a.logger).
 		With(zap.Uint64("id", id))
 	db := a.db.WithContext(ctx)
-	if err := db.Model(new(TestCase)).
-		Delete(id).
-		Error; err != nil {
+	if err := db.Delete(&TestCase{
+		Model: gorm.Model{ID: uint(id)},
+	}).Error; err != nil {
 		logger.With(zap.Error(err)).Error("failed to update test case")
 		return err
 	}

@@ -164,7 +164,6 @@ export class ProfileComponent implements OnInit {
         'Failed to update profile',
         'Unknown error'
       );
-      return;
     }
   }
 }
