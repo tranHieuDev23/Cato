@@ -323,7 +323,7 @@ func (a account) UpdateAccount(ctx context.Context, in *rpc.UpdateAccountRequest
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 	}
 
-	if updatedAccount.ID != account.ID {
+	if updatedAccount.ID != account.ID || in.Role != nil {
 		if hasPermission, err := a.role.AccountHasPermission(
 			ctx,
 			string(account.Role),
