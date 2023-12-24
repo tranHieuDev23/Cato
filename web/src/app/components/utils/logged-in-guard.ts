@@ -59,12 +59,6 @@ export class LoggedInGuard {
           sessionAccount.role === Role.Admin ||
           sessionAccount.role == Role.ProblemSetter
         );
-      case 'submission':
-        return (
-          sessionAccount.role === Role.Admin ||
-          sessionAccount.role == Role.ProblemSetter ||
-          sessionAccount.role == Role.Contestant
-        );
       default:
         return true;
     }

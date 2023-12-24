@@ -1,0 +1,27 @@
+<nz-descriptions [nzBordered]="true" nzSize="small">
+    <nz-descriptions-item nzTitle="Problem">
+        <a *ngIf="submission" href="/problem/{{ submission.problem.iD }}" target="_blank">
+            {{ submission.problem.displayName }}
+        </a>
+    </nz-descriptions-item>
+    <nz-descriptions-item nzTitle="Author">
+        {{ submission?.author?.displayName }}
+    </nz-descriptions-item>
+    <nz-descriptions-item nzTitle="Language">
+        {{ submission?.language | language }}
+    </nz-descriptions-item>
+    <nz-descriptions-item nzTitle="Created time">
+        {{ submission?.createdTime| date }}
+    </nz-descriptions-item>
+    <nz-descriptions-item nzTitle="Status">
+        <span *ngIf="submission">
+            {{ submission | submissionStatus }}
+        </span>
+    </nz-descriptions-item>
+</nz-descriptions><br />
+<ngx-codemirror *ngIf="submission" [ngModel]="submission.content" [options]="{
+        theme: 'material',
+        mode: codeMirrorService.submissionLanguageToCodeMirrorMode(submission.language),
+        readOnly: true,
+    }">
+</ngx-codemirror>

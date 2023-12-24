@@ -17,13 +17,16 @@ import {
 import { PaginationService } from '../../../logic/pagination.service';
 import {
   InvalidSubmissionListParam,
+  SubmissionNotFoundError,
   SubmissionService,
 } from '../../../logic/submission.service';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { FormsModule } from '@angular/forms';
 import { ProblemNotFoundError } from '../../../logic/problem.service';
 import { LanguagePipe } from '../../../components/utils/language.pipe';
 import { SubmissionStatusPipe } from '../../../components/utils/submission-status.pipe';
+import { SubmissionModalComponent } from '../../../components/submission-modal/submission-modal.component';
 
 const SUBMISSION_LIST_RELOAD_INTERVAL = 10000;
 
@@ -40,6 +43,7 @@ const SUBMISSION_LIST_RELOAD_INTERVAL = 10000;
     FormsModule,
     LanguagePipe,
     SubmissionStatusPipe,
+    NzModalModule,
   ],
 })
 export class SubmissionListComponent implements OnInit, OnDestroy {
@@ -62,7 +66,8 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
     private readonly submissionService: SubmissionService,
     private readonly paginationService: PaginationService,
     private readonly router: Router,
-    private readonly nzNotificationService: NzNotificationService,
+    private readonly notificationService: NzNotificationService,
+    private readonly modalService: NzModalService,
     private readonly location: Location
   ) {}
 
@@ -84,7 +89,7 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
       this.loading = true;
       const sessionAccount = await this.accountService.getSessionAccount();
       if (sessionAccount === null) {
-        this.nzNotificationService.error(
+        this.notificationService.error(
           'Failed to load submission list',
           'Not logged in'
         );
@@ -118,7 +123,7 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
       this.lastLoadedTime = Date.now();
     } catch (e) {
       if (e instanceof UnauthenticatedError) {
-        this.nzNotificationService.error(
+        this.notificationService.error(
           'Failed to load submission list',
           'Not logged in'
         );
@@ -127,7 +132,7 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
       }
 
       if (e instanceof PermissionDeniedError) {
-        this.nzNotificationService.error(
+        this.notificationService.error(
           'Failed to load submission list',
           'Permission denied'
         );
@@ -136,7 +141,7 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
       }
 
       if (e instanceof AccountNotFoundError) {
-        this.nzNotificationService.error(
+        this.notificationService.error(
           'Failed to load submission list',
           'Account not found'
         );
@@ -145,7 +150,7 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
       }
 
       if (e instanceof ProblemNotFoundError) {
-        this.nzNotificationService.error(
+        this.notificationService.error(
           'Failed to load submission list',
           'Problem not found'
         );
@@ -154,7 +159,7 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
       }
 
       if (e instanceof InvalidSubmissionListParam) {
-        this.nzNotificationService.error(
+        this.notificationService.error(
           'Failed to load submission list',
           'Invalid page index/size'
         );
@@ -162,7 +167,7 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
         return;
       }
 
-      this.nzNotificationService.error(
+      this.notificationService.error(
         'Failed to load submission list',
         'Unknown error'
       );
@@ -200,5 +205,49 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
   public async onPageSizeChange(size: number): Promise<void> {
     this.pageSize = size;
     await this.loadSubmissionSnippetList();
+  }
+
+  public async onSubmissionSnippetClicked(
+    submissionSnippet: RpcSubmissionSnippet
+  ): Promise<void> {
+    try {
+      const submission = await this.submissionService.getSubmission(
+        submissionSnippet.iD
+      );
+      this.modalService.create({
+        nzContent: SubmissionModalComponent,
+        nzData: { submission },
+        nzWidth: '1000px',
+        nzTitle: `Submission #${submission.iD}`,
+        nzFooter: null,
+      });
+    } catch (e) {
+      if (e instanceof UnauthenticatedError) {
+        this.notificationService.error(
+          'Failed to load submission',
+          'Not logged in'
+        );
+        this.router.navigateByUrl('/login');
+        return;
+      }
+
+      if (e instanceof PermissionDeniedError) {
+        this.notificationService.error(
+          'Failed to load submission',
+          'Permission denied'
+        );
+        this.location.back();
+        return;
+      }
+
+      if (e instanceof SubmissionNotFoundError) {
+        this.notificationService.error(
+          'Failed to load submission',
+          'Submission not found'
+        );
+        await this.loadSubmissionSnippetList();
+        return;
+      }
+    }
   }
 }

@@ -7,6 +7,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
+import { CodeMirrorService } from '../../../logic/code-mirror.service';
 
 @Component({
   selector: 'app-code-editor',
@@ -35,6 +36,8 @@ export class CodeEditorComponent {
 
   public editorMode = 'text/x-c++src';
 
+  constructor(private readonly codeMirrorService: CodeMirrorService) {}
+
   public onLoadFile = (file: NzUploadFile): boolean => {
     const fileReader = new FileReader();
     fileReader.onload = (event) => {
@@ -45,15 +48,8 @@ export class CodeEditorComponent {
   };
 
   public onSubmissionLanguageChange(language: string): void {
-    if (language === 'cpp') {
-      this.editorMode = 'text/x-c++src';
-    }
-    if (language === 'java') {
-      this.editorMode = 'text/x-java';
-    }
-    if (language === 'python') {
-      this.editorMode = 'text/x-python';
-    }
+    this.editorMode =
+      this.codeMirrorService.submissionLanguageToCodeMirrorMode(language);
     this.languageChange.emit(language);
   }
 

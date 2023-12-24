@@ -8,6 +8,7 @@
     (nzPageSizeChange)="onPageSizeChange($event)">
     <thead>
         <tr>
+            <th>#</th>
             <th>Name</th>
             <th>Author</th>
             <th>Created time</th>
@@ -16,6 +17,7 @@
     </thead>
     <tbody>
         <tr *ngFor="let problemSnippet of table.data">
+            <td>{{ problemSnippet.iD }}</td>
             <td>
                 <a routerLink="/problem/{{ problemSnippet.iD }}">
                     {{ problemSnippet.displayName }}

@@ -59,12 +59,4 @@ export const routes: Routes = [
       ),
     canActivate: [LoggedInGuard],
   },
-  {
-    path: 'submission',
-    loadChildren: () =>
-      import('./pages/submission/submission.routes').then(
-        (m) => m.SUBMISSION_ROUTES
-      ),
-    canActivate: [LoggedInGuard],
-  },
 ];

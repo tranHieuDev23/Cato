@@ -1,6 +1,10 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from '../dataaccess';
-import { RpcSubmissionSnippet, RpcError } from '../dataaccess/api';
+import {
+  RpcSubmissionSnippet,
+  RpcError,
+  RpcSubmission,
+} from '../dataaccess/api';
 import { ErrorCode } from '../dataaccess/api.service';
 import {
   UnauthenticatedError,
@@ -22,6 +26,12 @@ export class InvalidSubmissionInfo extends Error {
   }
 }
 
+export class SubmissionNotFoundError extends Error {
+  constructor() {
+    super('Submission not found');
+  }
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -30,6 +40,32 @@ export class SubmissionService {
     private readonly api: ApiService,
     private readonly accountService: AccountService
   ) {}
+
+  public async getSubmission(id: number): Promise<RpcSubmission> {
+    try {
+      const response = await this.api.getSubmission({ iD: id });
+      return response.submission;
+    } catch (e) {
+      if (!this.api.isRpcError(e)) {
+        throw e;
+      }
+
+      const apiError = e as RpcError;
+      if (apiError.code == ErrorCode.Unauthenticated) {
+        throw new UnauthenticatedError();
+      }
+
+      if (apiError.code == ErrorCode.PermissionDenied) {
+        throw new PermissionDeniedError();
+      }
+
+      if (apiError.code == ErrorCode.NotFound) {
+        throw new SubmissionNotFoundError();
+      }
+
+      throw e;
+    }
+  }
 
   public async getSubmissionSnippetList(
     offset: number,

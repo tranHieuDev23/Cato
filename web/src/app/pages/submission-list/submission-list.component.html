@@ -11,6 +11,7 @@
     (nzPageSizeChange)="onPageSizeChange($event)">
     <thead>
         <tr>
+            <th>#</th>
             <th>Problem</th>
             <th>Author</th>
             <th>Language</th>
@@ -19,7 +20,8 @@
         </tr>
     </thead>
     <tbody>
-        <tr *ngFor="let submissionSnippet of table.data">
+        <tr *ngFor="let submissionSnippet of table.data" (click)="onSubmissionSnippetClicked(submissionSnippet)">
+            <td>{{ submissionSnippet.iD }}</td>
             <td>
                 <a routerLink="/problem/{{ submissionSnippet.problem.iD }}">
                     {{ submissionSnippet.problem.displayName }}
@@ -27,7 +29,7 @@
             </td>
             <td>{{ submissionSnippet.author.displayName }}</td>
             <td>{{ submissionSnippet.language| language }}</td>
-            <td>{{ submissionSnippet.createdTime | date:'short' }}</td>
+            <td>{{ submissionSnippet.createdTime | date }}</td>
             <td>{{ submissionSnippet | submissionStatus }}</td>
         </tr>
     </tbody>

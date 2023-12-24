@@ -16,6 +16,7 @@ import { PaginationService } from '../../logic/pagination.service';
 import {
   SubmissionService,
   InvalidSubmissionListParam,
+  SubmissionNotFoundError,
 } from '../../logic/submission.service';
 import { CommonModule, Location } from '@angular/common';
 import { NzTableModule } from 'ng-zorro-antd/table';
@@ -25,6 +26,8 @@ import { FormsModule } from '@angular/forms';
 import { LanguagePipe } from '../../components/utils/language.pipe';
 import { SubmissionStatusPipe } from '../../components/utils/submission-status.pipe';
 import { PageTitleService } from '../../logic/page-title.service';
+import { SubmissionModalComponent } from '../../components/submission-modal/submission-modal.component';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 
 const DEFAULT_PAGE_INDEX = 1;
 const DEFAULT_PAGE_SIZE = 10;
@@ -45,6 +48,7 @@ const SUBMISSION_LIST_RELOAD_INTERVAL = 10000;
     LanguagePipe,
     RouterModule,
     SubmissionStatusPipe,
+    NzModalModule,
   ],
 })
 export class SubmissionListComponent implements OnInit, OnDestroy {
@@ -68,6 +72,7 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
     private readonly notificationService: NzNotificationService,
+    private readonly modalService: NzModalService,
     private readonly location: Location,
     private readonly pageTitleService: PageTitleService
   ) {}
@@ -239,5 +244,49 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
       queryParams['size'] = size;
     }
     this.router.navigate(['/submission-list'], { queryParams });
+  }
+
+  public async onSubmissionSnippetClicked(
+    submissionSnippet: RpcSubmissionSnippet
+  ): Promise<void> {
+    try {
+      const submission = await this.submissionService.getSubmission(
+        submissionSnippet.iD
+      );
+      this.modalService.create({
+        nzContent: SubmissionModalComponent,
+        nzData: { submission },
+        nzWidth: '1000px',
+        nzTitle: `Submission #${submission.iD}`,
+        nzFooter: null,
+      });
+    } catch (e) {
+      if (e instanceof UnauthenticatedError) {
+        this.notificationService.error(
+          'Failed to load submission',
+          'Not logged in'
+        );
+        this.router.navigateByUrl('/login');
+        return;
+      }
+
+      if (e instanceof PermissionDeniedError) {
+        this.notificationService.error(
+          'Failed to load submission',
+          'Permission denied'
+        );
+        this.location.back();
+        return;
+      }
+
+      if (e instanceof SubmissionNotFoundError) {
+        this.notificationService.error(
+          'Failed to load submission',
+          'Submission not found'
+        );
+        await this.loadSubmissionSnippetList();
+        return;
+      }
+    }
   }
 }

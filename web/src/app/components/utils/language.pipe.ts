@@ -5,7 +5,7 @@ import { Pipe, PipeTransform } from '@angular/core';
   standalone: true,
 })
 export class LanguagePipe implements PipeTransform {
-  public transform(language: string): string {
+  public transform(language: unknown): string {
     if (language === 'cpp') {
       return 'C++';
     }
