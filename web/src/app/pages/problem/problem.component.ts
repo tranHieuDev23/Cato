@@ -41,6 +41,7 @@ import {
 } from '../../logic/submission.service';
 import { PageTitleService } from '../../logic/page-title.service';
 import { KatexPipe } from '../../components/utils/katex.pipe';
+import { TestCaseListComponent } from './test-case-list/test-case-list.component';
 
 @Component({
   selector: 'app-problem',
@@ -65,6 +66,7 @@ import { KatexPipe } from '../../components/utils/katex.pipe';
     CodeEditorComponent,
     NzDescriptionsModule,
     KatexPipe,
+    TestCaseListComponent,
   ],
   templateUrl: './problem.component.html',
   styleUrl: './problem.component.scss',

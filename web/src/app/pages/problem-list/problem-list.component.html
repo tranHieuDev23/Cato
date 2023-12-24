@@ -1,6 +1,6 @@
 <div class="inner-content">
     <button *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'problem_setter'" nz-button
-        nzType="primary" class="create-problem-button" routerLink="/problem-editor">
+        class="create-problem-button" routerLink="/problem-editor">
         Create problem
     </button>
     <nz-table #table [nzBordered]="true" [nzData]="problemSnippetList" [nzPageIndex]="pageIndex" [nzPageSize]="pageSize"

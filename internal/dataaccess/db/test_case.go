@@ -87,7 +87,7 @@ func (a testCaseDataAccessor) GetTestCase(ctx context.Context, id uint64) (*Test
 		With(zap.Uint64("id", id))
 	db := a.db.WithContext(ctx)
 	testCase := new(TestCase)
-	if err := db.First(testCase).Error; err != nil {
+	if err := db.First(testCase, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
@@ -131,7 +131,7 @@ func (a testCaseDataAccessor) GetTestCaseListOfProblem(ctx context.Context, prob
 		Where(&TestCase{
 			OfProblemID: problemID,
 		}).
-		Find(testCaseList).
+		Find(&testCaseList).
 		Error; err != nil {
 		logger.With(zap.Error(err)).Error("failed to get test case list of problem")
 		return make([]*TestCase, 0), err

@@ -27,6 +27,7 @@ import {
 import { ConfirmedValidator } from '../../components/utils/confirmed-validator';
 import { CommonModule } from '@angular/common';
 import { PageTitleService } from '../../logic/page-title.service';
+import { NzGridModule } from 'ng-zorro-antd/grid';
 
 @Component({
   selector: 'app-login',
@@ -40,6 +41,7 @@ import { PageTitleService } from '../../logic/page-title.service';
     NzNotificationModule,
     NzButtonModule,
     NzRadioModule,
+    NzGridModule,
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',

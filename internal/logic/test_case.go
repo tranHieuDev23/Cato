@@ -81,7 +81,30 @@ func (t testCase) getTextSnippet(text string) string {
 	return text[:testCaseDataSize] + "..."
 }
 
-func (t testCase) dbTestCaseToRPCTestCaseSnippet(testCase *db.TestCase) rpc.TestCaseSnippet {
+func (t testCase) dbTestCaseToRPCTestCase(testCase *db.TestCase, shouldHideInputOutput bool) rpc.TestCase {
+	if shouldHideInputOutput && testCase.IsHidden {
+		return rpc.TestCase{
+			ID:       uint64(testCase.ID),
+			IsHidden: testCase.IsHidden,
+		}
+	}
+
+	return rpc.TestCase{
+		ID:       uint64(testCase.ID),
+		Input:    testCase.Input,
+		Output:   testCase.Output,
+		IsHidden: testCase.IsHidden,
+	}
+}
+
+func (t testCase) dbTestCaseToRPCTestCaseSnippet(testCase *db.TestCase, shouldHideInputOutput bool) rpc.TestCaseSnippet {
+	if shouldHideInputOutput && testCase.IsHidden {
+		return rpc.TestCaseSnippet{
+			ID:       uint64(testCase.ID),
+			IsHidden: testCase.IsHidden,
+		}
+	}
+
 	return rpc.TestCaseSnippet{
 		ID:       uint64(testCase.ID),
 		Input:    t.getTextSnippet(testCase.Input),
@@ -127,10 +150,20 @@ func (t testCase) UpsertProblemTestCaseHash(ctx context.Context, problemID uint6
 			return err
 		}
 
-		if err := t.problemTestCaseHashDataAccessor.WithDB(tx).UpsertProblemTestCaseHash(ctx, &db.ProblemTestCaseHash{
-			OfProblemID: problemID,
-			Hash:        hash,
-		}); err != nil {
+		problemTestCaseHash, err := t.problemTestCaseHashDataAccessor.WithDB(tx).GetProblemTestCaseHashOfProblem(ctx, problemID)
+		if err != nil {
+			return err
+		}
+
+		if problemTestCaseHash == nil {
+			return t.problemTestCaseHashDataAccessor.WithDB(tx).CreateProblemTestCaseHash(ctx, &db.ProblemTestCaseHash{
+				OfProblemID: problemID,
+				Hash:        hash,
+			})
+		}
+
+		problemTestCaseHash.Hash = hash
+		if err := t.problemTestCaseHashDataAccessor.WithDB(tx).UpdateProblemTestCaseHash(ctx, problemTestCaseHash); err != nil {
 			return err
 		}
 
@@ -195,7 +228,7 @@ func (t testCase) CreateTestCase(ctx context.Context, in *rpc.CreateTestCaseRequ
 			return err
 		}
 
-		response.TestCaseSnippet = t.dbTestCaseToRPCTestCaseSnippet(testCase)
+		response.TestCaseSnippet = t.dbTestCaseToRPCTestCaseSnippet(testCase, false)
 
 		return nil
 	}); txErr != nil {
@@ -444,7 +477,7 @@ func (t testCase) GetProblemTestCaseSnippetList(
 	return &rpc.GetProblemTestCaseSnippetListResponse{
 		TotalTestCaseCount: testCaseCount,
 		TestCaseSnippetList: lo.Map[*db.TestCase, rpc.TestCaseSnippet](testCaseList, func(item *db.TestCase, _ int) rpc.TestCaseSnippet {
-			return t.dbTestCaseToRPCTestCaseSnippet(item)
+			return t.dbTestCaseToRPCTestCaseSnippet(item, account.Role == db.AccountRoleContestant)
 		}),
 	}, nil
 }
@@ -496,7 +529,7 @@ func (t testCase) GetTestCase(ctx context.Context, in *rpc.GetTestCaseRequest, t
 			}
 		}
 
-		response.TestCase = rpc.TestCase(t.dbTestCaseToRPCTestCaseSnippet(testCase))
+		response.TestCase = t.dbTestCaseToRPCTestCase(testCase, account.Role == db.AccountRoleContestant)
 
 		return nil
 	}); txErr != nil {
@@ -573,7 +606,7 @@ func (t testCase) UpdateTestCase(ctx context.Context, in *rpc.UpdateTestCaseRequ
 			return err
 		}
 
-		response.TestCaseSnippet = t.dbTestCaseToRPCTestCaseSnippet(testCase)
+		response.TestCaseSnippet = t.dbTestCaseToRPCTestCaseSnippet(testCase, false)
 
 		return nil
 	}); txErr != nil {

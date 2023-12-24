@@ -1,126 +1,124 @@
 <div nz-row nzJustify="center" class="inner-content">
-    <div nz-col nzSpan="24" nzMd="12" nzLg="8">
-        <nz-tabset>
-            <nz-tab nzTitle="Login">
-                <form nz-form [formGroup]="loginForm">
-                    <nz-form-item>
-                        <nz-form-control nzErrorTip="Please enter your account name">
-                            <nz-input-group nzPrefixIcon="user">
-                                <input type="text" nz-input formControlName="accountName" placeholder="Account name"
-                                    name="accountName" nzRequired autocomplete="off" />
-                            </nz-input-group>
-                        </nz-form-control>
-                    </nz-form-item>
+    <nz-tabset nz-col nzSpan="24" nzMd="12" nzLg="8">
+        <nz-tab nzTitle="Login">
+            <form nz-form [formGroup]="loginForm">
+                <nz-form-item>
+                    <nz-form-control nzErrorTip="Please enter your account name">
+                        <nz-input-group nzPrefixIcon="user">
+                            <input type="text" nz-input formControlName="accountName" placeholder="Account name"
+                                name="accountName" nzRequired autocomplete="off" />
+                        </nz-input-group>
+                    </nz-form-control>
+                </nz-form-item>
 
-                    <nz-form-item>
-                        <nz-form-control nzErrorTip="Please input your password">
-                            <nz-input-group nzPrefixIcon="lock">
-                                <input type="password" nz-input formControlName="password" placeholder="Password"
-                                    name="password" nzRequired />
-                            </nz-input-group>
-                        </nz-form-control>
-                    </nz-form-item>
+                <nz-form-item>
+                    <nz-form-control nzErrorTip="Please input your password">
+                        <nz-input-group nzPrefixIcon="lock">
+                            <input type="password" nz-input formControlName="password" placeholder="Password"
+                                name="password" nzRequired />
+                        </nz-input-group>
+                    </nz-form-control>
+                </nz-form-item>
 
-                    <button style="width: 100%" nz-button [nzType]="'primary'" [disabled]="loginForm.invalid"
-                        (click)="onLoginClicked()">
-                        Log in
-                    </button>
-                </form>
-            </nz-tab>
+                <button style="width: 100%" nz-button [nzType]="'primary'" [disabled]="loginForm.invalid"
+                    (click)="onLoginClicked()">
+                    Log in
+                </button>
+            </form>
+        </nz-tab>
 
-            <nz-tab nzTitle="Register">
-                <form nz-form [formGroup]="registerForm">
-                    <nz-form-item>
-                        <nz-form-control [nzErrorTip]="displayNameErrorTpl">
-                            <nz-input-group nzPrefixIcon="user">
-                                <input type="text" nz-input formControlName="displayName" placeholder="Display name"
-                                    name="displayName" nzRequired />
-                                <ng-template #displayNameErrorTpl let-control>
-                                    <ng-container *ngIf="control.errors.required">
-                                        Please enter your display name
-                                    </ng-container>
-                                    <ng-container *ngIf="control.errors.minLength">
-                                        Display name must be at least 1 character long
-                                    </ng-container>
-                                    <ng-container *ngIf="control.errors.maxLength">
-                                        Display name must not be longer than 32 character
-                                    </ng-container>
-                                </ng-template>
-                            </nz-input-group>
-                        </nz-form-control>
-                    </nz-form-item>
+        <nz-tab nzTitle="Register">
+            <form nz-form [formGroup]="registerForm">
+                <nz-form-item>
+                    <nz-form-control [nzErrorTip]="displayNameErrorTpl">
+                        <nz-input-group nzPrefixIcon="user">
+                            <input type="text" nz-input formControlName="displayName" placeholder="Display name"
+                                name="displayName" nzRequired />
+                            <ng-template #displayNameErrorTpl let-control>
+                                <ng-container *ngIf="control.errors.required">
+                                    Please enter your display name
+                                </ng-container>
+                                <ng-container *ngIf="control.errors.minLength">
+                                    Display name must be at least 1 character long
+                                </ng-container>
+                                <ng-container *ngIf="control.errors.maxLength">
+                                    Display name must not be longer than 32 character
+                                </ng-container>
+                            </ng-template>
+                        </nz-input-group>
+                    </nz-form-control>
+                </nz-form-item>
 
-                    <nz-form-item>
-                        <nz-form-control [nzErrorTip]="accountNameErrorTpl">
-                            <nz-input-group nzPrefixIcon="user">
-                                <input type="text" formControlName="accountName" nz-input placeholder="Account name"
-                                    name="accountName" nzRequired />
-                                <ng-template #accountNameErrorTpl let-control>
-                                    <ng-container *ngIf="control.errors.required">
-                                        Please enter your account name
-                                    </ng-container>
-                                    <ng-container *ngIf="control.errors.minLength">
-                                        Account name must be at least 6 character long
-                                    </ng-container>
-                                    <ng-container *ngIf="control.errors.maxLength">
-                                        Account name must not be longer than 32 character
-                                    </ng-container>
-                                    <ng-container *ngIf="control.errors.pattern">
-                                        Account name must only contain English letters and digits
-                                    </ng-container>
-                                </ng-template>
-                            </nz-input-group>
-                        </nz-form-control>
-                    </nz-form-item>
+                <nz-form-item>
+                    <nz-form-control [nzErrorTip]="accountNameErrorTpl">
+                        <nz-input-group nzPrefixIcon="user">
+                            <input type="text" formControlName="accountName" nz-input placeholder="Account name"
+                                name="accountName" nzRequired />
+                            <ng-template #accountNameErrorTpl let-control>
+                                <ng-container *ngIf="control.errors.required">
+                                    Please enter your account name
+                                </ng-container>
+                                <ng-container *ngIf="control.errors.minLength">
+                                    Account name must be at least 6 character long
+                                </ng-container>
+                                <ng-container *ngIf="control.errors.maxLength">
+                                    Account name must not be longer than 32 character
+                                </ng-container>
+                                <ng-container *ngIf="control.errors.pattern">
+                                    Account name must only contain English letters and digits
+                                </ng-container>
+                            </ng-template>
+                        </nz-input-group>
+                    </nz-form-control>
+                </nz-form-item>
 
-                    <nz-form-item>
-                        <nz-form-control [nzErrorTip]="passwordErrorTpl">
-                            <nz-input-group nzPrefixIcon="lock">
-                                <input type="password" nz-input formControlName="password" placeholder="Password"
-                                    name="password" nzRequired />
-                                <ng-template #passwordErrorTpl let-control>
-                                    <ng-container *ngIf="control.errors.required">
-                                        Please enter your password
-                                    </ng-container>
-                                    <ng-container *ngIf="control.errors.minLength">
-                                        Password must be at least 8 character long
-                                    </ng-container>
-                                </ng-template>
-                            </nz-input-group>
-                        </nz-form-control>
-                    </nz-form-item>
+                <nz-form-item>
+                    <nz-form-control [nzErrorTip]="passwordErrorTpl">
+                        <nz-input-group nzPrefixIcon="lock">
+                            <input type="password" nz-input formControlName="password" placeholder="Password"
+                                name="password" nzRequired />
+                            <ng-template #passwordErrorTpl let-control>
+                                <ng-container *ngIf="control.errors.required">
+                                    Please enter your password
+                                </ng-container>
+                                <ng-container *ngIf="control.errors.minLength">
+                                    Password must be at least 8 character long
+                                </ng-container>
+                            </ng-template>
+                        </nz-input-group>
+                    </nz-form-control>
+                </nz-form-item>
 
-                    <nz-form-item>
-                        <nz-form-control [nzErrorTip]="passwordConfirmErrorTpl">
-                            <nz-input-group nzPrefixIcon="lock">
-                                <input type="password" nz-input formControlName="passwordConfirm"
-                                    placeholder="Verify password" name="passwordConfirm" nzRequired />
-                                <ng-template #passwordConfirmErrorTpl let-control>
-                                    <ng-container *ngIf="control.errors.required">
-                                        Please confirm your password
-                                    </ng-container>
-                                    <ng-container *ngIf="control.errors.confirmed">
-                                        Two passwords that you entered are not equal
-                                    </ng-container>
-                                </ng-template>
-                            </nz-input-group>
-                        </nz-form-control>
-                    </nz-form-item>
+                <nz-form-item>
+                    <nz-form-control [nzErrorTip]="passwordConfirmErrorTpl">
+                        <nz-input-group nzPrefixIcon="lock">
+                            <input type="password" nz-input formControlName="passwordConfirm"
+                                placeholder="Verify password" name="passwordConfirm" nzRequired />
+                            <ng-template #passwordConfirmErrorTpl let-control>
+                                <ng-container *ngIf="control.errors.required">
+                                    Please confirm your password
+                                </ng-container>
+                                <ng-container *ngIf="control.errors.confirmed">
+                                    Two passwords that you entered are not equal
+                                </ng-container>
+                            </ng-template>
+                        </nz-input-group>
+                    </nz-form-control>
+                </nz-form-item>
 
-                    <nz-form-item>
-                        <nz-form-control>
-                            <nz-radio-group formControlName="role" name="role">
-                                <span nz-radio-button nzValue="contestant">Contestant</span>
-                                <span nz-radio-button nzValue="problem_setter">Problem Setter</span>
-                            </nz-radio-group></nz-form-control>
-                    </nz-form-item>
+                <nz-form-item>
+                    <nz-form-control>
+                        <nz-radio-group formControlName="role" name="role">
+                            <span nz-radio-button nzValue="contestant">Contestant</span>
+                            <span nz-radio-button nzValue="problem_setter">Problem Setter</span>
+                        </nz-radio-group></nz-form-control>
+                </nz-form-item>
 
-                    <button style="width: 100%" nz-button [nzType]="'primary'" [disabled]="registerForm.invalid"
-                        (click)="onRegisterClicked()">
-                        Register
-                    </button>
-                </form>
-            </nz-tab>
-        </nz-tabset>
-    </div>
+                <button style="width: 100%" nz-button [nzType]="'primary'" [disabled]="registerForm.invalid"
+                    (click)="onRegisterClicked()">
+                    Register
+                </button>
+            </form>
+        </nz-tab>
+    </nz-tabset>
 </div>

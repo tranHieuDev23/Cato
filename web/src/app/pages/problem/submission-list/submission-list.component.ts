@@ -218,7 +218,7 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
       this.modalService.create({
         nzContent: SubmissionModalComponent,
         nzData: { submission },
-        nzWidth: '1000px',
+        nzWidth: 'fit-content',
         nzTitle: `Submission #${submission.iD}`,
         nzFooter: null,
       });
