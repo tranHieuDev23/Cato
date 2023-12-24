@@ -6,11 +6,18 @@ import { AccountService } from '../../logic/account.service';
 import { Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { RpcAccount } from '../../dataaccess/api';
+import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 
 @Component({
   selector: 'app-side-menu',
   standalone: true,
-  imports: [NzMenuModule, NzIconModule, CommonModule, RouterModule],
+  imports: [
+    NzMenuModule,
+    NzIconModule,
+    CommonModule,
+    RouterModule,
+    NzToolTipModule,
+  ],
   templateUrl: './side-menu.component.html',
   styleUrl: './side-menu.component.scss',
 })

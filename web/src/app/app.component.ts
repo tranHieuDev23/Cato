@@ -18,7 +18,6 @@ import { Subscription } from 'rxjs';
     RouterOutlet,
     NzIconModule,
     NzLayoutModule,
-    NzMenuModule,
     SideMenuComponent,
     RouterModule,
     NzPageHeaderModule,

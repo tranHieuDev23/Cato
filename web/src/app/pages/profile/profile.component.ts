@@ -111,7 +111,7 @@ export class ProfileComponent implements OnInit {
         password: '',
         passwordConfirm: '',
       });
-      this.pageTitleService.setTitle('Profile');
+      this.pageTitleService.setTitle('Edit Profile');
     })().then();
   }
 

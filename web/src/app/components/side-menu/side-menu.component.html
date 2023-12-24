@@ -1,40 +1,39 @@
 <ul nz-menu nzTheme="dark" nzMode="inline" [nzInlineCollapsed]="collapsed">
-    <li *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'problem_setter'" nz-menu-item
-        nzMatchRouter>
+    <li *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'problem_setter'" nz-menu-item nzMatchRouter
+        [nz-tooltip]="collapsed? 'New problem': ''" nzTooltipPlacement="right">
         <a routerLink="/problem-editor">
             <span nz-icon nzType="plus-circle" nzTheme="outline"></span>
-            <span *ngIf="!collapsed">New problem</span>
+            <span>New problem</span>
         </a>
     </li>
     <li *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'problem_setter'|| sessionAccount?.role === 'contestant'"
-        nz-menu-item nzMatchRouter>
+        nz-menu-item nzMatchRouter [nz-tooltip]="collapsed? 'Problems': ''" nzTooltipPlacement="right">
         <a routerLink="/problem-list">
             <span nz-icon nzType="question-circle" nzTheme="outline"></span>
-            <span *ngIf="!collapsed">Problems</span>
+            <span>Problems</span>
         </a>
     </li>
     <li *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'problem_setter'|| sessionAccount?.role === 'contestant'"
-        nz-menu-item nzMatchRouter>
+        nz-menu-item nzMatchRouter [nz-tooltip]="collapsed? 'Submissions': ''" nzTooltipPlacement="right">
         <a routerLink="/submission-list">
             <span nz-icon nzType="exclamation-circle" nzTheme="outline"></span>
-            <span *ngIf="!collapsed">Submissions</span>
+            <span>Submissions</span>
         </a>
     </li>
-    <li *ngIf="sessionAccount?.role === 'admin'" nz-menu-item nzMatchRouter>
+    <li *ngIf="sessionAccount?.role === 'admin'" nz-menu-item nzMatchRouter [nz-tooltip]="collapsed? 'Accounts': ''"
+        nzTooltipPlacement="right">
         <a routerLink="/account-list">
             <span nz-icon nzType="team" nzTheme="outline"></span>
-            <span *ngIf="!collapsed">Accounts</span>
+            <span>Accounts</span>
         </a>
     </li>
     <li *ngIf="sessionAccount" nz-submenu nzTitle="Profile" nzIcon="user">
         <ul>
             <li nz-menu-item nzMatchRouter>
-                <a routerLink="/profile">
-                    <span *ngIf="!collapsed">Edit</span>
-                </a>
+                <a routerLink="/profile">Edit</a>
             </li>
             <li *ngIf="sessionAccount" nz-menu-item (click)="onLogOutClicked()">
-                <span *ngIf="!collapsed">Log out</span>
+                Log out
             </li>
         </ul>
     </li>
