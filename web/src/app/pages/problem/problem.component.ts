@@ -1,9 +1,8 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { RpcAccount, RpcProblem } from '../../dataaccess/api';
 import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Params, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
 import {
   AccountService,
   PermissionDeniedError,
@@ -65,17 +64,15 @@ import {
   templateUrl: './problem.component.html',
   styleUrl: './problem.component.scss',
 })
-export class ProblemComponent implements OnInit, OnDestroy {
+export class ProblemComponent implements OnInit {
   @ViewChild('problemTabSet') problemTabSet: NzTabSetComponent | undefined;
   @ViewChild('submissionTab') submissionTab: NzTabComponent | undefined;
 
-  public sessionAccount: RpcAccount | null | undefined;
+  public sessionAccount: RpcAccount | undefined;
   public problem: RpcProblem | undefined;
 
   public submissionContent = '';
   public submissionLanguage = 'cpp';
-
-  private sessionAccountChangedSubscription: Subscription | undefined;
 
   constructor(
     private readonly accountService: AccountService,
@@ -89,19 +86,21 @@ export class ProblemComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     (async () => {
-      this.sessionAccount = await this.accountService.getSessionAccount();
+      const sessionAccount = await this.accountService.getSessionAccount();
+      if (sessionAccount === null) {
+        this.notificationService.error(
+          'Failed to load profile page',
+          'Not logged in'
+        );
+        this.router.navigateByUrl('/login');
+        return;
+      }
+
+      this.sessionAccount = sessionAccount;
     })().then();
     this.activatedRoute.params.subscribe(async (params) => {
       await this.onParamsChanged(params);
     });
-    this.sessionAccountChangedSubscription =
-      this.accountService.sessionAccountChanged.subscribe((account) => {
-        this.sessionAccount = account;
-      });
-  }
-
-  ngOnDestroy(): void {
-    this.sessionAccountChangedSubscription?.unsubscribe();
   }
 
   private async onParamsChanged(params: Params): Promise<void> {

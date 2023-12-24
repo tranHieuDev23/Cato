@@ -1,6 +1,10 @@
 import { EventEmitter, Injectable } from '@angular/core';
 import { ApiService } from '../dataaccess';
-import { RpcAccount, RpcError } from '../dataaccess/api';
+import {
+  RpcAccount,
+  RpcError,
+  RpcUpdateAccountRequestFromJSON,
+} from '../dataaccess/api';
 import { ErrorCode } from '../dataaccess/api.service';
 
 export enum Role {
@@ -116,6 +120,48 @@ export class AccountService {
     }
   }
 
+  public async updateAccount(
+    id: number,
+    displayName: string | undefined,
+    role: string | undefined,
+    password: string | undefined
+  ): Promise<RpcAccount> {
+    try {
+      const response = await this.api.updateAccount(
+        RpcUpdateAccountRequestFromJSON({
+          ID: id,
+          DisplayName: displayName,
+          Role: role,
+          Password: password,
+        })
+      );
+      if (response.account.iD === this.sessionAccount?.iD) {
+        this.sessionAccount = response.account;
+        this.sessionAccountChanged.emit(response.account);
+      }
+      return response.account;
+    } catch (e) {
+      if (!this.api.isRpcError(e)) {
+        throw e;
+      }
+
+      const apiError = e as RpcError;
+      if (apiError.code === ErrorCode.JRPCErrorInvalidParams) {
+        throw new InvalidAccountInfoError();
+      }
+
+      if (apiError.code === ErrorCode.Unauthenticated) {
+        throw new UnauthenticatedError();
+      }
+
+      if (apiError.code === ErrorCode.PermissionDenied) {
+        throw new PermissionDeniedError();
+      }
+
+      throw apiError;
+    }
+  }
+
   public async createSession(
     accountName: string,
     password: string
@@ -138,7 +184,10 @@ export class AccountService {
         throw new AccountNotFoundError();
       }
 
-      if (apiError.code === ErrorCode.Unauthenticated) {
+      if (
+        apiError.code === ErrorCode.Unauthenticated ||
+        apiError.code === ErrorCode.JRPCErrorInvalidParams
+      ) {
         throw new IncorrectPasswordError();
       }
 

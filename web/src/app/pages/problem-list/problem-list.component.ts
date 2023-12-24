@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RpcAccount, RpcProblemSnippet } from '../../dataaccess/api';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { ActivatedRoute, Params, Router, RouterModule } from '@angular/router';
@@ -18,7 +18,6 @@ import {
   UnauthenticatedError,
 } from '../../logic/account.service';
 import { NzButtonModule } from 'ng-zorro-antd/button';
-import { Subscription } from 'rxjs';
 
 const DEFAULT_PAGE_INDEX = 1;
 const DEFAULT_PAGE_SIZE = 10;
@@ -36,15 +35,13 @@ const DEFAULT_PAGE_SIZE = 10;
   templateUrl: './problem-list.component.html',
   styleUrl: './problem-list.component.scss',
 })
-export class ProblemListComponent implements OnInit, OnDestroy {
-  public sessionAccount: RpcAccount | null | undefined;
+export class ProblemListComponent implements OnInit {
+  public sessionAccount: RpcAccount | undefined;
   public problemSnippetList: RpcProblemSnippet[] = [];
   public totalProblemCount = 0;
   public pageIndex = DEFAULT_PAGE_INDEX;
   public pageSize = DEFAULT_PAGE_SIZE;
   public loading = false;
-
-  private sessionAccountChangedSubscription: Subscription | undefined;
 
   constructor(
     private readonly accountService: AccountService,
@@ -52,25 +49,27 @@ export class ProblemListComponent implements OnInit, OnDestroy {
     private readonly paginationService: PaginationService,
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
-    private readonly nzNotificationService: NzNotificationService,
+    private readonly notificationService: NzNotificationService,
     private readonly location: Location
   ) {}
 
   ngOnInit(): void {
     (async () => {
-      this.sessionAccount = await this.accountService.getSessionAccount();
+      const sessionAccount = await this.accountService.getSessionAccount();
+      if (sessionAccount === null) {
+        this.notificationService.error(
+          'Failed to load profile page',
+          'Not logged in'
+        );
+        this.router.navigateByUrl('/login');
+        return;
+      }
+
+      this.sessionAccount = sessionAccount;
     })().then();
     this.activatedRoute.queryParams.subscribe(async (params) => {
       await this.onQueryParamsChanged(params);
     });
-    this.sessionAccountChangedSubscription =
-      this.accountService.sessionAccountChanged.subscribe((account) => {
-        this.sessionAccount = account;
-      });
-  }
-
-  ngOnDestroy(): void {
-    this.sessionAccountChangedSubscription?.unsubscribe();
   }
 
   private async onQueryParamsChanged(queryParams: Params): Promise<void> {
@@ -103,7 +102,7 @@ export class ProblemListComponent implements OnInit, OnDestroy {
       this.problemSnippetList = problemSnippetList;
     } catch (e) {
       if (e instanceof UnauthenticatedError) {
-        this.nzNotificationService.error(
+        this.notificationService.error(
           'Failed to load problem list',
           'Not logged in'
         );
@@ -112,7 +111,7 @@ export class ProblemListComponent implements OnInit, OnDestroy {
       }
 
       if (e instanceof PermissionDeniedError) {
-        this.nzNotificationService.error(
+        this.notificationService.error(
           'Failed to load problem list',
           'Permission denied'
         );
@@ -121,7 +120,7 @@ export class ProblemListComponent implements OnInit, OnDestroy {
       }
 
       if (e instanceof InvalidProblemListParam) {
-        this.nzNotificationService.error(
+        this.notificationService.error(
           'Failed to load problem list',
           'Invalid page index/size'
         );
@@ -129,7 +128,7 @@ export class ProblemListComponent implements OnInit, OnDestroy {
         return;
       }
 
-      this.nzNotificationService.error(
+      this.notificationService.error(
         'Failed to load problem list',
         'Unknown error'
       );

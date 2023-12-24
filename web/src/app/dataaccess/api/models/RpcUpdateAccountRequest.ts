@@ -37,6 +37,12 @@ export interface RpcUpdateAccountRequest {
      * @memberof RpcUpdateAccountRequest
      */
     role: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RpcUpdateAccountRequest
+     */
+    password: string;
 }
 
 /**
@@ -47,6 +53,7 @@ export function instanceOfRpcUpdateAccountRequest(value: object): boolean {
     isInstance = isInstance && "iD" in value;
     isInstance = isInstance && "displayName" in value;
     isInstance = isInstance && "role" in value;
+    isInstance = isInstance && "password" in value;
 
     return isInstance;
 }
@@ -64,6 +71,7 @@ export function RpcUpdateAccountRequestFromJSONTyped(json: any, ignoreDiscrimina
         'iD': json['ID'],
         'displayName': json['DisplayName'],
         'role': json['Role'],
+        'password': json['Password'],
     };
 }
 
@@ -79,6 +87,7 @@ export function RpcUpdateAccountRequestToJSON(value?: RpcUpdateAccountRequest | 
         'ID': value.iD,
         'DisplayName': value.displayName,
         'Role': value.role,
+        'Password': value.password,
     };
 }
 

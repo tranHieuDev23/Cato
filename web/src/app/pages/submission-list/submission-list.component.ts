@@ -1,10 +1,9 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, Params, RouterModule } from '@angular/router';
 import {
   NzNotificationModule,
   NzNotificationService,
 } from 'ng-zorro-antd/notification';
-import { Subscription } from 'rxjs';
 import { RpcAccount, RpcSubmissionSnippet } from '../../dataaccess/api';
 import {
   AccountService,
@@ -47,8 +46,8 @@ const SUBMISSION_LIST_RELOAD_INTERVAL = 10000;
     SubmissionStatusPipe,
   ],
 })
-export class SubmissionListComponent implements OnInit, OnDestroy {
-  public sessionAccount: RpcAccount | null | undefined;
+export class SubmissionListComponent implements OnInit {
+  public sessionAccount: RpcAccount | undefined;
   public submissionSnippetList: RpcSubmissionSnippet[] = [];
   public totalSubmissionCount = 0;
   public pageIndex = DEFAULT_PAGE_INDEX;
@@ -57,7 +56,6 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
   public lastLoadedTime: number | undefined;
   public autoReloadEnabled = true;
 
-  private sessionAccountChangedSubscription: Subscription | undefined;
   private submissionListReloadInterval:
     | ReturnType<typeof setInterval>
     | undefined;
@@ -68,31 +66,30 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
     private readonly paginationService: PaginationService,
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
-    private readonly nzNotificationService: NzNotificationService,
+    private readonly notificationService: NzNotificationService,
     private readonly location: Location
   ) {}
 
   ngOnInit(): void {
     (async () => {
-      this.sessionAccount = await this.accountService.getSessionAccount();
+      const sessionAccount = await this.accountService.getSessionAccount();
+      if (sessionAccount === null) {
+        this.notificationService.error(
+          'Failed to load profile page',
+          'Not logged in'
+        );
+        this.router.navigateByUrl('/login');
+        return;
+      }
+
+      this.sessionAccount = sessionAccount;
     })().then();
     this.activatedRoute.queryParams.subscribe(async (params) => {
       await this.onQueryParamsChanged(params);
     });
-    this.sessionAccountChangedSubscription =
-      this.accountService.sessionAccountChanged.subscribe((account) => {
-        this.sessionAccount = account;
-      });
     this.submissionListReloadInterval = setInterval(async () => {
       await this.loadSubmissionSnippetList();
     }, SUBMISSION_LIST_RELOAD_INTERVAL);
-  }
-
-  ngOnDestroy(): void {
-    this.sessionAccountChangedSubscription?.unsubscribe();
-    if (this.submissionListReloadInterval !== undefined) {
-      clearInterval(this.submissionListReloadInterval);
-    }
   }
 
   private async onQueryParamsChanged(queryParams: Params): Promise<void> {
@@ -118,7 +115,7 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
       this.loading = true;
       const sessionAccount = await this.accountService.getSessionAccount();
       if (sessionAccount === null) {
-        this.nzNotificationService.error(
+        this.notificationService.error(
           'Failed to load submission list',
           'Not logged in'
         );
@@ -151,7 +148,7 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
       this.lastLoadedTime = Date.now();
     } catch (e) {
       if (e instanceof UnauthenticatedError) {
-        this.nzNotificationService.error(
+        this.notificationService.error(
           'Failed to load submission list',
           'Not logged in'
         );
@@ -160,7 +157,7 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
       }
 
       if (e instanceof PermissionDeniedError) {
-        this.nzNotificationService.error(
+        this.notificationService.error(
           'Failed to load submission list',
           'Permission denied'
         );
@@ -169,7 +166,7 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
       }
 
       if (e instanceof AccountNotFoundError) {
-        this.nzNotificationService.error(
+        this.notificationService.error(
           'Failed to load submission list',
           'Account not found'
         );
@@ -178,7 +175,7 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
       }
 
       if (e instanceof InvalidSubmissionListParam) {
-        this.nzNotificationService.error(
+        this.notificationService.error(
           'Failed to load submission list',
           'Invalid page index/size'
         );
@@ -186,7 +183,7 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
         return;
       }
 
-      this.nzNotificationService.error(
+      this.notificationService.error(
         'Failed to load submission list',
         'Unknown error'
       );

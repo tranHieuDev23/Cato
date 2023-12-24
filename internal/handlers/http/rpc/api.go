@@ -88,8 +88,9 @@ type GetAccountResponse struct {
 
 type UpdateAccountRequest struct {
 	ID          uint64
-	DisplayName *string `validate:"min=1,max=32"`
-	Role        *string `validate:"oneof=admin problem_setter contestant worker"`
+	DisplayName *string `validate:"omitnil,min=1,max=32"`
+	Role        *string `validate:"omitnil,oneof=admin problem_setter contestant worker"`
+	Password    *string `validate:"omitnil,min=8"`
 }
 
 type UpdateAccountResponse struct {
@@ -147,11 +148,11 @@ type GetProblemResponse struct {
 
 type UpdateProblemRequest struct {
 	ID                     uint64
-	DisplayName            *string           `validate:"min=1,max=256"`
-	Description            *string           `validate:"max=5000"`
-	TimeLimitInMillisecond *uint64           `validate:"max=10000"`
-	MemoryLimitInByte      *uint64           `validate:"max=8589934592"`
-	ExampleList            *[]ProblemExample `validate:"max=5"`
+	DisplayName            *string           `omitnil,validate:"min=1,max=256"`
+	Description            *string           `omitnil,validate:"max=5000"`
+	TimeLimitInMillisecond *uint64           `omitnil,validate:"max=10000"`
+	MemoryLimitInByte      *uint64           `omitnil,validate:"max=8589934592"`
+	ExampleList            *[]ProblemExample `omitnil,validate:"max=5"`
 }
 
 type UpdateProblemResponse struct {
@@ -203,8 +204,8 @@ type GetTestCaseResponse struct {
 
 type UpdateTestCaseRequest struct {
 	ID       uint64
-	Input    *string `validate:"max=5000"`
-	Output   *string `validate:"max=5000"`
+	Input    *string `validate:"omitnil,max=5000"`
+	Output   *string `validate:"omitnil,max=5000"`
 	IsHidden *bool
 }
 

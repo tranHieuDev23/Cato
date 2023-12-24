@@ -10,6 +10,7 @@ import {
   LogoutOutline,
   UploadOutline,
   FileAddOutline,
+  LockOutline,
 } from '@ant-design/icons-angular/icons';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 
@@ -24,6 +25,7 @@ const icons = [
   LogoutOutline,
   UploadOutline,
   FileAddOutline,
+  LockOutline,
 ];
 
 export function provideNzIcons(): EnvironmentProviders {

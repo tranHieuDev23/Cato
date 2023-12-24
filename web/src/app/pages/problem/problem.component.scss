@@ -1,0 +1,13 @@
+.problem {
+  padding: 24px !important;
+  background: #fff;
+  height: calc(100vh - 112px);
+  overflow-x: scroll;
+}
+
+@media (max-width: 991px) {
+  .problem {
+    height: inherit;
+    margin-bottom: 16px;
+  }
+}

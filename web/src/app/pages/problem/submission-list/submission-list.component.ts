@@ -1,8 +1,7 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { RpcSubmissionSnippet } from '../../../dataaccess/api';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { CommonModule, Location } from '@angular/common';
-import { Subscription } from 'rxjs';
 import {
   NzNotificationModule,
   NzNotificationService,
@@ -43,7 +42,7 @@ const SUBMISSION_LIST_RELOAD_INTERVAL = 10000;
     SubmissionStatusPipe,
   ],
 })
-export class SubmissionListComponent implements OnInit, OnDestroy {
+export class SubmissionListComponent implements OnInit {
   @Input() public problemID = 0;
 
   public totalSubmissionCount = 0;
@@ -54,7 +53,6 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
   public lastLoadedTime: number | undefined;
   public autoReloadEnabled = true;
 
-  private sessionAccountChangedSubscription: Subscription | undefined;
   private submissionListReloadInterval:
     | ReturnType<typeof setInterval>
     | undefined;
@@ -73,13 +71,6 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
     this.submissionListReloadInterval = setInterval(async () => {
       await this.loadSubmissionSnippetList();
     }, SUBMISSION_LIST_RELOAD_INTERVAL);
-  }
-
-  ngOnDestroy(): void {
-    this.sessionAccountChangedSubscription?.unsubscribe();
-    if (this.submissionListReloadInterval !== undefined) {
-      clearInterval(this.submissionListReloadInterval);
-    }
   }
 
   private async loadSubmissionSnippetList(): Promise<void> {

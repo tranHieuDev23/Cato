@@ -74,7 +74,7 @@ export class LoginComponent {
       displayName: '',
       accountName: '',
       password: '',
-      passwordType: '',
+      passwordConfirm: '',
       role: 'contestant',
     });
   }

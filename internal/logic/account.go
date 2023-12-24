@@ -352,8 +352,31 @@ func (a account) UpdateAccount(ctx context.Context, in *rpc.UpdateAccountRequest
 		updatedAccount.Role = db.AccountRole(*in.Role)
 	}
 
-	if err := a.accountDataAccessor.UpdateAccount(ctx, updatedAccount); err != nil {
-		return nil, err
+	if txErr := a.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := a.accountDataAccessor.WithDB(tx).UpdateAccount(ctx, updatedAccount); err != nil {
+			return err
+		}
+
+		if in.Password != nil {
+			accountPassword, err := a.accountPasswordDataAccessor.WithDB(tx).GetAccountPasswordOfAccountID(ctx, in.ID)
+			if err != nil {
+				return err
+			}
+
+			hashedPassword, err := a.hash.Hash(ctx, *in.Password)
+			if err != nil {
+				return nil
+			}
+
+			accountPassword.Hash = hashedPassword
+			if err := a.accountPasswordDataAccessor.WithDB(tx).UpdateAccountPassword(ctx, accountPassword); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}); txErr != nil {
+		return nil, txErr
 	}
 
 	response := &rpc.UpdateAccountResponse{

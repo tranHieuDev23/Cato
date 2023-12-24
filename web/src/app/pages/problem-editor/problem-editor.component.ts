@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -25,7 +25,6 @@ import {
 } from 'ng-zorro-antd/notification';
 import { CommonModule, Location } from '@angular/common';
 import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
 import { EditableRichTextComponent } from '../../components/editable-rich-text/editable-rich-text.component';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
@@ -56,14 +55,12 @@ const GB_IN_BYTE = MB_IN_BYTE * 1024;
   templateUrl: './problem-editor.component.html',
   styleUrl: './problem-editor.component.scss',
 })
-export class ProblemEditorComponent implements OnInit, OnDestroy {
-  public sessionAccount: RpcAccount | null | undefined;
+export class ProblemEditorComponent implements OnInit {
+  public sessionAccount: RpcAccount | undefined;
   public exampleList: RpcProblemExample[] = [];
 
   public formGroup: FormGroup;
   public saving = false;
-
-  private sessionAccountChangedSubscription: Subscription | undefined;
 
   constructor(
     private readonly accountService: AccountService,
@@ -111,16 +108,18 @@ export class ProblemEditorComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     (async () => {
-      this.sessionAccount = await this.accountService.getSessionAccount();
-    })().then();
-    this.sessionAccountChangedSubscription =
-      this.accountService.sessionAccountChanged.subscribe((account) => {
-        this.sessionAccount = account;
-      });
-  }
+      const sessionAccount = await this.accountService.getSessionAccount();
+      if (sessionAccount === null) {
+        this.notificationService.error(
+          'Failed to load profile page',
+          'Not logged in'
+        );
+        this.router.navigateByUrl('/login');
+        return;
+      }
 
-  ngOnDestroy(): void {
-    this.sessionAccountChangedSubscription?.unsubscribe();
+      this.sessionAccount = sessionAccount;
+    })().then();
   }
 
   private displayNameValidator(): ValidatorFn {
