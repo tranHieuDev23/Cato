@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, RouterOutlet } from '@angular/router';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -34,11 +34,13 @@ export class AppComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly accountService: AccountService,
-    private readonly pageTitleService: PageTitleService
+    private readonly pageTitleService: PageTitleService,
+    private readonly changeDetector: ChangeDetectorRef
   ) {
     this.titleChangedSubscription =
       this.pageTitleService.titleChanged.subscribe((title) => {
         this.pageTitle = title;
+        this.changeDetector.detectChanges();
       });
   }
 
