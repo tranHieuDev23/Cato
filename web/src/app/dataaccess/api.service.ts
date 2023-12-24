@@ -20,6 +20,8 @@ import {
   RpcGetAccountListResponse,
   RpcGetAccountProblemSnippetListRequest,
   RpcGetAccountProblemSnippetListResponse,
+  RpcGetAccountProblemSubmissionSnippetListRequest,
+  RpcGetAccountProblemSubmissionSnippetListResponse,
   RpcGetAccountRequest,
   RpcGetAccountResponse,
   RpcGetAccountSubmissionSnippetListRequest,
@@ -591,6 +593,29 @@ export class ApiService {
         params: request,
       },
     });
+    if (error) {
+      throw error;
+    }
+
+    if (!result) {
+      throw new Error('No response received');
+    }
+
+    return result;
+  }
+
+  public async getAccountProblemSubmissionSnippetList(
+    request: RpcGetAccountProblemSubmissionSnippetListRequest
+  ): Promise<RpcGetAccountProblemSubmissionSnippetListResponse> {
+    const { error, result } =
+      await this.api.getAccountProblemSubmissionSnippetList({
+        requestBodyOfTheGetAccountProblemSubmissionSnippetListMethod: {
+          jsonrpc: jsonRPCVersion,
+          id: clientID,
+          method: 'get_account_problem_submission_snippet_list',
+          params: request,
+        },
+      });
     if (error) {
       throw error;
     }

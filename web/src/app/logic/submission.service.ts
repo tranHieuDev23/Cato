@@ -212,6 +212,48 @@ export class SubmissionService {
     }
   }
 
+  public async getAccountProblemSubmissionSnippetList(
+    accountID: number,
+    problemID: number,
+    offset: number,
+    limit: number
+  ): Promise<{
+    totalSubmissionCount: number;
+    submissionSnippetList: RpcSubmissionSnippet[];
+  }> {
+    try {
+      const response = await this.api.getAccountProblemSubmissionSnippetList({
+        accountID,
+        problemID,
+        offset,
+        limit,
+      });
+      return {
+        totalSubmissionCount: response.totalSubmissionCount,
+        submissionSnippetList: response.submissionSnippetList,
+      };
+    } catch (e) {
+      if (!this.api.isRpcError(e)) {
+        throw e;
+      }
+
+      const apiError = e as RpcError;
+      if (apiError.code == ErrorCode.JRPCErrorInvalidParams) {
+        throw new InvalidSubmissionListParam();
+      }
+
+      if (apiError.code == ErrorCode.Unauthenticated) {
+        throw new UnauthenticatedError();
+      }
+
+      if (apiError.code == ErrorCode.PermissionDenied) {
+        throw new PermissionDeniedError();
+      }
+
+      throw e;
+    }
+  }
+
   public async createSubmission(
     problemID: number,
     content: string,

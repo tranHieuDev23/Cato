@@ -227,6 +227,15 @@ func (a apiServerHandler) GetAccountProblemSnippetList(ctx context.Context, in *
 	return a.problemLogic.GetAccountProblemSnippetList(ctx, in, token)
 }
 
+func (a apiServerHandler) GetAccountProblemSubmissionSnippetList(ctx context.Context, in *rpc.GetAccountProblemSubmissionSnippetListRequest) (*rpc.GetAccountProblemSubmissionSnippetListResponse, error) {
+	if err := a.validateRequest(ctx, in); err != nil {
+		return nil, err
+	}
+
+	token := a.getAuthorizationBearerToken(ctx)
+	return a.submissionLogic.GetAccountProblemSubmissionSnippetList(ctx, in, token)
+}
+
 func (a apiServerHandler) GetAccountSubmissionSnippetList(ctx context.Context, in *rpc.GetAccountSubmissionSnippetListRequest) (*rpc.GetAccountSubmissionSnippetListResponse, error) {
 	if err := a.validateRequest(ctx, in); err != nil {
 		return nil, err

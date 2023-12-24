@@ -82,7 +82,7 @@ func (a account) isValidDisplayName(displayName string) bool {
 }
 
 func (a account) isValidPassword(password string) bool {
-	return len(password) > 8
+	return len(password) >= 8
 }
 
 func (a account) canAccountBeCreatedAnonymously(role string) bool {

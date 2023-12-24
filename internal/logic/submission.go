@@ -18,6 +18,7 @@ type Submission interface {
 	DeleteSubmission(ctx context.Context, in *rpc.DeleteSubmissionRequest, token string) error
 	GetAccountSubmissionSnippetList(ctx context.Context, in *rpc.GetAccountSubmissionSnippetListRequest, token string) (*rpc.GetAccountSubmissionSnippetListResponse, error)
 	GetProblemSubmissionSnippetList(ctx context.Context, in *rpc.GetProblemSubmissionSnippetListRequest, token string) (*rpc.GetProblemSubmissionSnippetListResponse, error)
+	GetAccountProblemSubmissionSnippetList(ctx context.Context, in *rpc.GetAccountProblemSubmissionSnippetListRequest, token string) (*rpc.GetAccountProblemSubmissionSnippetListResponse, error)
 }
 
 type submission struct {
@@ -222,6 +223,18 @@ func (s submission) GetAccountSubmissionSnippetList(ctx context.Context, in *rpc
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 	}
 
+	if uint64(author.ID) != uint64(account.ID) {
+		if hasPermission, err := s.role.AccountHasPermission(
+			ctx,
+			string(account.Role),
+			PermissionSubmissionsAllRead,
+		); err != nil {
+			return nil, err
+		} else if !hasPermission {
+			return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+		}
+	}
+
 	totalSubmissionCount, err := s.submissionDataAccessor.GetAccountSubmissionCount(ctx, in.AccountID)
 	if err != nil {
 		return nil, err
@@ -316,6 +329,97 @@ func (s submission) GetProblemSubmissionSnippetList(ctx context.Context, in *rpc
 	}
 
 	return &rpc.GetProblemSubmissionSnippetListResponse{
+		TotalSubmissionCount:  totalSubmissionCount,
+		SubmissionSnippetList: submissionSnippetList,
+	}, nil
+}
+
+func (s submission) GetAccountProblemSubmissionSnippetList(
+	ctx context.Context,
+	in *rpc.GetAccountProblemSubmissionSnippetListRequest,
+	token string,
+) (*rpc.GetAccountProblemSubmissionSnippetListResponse, error) {
+	logger := utils.LoggerWithContext(ctx, s.logger)
+
+	account, err := s.token.GetAccount(ctx, token)
+	if err != nil {
+		return nil, err
+	}
+
+	if hasPermission, err := s.role.AccountHasPermission(
+		ctx,
+		string(account.Role),
+		PermissionSubmissionsSelfRead,
+		PermissionSubmissionsAllRead,
+	); err != nil {
+		return nil, err
+	} else if !hasPermission {
+		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+	}
+
+	author, err := s.accountDataAccessor.GetAccount(ctx, in.AccountID)
+	if err != nil {
+		return nil, err
+	}
+
+	if author == nil {
+		logger.With(zap.Uint64("account_id", in.AccountID)).Error("account not found")
+		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
+	}
+
+	if uint64(author.ID) != uint64(account.ID) {
+		if hasPermission, err := s.role.AccountHasPermission(
+			ctx,
+			string(account.Role),
+			PermissionSubmissionsAllRead,
+		); err != nil {
+			return nil, err
+		} else if !hasPermission {
+			return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+		}
+	}
+
+	problem, err := s.problemDataAccessor.GetProblem(ctx, in.ProblemID)
+	if err != nil {
+		return nil, err
+	}
+
+	if problem == nil {
+		logger.With(zap.Uint64("problem_id", in.ProblemID)).Error("problem not found")
+		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
+	}
+
+	if problem.AuthorAccountID == uint64(account.ID) {
+		if hasPermission, err := s.role.AccountHasPermission(
+			ctx,
+			string(account.Role),
+			PermissionSubmissionsAllRead,
+		); err != nil {
+			return nil, err
+		} else if !hasPermission {
+			return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+		}
+	}
+
+	totalSubmissionCount, err := s.submissionDataAccessor.GetAccountProblemSubmissionCount(ctx, in.AccountID, in.ProblemID)
+	if err != nil {
+		return nil, err
+	}
+
+	submissionList, err := s.submissionDataAccessor.GetAccountProblemSubmissionList(ctx, in.AccountID, in.ProblemID, in.Offset, in.Limit)
+	if err != nil {
+		return nil, err
+	}
+
+	submissionSnippetList := make([]rpc.SubmissionSnippet, 0, len(submissionList))
+	for i := range submissionList {
+		submissionSnippetList = append(
+			submissionSnippetList,
+			s.dbSubmissionToRPCSubmissionSnippet(submissionList[i], problem, author),
+		)
+	}
+
+	return &rpc.GetAccountProblemSubmissionSnippetListResponse{
 		TotalSubmissionCount:  totalSubmissionCount,
 		SubmissionSnippetList: submissionSnippetList,
 	}, nil

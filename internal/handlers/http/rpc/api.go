@@ -55,6 +55,7 @@ type API interface {
 
 	GetAccountSubmissionSnippetList(GetAccountSubmissionSnippetListRequest) GetAccountSubmissionSnippetListResponse
 	GetProblemSubmissionSnippetList(GetProblemSubmissionSnippetListRequest) GetProblemSubmissionSnippetListResponse
+	GetAccountProblemSubmissionSnippetList(GetAccountProblemSubmissionSnippetListRequest) GetAccountProblemSubmissionSnippetListResponse
 }
 
 type CreateAccountRequest struct {
@@ -282,6 +283,18 @@ type GetProblemSubmissionSnippetListRequest struct {
 }
 
 type GetProblemSubmissionSnippetListResponse struct {
+	TotalSubmissionCount  uint64
+	SubmissionSnippetList []SubmissionSnippet
+}
+
+type GetAccountProblemSubmissionSnippetListRequest struct {
+	AccountID uint64
+	ProblemID uint64
+	Offset    uint64
+	Limit     uint64 `validate:"max=100"`
+}
+
+type GetAccountProblemSubmissionSnippetListResponse struct {
 	TotalSubmissionCount  uint64
 	SubmissionSnippetList []SubmissionSnippet
 }

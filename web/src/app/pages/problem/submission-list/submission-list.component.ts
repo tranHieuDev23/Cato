@@ -111,7 +111,8 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
         this.submissionSnippetList = submissionSnippetList;
       } else {
         const { totalSubmissionCount, submissionSnippetList } =
-          await this.submissionService.getProblemSubmissionSnippetList(
+          await this.submissionService.getAccountProblemSubmissionSnippetList(
+            sessionAccount.iD,
             this.problemID,
             this.paginationService.getPageOffset(this.pageIndex, this.pageSize),
             this.pageSize

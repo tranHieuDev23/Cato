@@ -46,9 +46,11 @@ type SubmissionDataAccessor interface {
 	GetSubmissionList(ctx context.Context, offset, limit uint64) ([]*Submission, error)
 	GetAccountSubmissionList(ctx context.Context, accountID uint64, offset, limit uint64) ([]*Submission, error)
 	GetProblemSubmissionList(ctx context.Context, problemID uint64, offset, limit uint64) ([]*Submission, error)
+	GetAccountProblemSubmissionList(ctx context.Context, accountID, problemID, offset, limit uint64) ([]*Submission, error)
 	GetSubmissionCount(ctx context.Context) (uint64, error)
 	GetAccountSubmissionCount(ctx context.Context, accountID uint64) (uint64, error)
 	GetProblemSubmissionCount(ctx context.Context, problemID uint64) (uint64, error)
+	GetAccountProblemSubmissionCount(ctx context.Context, accountID, problemID uint64) (uint64, error)
 	WithDB(db *gorm.DB) SubmissionDataAccessor
 }
 
@@ -222,6 +224,58 @@ func (a submissionDataAccessor) GetProblemSubmissionList(ctx context.Context, pr
 		logger.
 			With(zap.Error(err)).
 			Error("failed to get submission list of problem")
+		return make([]*Submission, 0), err
+	}
+
+	return submissionList, nil
+}
+
+func (a submissionDataAccessor) GetAccountProblemSubmissionCount(ctx context.Context, accountID, problemID uint64) (uint64, error) {
+	logger := utils.LoggerWithContext(ctx, a.logger).
+		With(zap.Uint64("account_id", accountID)).
+		With(zap.Uint64("problem_id", problemID))
+	db := a.db.WithContext(ctx)
+	count := int64(0)
+	if err := db.Model(new(Submission)).
+		Where(&Submission{
+			AuthorAccountID: accountID,
+			OfProblemID:     problemID,
+		}).
+		Count(&count).
+		Error; err != nil {
+		logger.With(zap.Error(err)).Error("failed to get submission count of problem")
+		return 0, err
+	}
+
+	return uint64(count), nil
+}
+
+func (a submissionDataAccessor) GetAccountProblemSubmissionList(
+	ctx context.Context,
+	accountID,
+	problemID,
+	offset,
+	limit uint64,
+) ([]*Submission, error) {
+	logger := utils.LoggerWithContext(ctx, a.logger).
+		With(zap.Uint64("account_id", accountID)).
+		With(zap.Uint64("problem_id", problemID)).
+		With(zap.Uint64("limit", limit)).
+		With(zap.Uint64("offset", offset))
+	db := a.db.WithContext(ctx)
+	submissionList := make([]*Submission, 0)
+	if err := db.Model(new(Submission)).
+		Where(&Submission{
+			AuthorAccountID: accountID,
+			OfProblemID:     problemID,
+		}).
+		Limit(int(limit)).
+		Offset(int(offset)).
+		Find(&submissionList).
+		Error; err != nil {
+		logger.
+			With(zap.Error(err)).
+			Error("failed to get submission list of account")
 		return make([]*Submission, 0), err
 	}
 

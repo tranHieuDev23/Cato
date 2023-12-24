@@ -15,31 +15,32 @@ import (
 
 // List of the client JSON-RPC methods.
 const (
-	JSONRPCMethodCreateAccount_Client                   = "create_account"
-	JSONRPCMethodGetAccountList_Client                  = "get_account_list"
-	JSONRPCMethodGetAccount_Client                      = "get_account"
-	JSONRPCMethodUpdateAccount_Client                   = "update_account"
-	JSONRPCMethodCreateSession_Client                   = "create_session"
-	JSONRPCMethodGetSession_Client                      = "get_session"
-	JSONRPCMethodDeleteSession_Client                   = "delete_session"
-	JSONRPCMethodCreateProblem_Client                   = "create_problem"
-	JSONRPCMethodGetProblemSnippetList_Client           = "get_problem_snippet_list"
-	JSONRPCMethodGetProblem_Client                      = "get_problem"
-	JSONRPCMethodUpdateProblem_Client                   = "update_problem"
-	JSONRPCMethodDeleteProblem_Client                   = "delete_problem"
-	JSONRPCMethodCreateTestCase_Client                  = "create_test_case"
-	JSONRPCMethodCreateTestCaseList_Client              = "create_test_case_list"
-	JSONRPCMethodGetProblemTestCaseSnippetList_Client   = "get_problem_test_case_snippet_list"
-	JSONRPCMethodGetTestCase_Client                     = "get_test_case"
-	JSONRPCMethodUpdateTestCase_Client                  = "update_test_case"
-	JSONRPCMethodDeleteTestCase_Client                  = "delete_test_case"
-	JSONRPCMethodGetAccountProblemSnippetList_Client    = "get_account_problem_snippet_list"
-	JSONRPCMethodCreateSubmission_Client                = "create_submission"
-	JSONRPCMethodGetSubmissionSnippetList_Client        = "get_submission_snippet_list"
-	JSONRPCMethodGetSubmission_Client                   = "get_submission"
-	JSONRPCMethodDeleteSubmission_Client                = "delete_submission"
-	JSONRPCMethodGetAccountSubmissionSnippetList_Client = "get_account_submission_snippet_list"
-	JSONRPCMethodGetProblemSubmissionSnippetList_Client = "get_problem_submission_snippet_list"
+	JSONRPCMethodCreateAccount_Client                          = "create_account"
+	JSONRPCMethodGetAccountList_Client                         = "get_account_list"
+	JSONRPCMethodGetAccount_Client                             = "get_account"
+	JSONRPCMethodUpdateAccount_Client                          = "update_account"
+	JSONRPCMethodCreateSession_Client                          = "create_session"
+	JSONRPCMethodGetSession_Client                             = "get_session"
+	JSONRPCMethodDeleteSession_Client                          = "delete_session"
+	JSONRPCMethodCreateProblem_Client                          = "create_problem"
+	JSONRPCMethodGetProblemSnippetList_Client                  = "get_problem_snippet_list"
+	JSONRPCMethodGetProblem_Client                             = "get_problem"
+	JSONRPCMethodUpdateProblem_Client                          = "update_problem"
+	JSONRPCMethodDeleteProblem_Client                          = "delete_problem"
+	JSONRPCMethodCreateTestCase_Client                         = "create_test_case"
+	JSONRPCMethodCreateTestCaseList_Client                     = "create_test_case_list"
+	JSONRPCMethodGetProblemTestCaseSnippetList_Client          = "get_problem_test_case_snippet_list"
+	JSONRPCMethodGetTestCase_Client                            = "get_test_case"
+	JSONRPCMethodUpdateTestCase_Client                         = "update_test_case"
+	JSONRPCMethodDeleteTestCase_Client                         = "delete_test_case"
+	JSONRPCMethodGetAccountProblemSnippetList_Client           = "get_account_problem_snippet_list"
+	JSONRPCMethodCreateSubmission_Client                       = "create_submission"
+	JSONRPCMethodGetSubmissionSnippetList_Client               = "get_submission_snippet_list"
+	JSONRPCMethodGetSubmission_Client                          = "get_submission"
+	JSONRPCMethodDeleteSubmission_Client                       = "delete_submission"
+	JSONRPCMethodGetAccountSubmissionSnippetList_Client        = "get_account_submission_snippet_list"
+	JSONRPCMethodGetProblemSubmissionSnippetList_Client        = "get_problem_submission_snippet_list"
+	JSONRPCMethodGetAccountProblemSubmissionSnippetList_Client = "get_account_problem_submission_snippet_list"
 )
 
 // APIClient is an API client for API service.
@@ -69,6 +70,7 @@ type APIClient interface {
 	DeleteSubmission(ctx context.Context, in *rpc.DeleteSubmissionRequest, mods ...client.Mod) (*rpc.DeleteSubmissionResponse, error)
 	GetAccountSubmissionSnippetList(ctx context.Context, in *rpc.GetAccountSubmissionSnippetListRequest, mods ...client.Mod) (*rpc.GetAccountSubmissionSnippetListResponse, error)
 	GetProblemSubmissionSnippetList(ctx context.Context, in *rpc.GetProblemSubmissionSnippetListRequest, mods ...client.Mod) (*rpc.GetProblemSubmissionSnippetListResponse, error)
+	GetAccountProblemSubmissionSnippetList(ctx context.Context, in *rpc.GetAccountProblemSubmissionSnippetListRequest, mods ...client.Mod) (*rpc.GetAccountProblemSubmissionSnippetListResponse, error)
 }
 
 type implAPIClient struct {
@@ -475,6 +477,22 @@ func (c *implAPIClient) GetProblemSubmissionSnippetList(ctx context.Context, in 
 	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodGetProblemSubmissionSnippetList_Client, in, result, mods...)
 	if err != nil {
 		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodGetProblemSubmissionSnippetList_Client, err)
+	}
+
+	return result, nil
+}
+
+func (c *implAPIClient) GetAccountProblemSubmissionSnippetList(ctx context.Context, in *rpc.GetAccountProblemSubmissionSnippetListRequest, mods ...client.Mod) (result *rpc.GetAccountProblemSubmissionSnippetListResponse, err error) {
+	gen, err := uuid.NewUUID()
+	if err != nil {
+		return result, fmt.Errorf("failed to create uuid generator: %w", err)
+	}
+
+	result = new(rpc.GetAccountProblemSubmissionSnippetListResponse)
+
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodGetAccountProblemSubmissionSnippetList_Client, in, result, mods...)
+	if err != nil {
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodGetAccountProblemSubmissionSnippetList_Client, err)
 	}
 
 	return result, nil

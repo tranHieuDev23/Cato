@@ -28,6 +28,7 @@ import type {
   RequestBodyOfTheGetAccountListMethod,
   RequestBodyOfTheGetAccountMethod,
   RequestBodyOfTheGetAccountProblemSnippetListMethod,
+  RequestBodyOfTheGetAccountProblemSubmissionSnippetListMethod,
   RequestBodyOfTheGetAccountSubmissionSnippetListMethod,
   RequestBodyOfTheGetProblemMethod,
   RequestBodyOfTheGetProblemSnippetListMethod,
@@ -53,6 +54,7 @@ import type {
   ResponseBodyOfTheGetAccountListMethod,
   ResponseBodyOfTheGetAccountMethod,
   ResponseBodyOfTheGetAccountProblemSnippetListMethod,
+  ResponseBodyOfTheGetAccountProblemSubmissionSnippetListMethod,
   ResponseBodyOfTheGetAccountSubmissionSnippetListMethod,
   ResponseBodyOfTheGetProblemMethod,
   ResponseBodyOfTheGetProblemSnippetListMethod,
@@ -93,6 +95,8 @@ import {
     RequestBodyOfTheGetAccountMethodToJSON,
     RequestBodyOfTheGetAccountProblemSnippetListMethodFromJSON,
     RequestBodyOfTheGetAccountProblemSnippetListMethodToJSON,
+    RequestBodyOfTheGetAccountProblemSubmissionSnippetListMethodFromJSON,
+    RequestBodyOfTheGetAccountProblemSubmissionSnippetListMethodToJSON,
     RequestBodyOfTheGetAccountSubmissionSnippetListMethodFromJSON,
     RequestBodyOfTheGetAccountSubmissionSnippetListMethodToJSON,
     RequestBodyOfTheGetProblemMethodFromJSON,
@@ -143,6 +147,8 @@ import {
     ResponseBodyOfTheGetAccountMethodToJSON,
     ResponseBodyOfTheGetAccountProblemSnippetListMethodFromJSON,
     ResponseBodyOfTheGetAccountProblemSnippetListMethodToJSON,
+    ResponseBodyOfTheGetAccountProblemSubmissionSnippetListMethodFromJSON,
+    ResponseBodyOfTheGetAccountProblemSubmissionSnippetListMethodToJSON,
     ResponseBodyOfTheGetAccountSubmissionSnippetListMethodFromJSON,
     ResponseBodyOfTheGetAccountSubmissionSnippetListMethodToJSON,
     ResponseBodyOfTheGetProblemMethodFromJSON,
@@ -219,6 +225,10 @@ export interface GetAccountListRequest {
 
 export interface GetAccountProblemSnippetListRequest {
     requestBodyOfTheGetAccountProblemSnippetListMethod: RequestBodyOfTheGetAccountProblemSnippetListMethod;
+}
+
+export interface GetAccountProblemSubmissionSnippetListRequest {
+    requestBodyOfTheGetAccountProblemSubmissionSnippetListMethod: RequestBodyOfTheGetAccountProblemSubmissionSnippetListMethod;
 }
 
 export interface GetAccountSubmissionSnippetListRequest {
@@ -674,6 +684,37 @@ export class DefaultApi extends runtime.BaseAPI {
      */
     async getAccountProblemSnippetList(requestParameters: GetAccountProblemSnippetListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheGetAccountProblemSnippetListMethod> {
         const response = await this.getAccountProblemSnippetListRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async getAccountProblemSubmissionSnippetListRaw(requestParameters: GetAccountProblemSubmissionSnippetListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ResponseBodyOfTheGetAccountProblemSubmissionSnippetListMethod>> {
+        if (requestParameters.requestBodyOfTheGetAccountProblemSubmissionSnippetListMethod === null || requestParameters.requestBodyOfTheGetAccountProblemSubmissionSnippetListMethod === undefined) {
+            throw new runtime.RequiredError('requestBodyOfTheGetAccountProblemSubmissionSnippetListMethod','Required parameter requestParameters.requestBodyOfTheGetAccountProblemSubmissionSnippetListMethod was null or undefined when calling getAccountProblemSubmissionSnippetList.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/#get_account_problem_submission_snippet_list`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: RequestBodyOfTheGetAccountProblemSubmissionSnippetListMethodToJSON(requestParameters.requestBodyOfTheGetAccountProblemSubmissionSnippetListMethod),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ResponseBodyOfTheGetAccountProblemSubmissionSnippetListMethodFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async getAccountProblemSubmissionSnippetList(requestParameters: GetAccountProblemSubmissionSnippetListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheGetAccountProblemSubmissionSnippetListMethod> {
+        const response = await this.getAccountProblemSubmissionSnippetListRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
