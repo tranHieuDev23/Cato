@@ -26,12 +26,13 @@ type TestCase struct {
 	IsHidden    bool
 }
 
-func (t *TestCase) BeforeCreate() {
+func (t *TestCase) BeforeCreate(*gorm.DB) error {
 	fnvHash := fnv.New64a()
 	fnvHash.Write([]byte(t.Input))
 	fnvHash.Write([]byte{0})
 	fnvHash.Write([]byte(t.Output))
 	t.Hash = base64.StdEncoding.EncodeToString(fnvHash.Sum(nil))
+	return nil
 }
 
 type TestCaseDataAccessor interface {
