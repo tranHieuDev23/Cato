@@ -9,10 +9,10 @@
                             {{ problem.author.displayName }}
                         </nz-descriptions-item>
                         <nz-descriptions-item nzTitle="Created time">
-                            {{ problem.createdTime | date:'short'}}
+                            {{ problem.createdTime | date:'d/M/yyyy, h:mm a':'d/M/yyyy, h:mm a'}}
                         </nz-descriptions-item>
                         <nz-descriptions-item nzTitle="Update time">
-                            {{ problem.updatedTime | date:'short'}}
+                            {{ problem.updatedTime | date:'d/M/yyyy, h:mm a':'d/M/yyyy, h:mm a'}}
                         </nz-descriptions-item>
                         <nz-descriptions-item nzTitle="Time limit">
                             {{ problem.timeLimitInMillisecond | timeLimit}}

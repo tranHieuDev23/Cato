@@ -11,7 +11,7 @@
         {{ submission?.language | language }}
     </nz-descriptions-item>
     <nz-descriptions-item nzTitle="Created time">
-        {{ submission?.createdTime| date }}
+        {{ submission?.createdTime| date:'d/M/yyyy, h:mm a' }}
     </nz-descriptions-item>
     <nz-descriptions-item nzTitle="Status">
         <span *ngIf="submission">

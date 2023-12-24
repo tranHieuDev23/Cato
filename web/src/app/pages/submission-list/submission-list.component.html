@@ -5,7 +5,7 @@
         Enable auto-reload
     </p>
     <p *ngIf="lastLoadedTime !== undefined" nz-typography>
-        Last updated at {{ lastLoadedTime | date:'long' }}
+        Last updated at {{ lastLoadedTime | date:'d/M/yyyy, h:mm a':'long' }}
     </p>
     <nz-table #table [nzBordered]="true" [nzData]="submissionSnippetList" [nzPageIndex]="pageIndex"
         [nzPageSize]="pageSize" [nzTotal]="totalSubmissionCount" [nzLoading]="loading" [nzShowSizeChanger]="true"
@@ -31,7 +31,7 @@
                 </td>
                 <td>{{ submissionSnippet.author.displayName }}</td>
                 <td>{{ submissionSnippet.language| language }}</td>
-                <td>{{ submissionSnippet.createdTime | date }}</td>
+                <td>{{ submissionSnippet.createdTime | date:'d/M/yyyy, h:mm a' }}</td>
                 <td>{{ submissionSnippet | submissionStatus }}</td>
             </tr>
         </tbody>

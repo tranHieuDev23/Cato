@@ -25,8 +25,8 @@
                     </a>
                 </td>
                 <td>{{ problemSnippet.author.displayName }}</td>
-                <td>{{ problemSnippet.createdTime | date:'short' }}</td>
-                <td>{{ problemSnippet.updatedTime | date:'short' }}</td>
+                <td>{{ problemSnippet.createdTime | date:'d/M/yyyy, h:mm a':'d/M/yyyy, h:mm a' }}</td>
+                <td>{{ problemSnippet.updatedTime | date:'d/M/yyyy, h:mm a':'d/M/yyyy, h:mm a' }}</td>
             </tr>
         </tbody>
     </nz-table>
