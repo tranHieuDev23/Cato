@@ -1,63 +1,63 @@
-<nz-table #table [nzData]="testCaseList" [nzPageIndex]="pageIndex" [nzPageSize]="pageSize"
-    [nzTotal]="totalTestCaseCount" [nzLoading]="loading" [nzShowSizeChanger]="true"
-    [nzPageSizeOptions]="[10, 20, 50, 100]" (nzPageIndexChange)="onPageIndexChange($event)"
-    (nzPageSizeChange)="onPageSizeChange($event)" [nzFooter]="testCaseListFooter">
-    <thead>
-        <tr>
-            <th>#</th>
-            <th>Input</th>
-            <th>Output</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr *ngFor="let testCase of table.data; index as i">
-            <td>{{ testCase.id }}</td>
-            <td>
-                <ngx-codemirror [ngModel]="testCase.input"
-                    [options]="{theme: 'material', readOnly: true, autoRefresh: true}">
-                </ngx-codemirror>
-            </td>
-            <td>
-                <ngx-codemirror [ngModel]="testCase.output"
-                    [options]="{theme: 'material', readOnly: true, autoRefresh: true}">
-                </ngx-codemirror>
-            </td>
-            <td>
-                <nz-button-group>
-                    <button nz-button [disabled]="testCase.loading || !testCase.isSnippet"
-                        (click)="expandTestCase(i, testCase)">
-                        <span nz-icon nzType="expand-alt" nzTheme="outline"></span>
-                        Expand
-                    </button>
-                    <button *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'problem_setter'"
-                        nz-button [disabled]="testCase.loading" (click)="onTestCaseEditClicked(i, testCase)">
-                        <span nz-icon nzType="edit" nzTheme="outline"></span>
-                        Edit
-                    </button>
-                </nz-button-group>
-            </td>
-        </tr>
-    </tbody>
-</nz-table>
-<ng-template #testCaseListFooter>
+<div class="content">
     <button *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'problem_setter'" nz-button
-        (click)="onCreateTestCaseClicked()">
+        class="create-test-case-button" (click)="onCreateTestCaseClicked()">
         Create test case
     </button>
-</ng-template>
-<ng-template #editTestCaseModal>
-    <div class="edit-test-case-modal">
-        <p nz-typography>Input</p>
-        <ngx-codemirror class="editor" [(ngModel)]="modalTestCaseInput"
-            [options]="{theme: 'material', autoRefresh: true}">
-        </ngx-codemirror>
-        <br />
-        <p nz-typography>Output</p>
-        <ngx-codemirror class="editor" [(ngModel)]="modalTestCaseOutput"
-            [options]="{theme: 'material', autoRefresh: true}">
-        </ngx-codemirror>
-        <br />
-        <label nz-checkbox [(ngModel)]="isModalTestCaseHidden">Is hidden</label>
-    </div>
-</ng-template>
+    <nz-table #table [nzData]="testCaseList" [nzPageIndex]="pageIndex" [nzPageSize]="pageSize"
+        [nzTotal]="totalTestCaseCount" [nzLoading]="loading" [nzShowSizeChanger]="true"
+        [nzPageSizeOptions]="[10, 20, 50, 100]" (nzPageIndexChange)="onPageIndexChange($event)"
+        (nzPageSizeChange)="onPageSizeChange($event)">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Input</th>
+                <th>Output</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let testCase of table.data; index as i">
+                <td>{{ testCase.id }}</td>
+                <td>
+                    <ngx-codemirror [ngModel]="testCase.input"
+                        [options]="{theme: 'material', readOnly: true, autoRefresh: true}">
+                    </ngx-codemirror>
+                </td>
+                <td>
+                    <ngx-codemirror [ngModel]="testCase.output"
+                        [options]="{theme: 'material', readOnly: true, autoRefresh: true}">
+                    </ngx-codemirror>
+                </td>
+                <td>
+                    <nz-button-group>
+                        <button nz-button [disabled]="testCase.loading || !testCase.isSnippet"
+                            (click)="expandTestCase(i, testCase)">
+                            <span nz-icon nzType="expand-alt" nzTheme="outline"></span>
+                            Expand
+                        </button>
+                        <button *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'problem_setter'"
+                            nz-button [disabled]="testCase.loading" (click)="onTestCaseEditClicked(i, testCase)">
+                            <span nz-icon nzType="edit" nzTheme="outline"></span>
+                            Edit
+                        </button>
+                    </nz-button-group>
+                </td>
+            </tr>
+        </tbody>
+    </nz-table>
+    <ng-template #editTestCaseModal>
+        <div class="edit-test-case-modal">
+            <p nz-typography>Input</p>
+            <ngx-codemirror class="editor" [(ngModel)]="modalTestCaseInput"
+                [options]="{theme: 'material', autoRefresh: true}">
+            </ngx-codemirror>
+            <br />
+            <p nz-typography>Output</p>
+            <ngx-codemirror class="editor" [(ngModel)]="modalTestCaseOutput"
+                [options]="{theme: 'material', autoRefresh: true}">
+            </ngx-codemirror>
+            <br />
+            <label nz-checkbox [(ngModel)]="isModalTestCaseHidden">Is hidden</label>
+        </div>
+    </ng-template>
+</div>
