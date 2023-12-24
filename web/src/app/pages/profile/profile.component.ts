@@ -42,6 +42,7 @@ import { PageTitleService } from '../../logic/page-title.service';
     ReactiveFormsModule,
     NzNotificationModule,
     NzTypographyModule,
+    NzInputModule,
   ],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',
@@ -119,7 +120,14 @@ export class ProfileComponent implements OnInit {
       return;
     }
 
-    const { displayName, password } = this.profileForm.value;
+    let { displayName, password } = this.profileForm.value;
+    if (displayName === '' || displayName === this.sessionAccount.displayName) {
+      displayName = undefined;
+    }
+    if (password === '') {
+      password = undefined;
+    }
+
     try {
       const account = await this.accountService.updateAccount(
         this.sessionAccount.iD,

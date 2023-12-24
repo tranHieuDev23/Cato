@@ -23,6 +23,7 @@ import {
   AccountService,
   IncorrectPasswordError,
   InvalidAccountInfoError,
+  Role,
 } from '../../logic/account.service';
 import { ConfirmedValidator } from '../../components/utils/confirmed-validator';
 import { CommonModule } from '@angular/common';
@@ -79,7 +80,7 @@ export class LoginComponent implements OnInit {
       accountName: '',
       password: '',
       passwordConfirm: '',
-      role: 'contestant',
+      role: Role.Contestant,
     });
   }
 

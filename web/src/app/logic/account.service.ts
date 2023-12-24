@@ -11,6 +11,7 @@ export enum Role {
   Admin = 'admin',
   ProblemSetter = 'problem_setter',
   Contestant = 'contestant',
+  Worker = 'worker',
 }
 
 export class AccountNotFoundError extends Error {
@@ -46,6 +47,12 @@ export class UnauthenticatedError extends Error {
 export class PermissionDeniedError extends Error {
   constructor() {
     super('Permission denied');
+  }
+}
+
+export class InvalidAccountListParam extends Error {
+  constructor() {
+    super('Invalid account list parameters');
   }
 }
 
@@ -237,5 +244,40 @@ export class AccountService {
     }
 
     return this.sessionAccount;
+  }
+
+  public async getAccountList(
+    offset: number,
+    limit: number
+  ): Promise<{
+    totalAccountCount: number;
+    accountList: RpcAccount[];
+  }> {
+    try {
+      const response = await this.api.getAccountList({ offset, limit });
+      return {
+        totalAccountCount: response.totalAccountCount,
+        accountList: response.accountList,
+      };
+    } catch (e) {
+      if (!this.api.isRpcError(e)) {
+        throw e;
+      }
+
+      const apiError = e as RpcError;
+      if (apiError.code == ErrorCode.JRPCErrorInvalidParams) {
+        throw new InvalidAccountListParam();
+      }
+
+      if (apiError.code == ErrorCode.Unauthenticated) {
+        throw new UnauthenticatedError();
+      }
+
+      if (apiError.code == ErrorCode.PermissionDenied) {
+        throw new PermissionDeniedError();
+      }
+
+      throw e;
+    }
   }
 }

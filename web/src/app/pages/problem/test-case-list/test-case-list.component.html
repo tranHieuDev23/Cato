@@ -30,7 +30,8 @@
                         <span nz-icon nzType="expand-alt" nzTheme="outline"></span>
                         Expand
                     </button>
-                    <button nz-button [disabled]="testCase.loading" (click)="onTestCaseEditClicked(i, testCase)">
+                    <button *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'problem_setter'"
+                        nz-button [disabled]="testCase.loading" (click)="onTestCaseEditClicked(i, testCase)">
                         <span nz-icon nzType="edit" nzTheme="outline"></span>
                         Edit
                     </button>
@@ -41,7 +42,7 @@
 </nz-table>
 <ng-template #testCaseListFooter>
     <button *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'problem_setter'" nz-button
-        class="create-test-case-button" (click)="onCreateTestCaseClicked()">
+        (click)="onCreateTestCaseClicked()">
         Create test case
     </button>
 </ng-template>
