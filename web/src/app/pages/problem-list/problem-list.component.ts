@@ -18,6 +18,8 @@ import {
   UnauthenticatedError,
 } from '../../logic/account.service';
 import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzTypographyModule } from 'ng-zorro-antd/typography';
+import { PageTitleService } from '../../logic/page-title.service';
 
 const DEFAULT_PAGE_INDEX = 1;
 const DEFAULT_PAGE_SIZE = 10;
@@ -26,6 +28,7 @@ const DEFAULT_PAGE_SIZE = 10;
   selector: 'app-problem-list',
   standalone: true,
   imports: [
+    NzTypographyModule,
     NzTableModule,
     RouterModule,
     CommonModule,
@@ -50,7 +53,8 @@ export class ProblemListComponent implements OnInit {
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
     private readonly notificationService: NzNotificationService,
-    private readonly location: Location
+    private readonly location: Location,
+    private readonly pageTitleService: PageTitleService
   ) {}
 
   ngOnInit(): void {
@@ -66,6 +70,7 @@ export class ProblemListComponent implements OnInit {
       }
 
       this.sessionAccount = sessionAccount;
+      this.pageTitleService.setTitle('Problems');
     })().then();
     this.activatedRoute.queryParams.subscribe(async (params) => {
       await this.onQueryParamsChanged(params);

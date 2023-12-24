@@ -1,11 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
+import { RouterModule, RouterOutlet } from '@angular/router';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { SideMenuComponent } from './components/side-menu/side-menu.component';
 import { AccountService } from './logic/account.service';
+import { NzPageHeaderModule } from 'ng-zorro-antd/page-header';
+import { PageTitleService } from './logic/page-title.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -17,16 +20,33 @@ import { AccountService } from './logic/account.service';
     NzLayoutModule,
     NzMenuModule,
     SideMenuComponent,
+    RouterModule,
+    NzPageHeaderModule,
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
-export class AppComponent implements OnInit {
-  isCollapsed = false;
+export class AppComponent implements OnInit, OnDestroy {
+  public collapsed = false;
+  public pageTitle = 'Cato';
 
-  constructor(private readonly accountService: AccountService) {}
+  private titleChangedSubscription: Subscription;
+
+  constructor(
+    private readonly accountService: AccountService,
+    private readonly pageTitleService: PageTitleService
+  ) {
+    this.titleChangedSubscription =
+      this.pageTitleService.titleChanged.subscribe((title) => {
+        this.pageTitle = title;
+      });
+  }
 
   ngOnInit(): void {
     this.accountService.getSessionAccount().then();
+  }
+
+  ngOnDestroy(): void {
+    this.titleChangedSubscription.unsubscribe();
   }
 }

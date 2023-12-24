@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ReactiveFormsModule,
@@ -26,6 +26,7 @@ import {
 } from '../../logic/account.service';
 import { ConfirmedValidator } from '../../components/utils/confirmed-validator';
 import { CommonModule } from '@angular/common';
+import { PageTitleService } from '../../logic/page-title.service';
 
 @Component({
   selector: 'app-login',
@@ -43,7 +44,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   public loginForm: UntypedFormGroup;
   public registerForm: UntypedFormGroup;
 
@@ -51,7 +52,8 @@ export class LoginComponent {
     private readonly accountService: AccountService,
     private readonly notificationService: NzNotificationService,
     private readonly router: Router,
-    formBuilder: UntypedFormBuilder
+    formBuilder: UntypedFormBuilder,
+    private readonly pageTitleService: PageTitleService
   ) {
     this.loginForm = formBuilder.group({
       accountName: ['', [Validators.required]],
@@ -98,6 +100,10 @@ export class LoginComponent {
       const password: string = control.value;
       return this.accountService.isValidPassword(password);
     };
+  }
+
+  ngOnInit(): void {
+    this.pageTitleService.setTitle('Cato');
   }
 
   public async onLoginClicked(): Promise<void> {

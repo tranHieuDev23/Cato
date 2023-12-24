@@ -69,6 +69,12 @@ nz-header {
   box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
 }
 
+.header-title {
+  display: inline-block;
+  height: 100%;
+  width: fit-content;
+}
+
 nz-content {
   margin: 24px;
 }

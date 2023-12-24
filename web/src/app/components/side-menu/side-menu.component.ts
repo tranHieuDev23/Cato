@@ -18,12 +18,17 @@ export class SideMenuComponent implements OnInit, OnDestroy {
   @Input() public collapsed = false;
   public sessionAccount: RpcAccount | null | undefined;
 
-  private sessionAccountChangedSubscription: Subscription | undefined;
+  private sessionAccountChangedSubscription: Subscription;
 
   constructor(
     private readonly accountService: AccountService,
     private readonly router: Router
-  ) {}
+  ) {
+    this.sessionAccountChangedSubscription =
+      this.accountService.sessionAccountChanged.subscribe((account) => {
+        this.sessionAccount = account;
+      });
+  }
 
   public async onLogOutClicked(): Promise<void> {
     await this.accountService.deleteSession();
@@ -34,13 +39,9 @@ export class SideMenuComponent implements OnInit, OnDestroy {
     (async () => {
       this.sessionAccount = await this.accountService.getSessionAccount();
     })().then();
-    this.sessionAccountChangedSubscription =
-      this.accountService.sessionAccountChanged.subscribe((account) => {
-        this.sessionAccount = account;
-      });
   }
 
   ngOnDestroy(): void {
-    this.sessionAccountChangedSubscription?.unsubscribe();
+    this.sessionAccountChangedSubscription.unsubscribe();
   }
 }

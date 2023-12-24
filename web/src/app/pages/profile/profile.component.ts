@@ -26,6 +26,8 @@ import {
   NzNotificationModule,
   NzNotificationService,
 } from 'ng-zorro-antd/notification';
+import { NzTypographyModule } from 'ng-zorro-antd/typography';
+import { PageTitleService } from '../../logic/page-title.service';
 
 @Component({
   selector: 'app-profile',
@@ -39,6 +41,7 @@ import {
     NzButtonModule,
     ReactiveFormsModule,
     NzNotificationModule,
+    NzTypographyModule,
   ],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',
@@ -51,7 +54,8 @@ export class ProfileComponent implements OnInit {
     private readonly accountService: AccountService,
     private readonly notificationService: NzNotificationService,
     private readonly router: Router,
-    readonly formBuilder: FormBuilder
+    readonly formBuilder: FormBuilder,
+    private readonly pageTitleService: PageTitleService
   ) {
     this.profileForm = formBuilder.group(
       {
@@ -106,6 +110,7 @@ export class ProfileComponent implements OnInit {
         password: '',
         passwordConfirm: '',
       });
+      this.pageTitleService.setTitle('Profile');
     })().then();
   }
 

@@ -27,6 +27,7 @@ import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzTableModule } from 'ng-zorro-antd/table';
+import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import {
   NzTabComponent,
   NzTabSetComponent,
@@ -38,6 +39,7 @@ import {
   InvalidSubmissionInfo,
   SubmissionService,
 } from '../../logic/submission.service';
+import { PageTitleService } from '../../logic/page-title.service';
 
 @Component({
   selector: 'app-problem',
@@ -60,6 +62,7 @@ import {
     NzTabsModule,
     SubmissionListComponent,
     CodeEditorComponent,
+    NzDescriptionsModule,
   ],
   templateUrl: './problem.component.html',
   styleUrl: './problem.component.scss',
@@ -81,7 +84,8 @@ export class ProblemComponent implements OnInit {
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
     private readonly location: Location,
-    private readonly notificationService: NzNotificationService
+    private readonly notificationService: NzNotificationService,
+    private readonly pageTitleService: PageTitleService
   ) {}
 
   ngOnInit(): void {
@@ -112,6 +116,7 @@ export class ProblemComponent implements OnInit {
     const problemID = +params['id'];
     try {
       this.problem = await this.problemService.getProblem(problemID);
+      this.pageTitleService.setTitle(this.problem.displayName);
     } catch (e) {
       if (e instanceof UnauthenticatedError) {
         this.notificationService.error(

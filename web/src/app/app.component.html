@@ -1,20 +1,21 @@
 <nz-layout class="app-layout">
-  <nz-sider class="menu-sidebar" nzCollapsible nzWidth="256px" nzBreakpoint="md" [(nzCollapsed)]="isCollapsed"
+  <nz-sider class="menu-sidebar" nzCollapsible nzWidth="256px" nzBreakpoint="md" [(nzCollapsed)]="collapsed"
     [nzTrigger]="null">
     <div class="sidebar-logo">
-      <a href="https://ng.ant.design/" target="_blank">
+      <a routerLink="/">
         <img src="https://ng.ant.design/assets/img/logo.svg" alt="logo">
         <h1>Cato</h1>
       </a>
     </div>
-    <app-side-menu [collapsed]="isCollapsed"></app-side-menu>
+    <app-side-menu [collapsed]="collapsed"></app-side-menu>
   </nz-sider>
   <nz-layout>
     <nz-header>
       <div class="app-header">
-        <span class="header-trigger" (click)="isCollapsed = !isCollapsed">
-          <span class="trigger" nz-icon [nzType]="isCollapsed ? 'menu-unfold' : 'menu-fold'"></span>
+        <span class="header-trigger" (click)="collapsed = !collapsed">
+          <span class="trigger" nz-icon [nzType]="collapsed ? 'menu-unfold' : 'menu-fold'"></span>
         </span>
+        <nz-page-header class="header-title" [nzTitle]="pageTitle"></nz-page-header>
       </div>
     </nz-header>
     <nz-content>

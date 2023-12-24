@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, Params, RouterModule } from '@angular/router';
 import {
   NzNotificationModule,
@@ -24,6 +24,7 @@ import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { FormsModule } from '@angular/forms';
 import { LanguagePipe } from '../../components/utils/language.pipe';
 import { SubmissionStatusPipe } from '../../components/utils/submission-status.pipe';
+import { PageTitleService } from '../../logic/page-title.service';
 
 const DEFAULT_PAGE_INDEX = 1;
 const DEFAULT_PAGE_SIZE = 10;
@@ -46,7 +47,7 @@ const SUBMISSION_LIST_RELOAD_INTERVAL = 10000;
     SubmissionStatusPipe,
   ],
 })
-export class SubmissionListComponent implements OnInit {
+export class SubmissionListComponent implements OnInit, OnDestroy {
   public sessionAccount: RpcAccount | undefined;
   public submissionSnippetList: RpcSubmissionSnippet[] = [];
   public totalSubmissionCount = 0;
@@ -67,7 +68,8 @@ export class SubmissionListComponent implements OnInit {
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
     private readonly notificationService: NzNotificationService,
-    private readonly location: Location
+    private readonly location: Location,
+    private readonly pageTitleService: PageTitleService
   ) {}
 
   ngOnInit(): void {
@@ -83,6 +85,7 @@ export class SubmissionListComponent implements OnInit {
       }
 
       this.sessionAccount = sessionAccount;
+      this.pageTitleService.setTitle('Submissions');
     })().then();
     this.activatedRoute.queryParams.subscribe(async (params) => {
       await this.onQueryParamsChanged(params);
@@ -90,6 +93,12 @@ export class SubmissionListComponent implements OnInit {
     this.submissionListReloadInterval = setInterval(async () => {
       await this.loadSubmissionSnippetList();
     }, SUBMISSION_LIST_RELOAD_INTERVAL);
+  }
+
+  ngOnDestroy(): void {
+    if (this.submissionListReloadInterval !== undefined) {
+      clearInterval(this.submissionListReloadInterval);
+    }
   }
 
   private async onQueryParamsChanged(queryParams: Params): Promise<void> {

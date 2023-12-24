@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { PageTitleService } from '../../logic/page-title.service';
 
 @Component({
   selector: 'app-welcome',
@@ -6,6 +7,10 @@ import { Component } from '@angular/core';
   templateUrl: './welcome.component.html',
   styleUrls: ['./welcome.component.scss'],
 })
-export class WelcomeComponent {
-  constructor() {}
+export class WelcomeComponent implements OnInit {
+  constructor(private readonly pageTitleService: PageTitleService) {}
+
+  ngOnInit(): void {
+    this.pageTitleService.setTitle('Cato');
+  }
 }

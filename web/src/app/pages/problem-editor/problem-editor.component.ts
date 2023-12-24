@@ -31,6 +31,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzButtonModule } from 'ng-zorro-antd/button';
+import { PageTitleService } from '../../logic/page-title.service';
 
 const KB_IN_BYTE = 1024;
 const MB_IN_BYTE = KB_IN_BYTE * 1024;
@@ -68,7 +69,8 @@ export class ProblemEditorComponent implements OnInit {
     private readonly notificationService: NzNotificationService,
     private readonly location: Location,
     private readonly router: Router,
-    readonly formBuilder: FormBuilder
+    readonly formBuilder: FormBuilder,
+    private readonly pageTitleService: PageTitleService
   ) {
     this.formGroup = formBuilder.group(
       {
@@ -119,6 +121,7 @@ export class ProblemEditorComponent implements OnInit {
       }
 
       this.sessionAccount = sessionAccount;
+      this.pageTitleService.setTitle('Problem Editor');
     })().then();
   }
 
