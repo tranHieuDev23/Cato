@@ -8,7 +8,10 @@
                         <nz-descriptions-item nzTitle="Author">
                             {{ problem.author.displayName }}
                         </nz-descriptions-item>
-                        <nz-descriptions-item nzTitle="Last update">
+                        <nz-descriptions-item nzTitle="Created time">
+                            {{ problem.createdTime | date:'short'}}
+                        </nz-descriptions-item>
+                        <nz-descriptions-item nzTitle="Update time">
                             {{ problem.updatedTime | date:'short'}}
                         </nz-descriptions-item>
                         <nz-descriptions-item nzTitle="Time limit">
