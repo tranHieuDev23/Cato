@@ -26,14 +26,16 @@
             <span *ngIf="!collapsed">Accounts</span>
         </a>
     </li>
-    <li *ngIf="sessionAccount" nz-menu-item nzMatchRouter>
-        <a routerLink="/profile">
-            <span nz-icon nzType="user" nzTheme="outline"></span>
-            <span *ngIf="!collapsed">Profile</span>
-        </a>
-    </li>
-    <li *ngIf="sessionAccount" nz-menu-item (click)="onLogOutClicked()">
-        <span nz-icon nzType="logout" nzTheme="outline"></span>
-        <span *ngIf="!collapsed">Log out</span>
+    <li *ngIf="sessionAccount" nz-submenu nzTitle="Profile" nzIcon="user">
+        <ul>
+            <li nz-menu-item nzMatchRouter>
+                <a routerLink="/profile">
+                    <span *ngIf="!collapsed">Edit</span>
+                </a>
+            </li>
+            <li *ngIf="sessionAccount" nz-menu-item (click)="onLogOutClicked()">
+                <span *ngIf="!collapsed">Log out</span>
+            </li>
+        </ul>
     </li>
 </ul>
