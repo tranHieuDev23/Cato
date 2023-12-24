@@ -19,14 +19,16 @@
             <tr *ngFor="let testCase of table.data; index as i">
                 <td>{{ testCase.id }}</td>
                 <td>
+                    @if (testCase.isHidden) {Hidden} @else {
                     <ngx-codemirror [ngModel]="testCase.input"
                         [options]="{theme: 'material', readOnly: true, autoRefresh: true}">
-                    </ngx-codemirror>
+                    </ngx-codemirror>}
                 </td>
                 <td>
+                    @if (testCase.isHidden) {Hidden} @else {
                     <ngx-codemirror [ngModel]="testCase.output"
                         [options]="{theme: 'material', readOnly: true, autoRefresh: true}">
-                    </ngx-codemirror>
+                    </ngx-codemirror>}
                 </td>
                 <td>
                     <nz-button-group>

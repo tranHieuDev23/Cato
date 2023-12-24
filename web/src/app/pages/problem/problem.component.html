@@ -23,8 +23,7 @@
                 </ng-container>
             </nz-tab>
 
-            <nz-tab *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'problem_setter'"
-                nzTitle="Test cases">
+            <nz-tab nzTitle="Test cases">
                 <app-test-case-list *ngIf="problem" [problemID]="problem.iD"></app-test-case-list>
             </nz-tab>
 
