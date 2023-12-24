@@ -14,6 +14,7 @@
                 <th>Author</th>
                 <th>Created time</th>
                 <th>Update Time</th>
+                <th *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'problem_setter'">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -27,6 +28,17 @@
                 <td>{{ problemSnippet.author.displayName }}</td>
                 <td>{{ problemSnippet.createdTime | date:'d/M/yyyy, h:mm a':'d/M/yyyy, h:mm a' }}</td>
                 <td>{{ problemSnippet.updatedTime | date:'d/M/yyyy, h:mm a':'d/M/yyyy, h:mm a' }}</td>
+                <td *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'problem_setter'">
+                    <nz-button-group>
+                        <button nz-button nz-tooltip="Edit" routerLink="/problem-editor/{{problemSnippet.iD}}">
+                            <span nz-icon nzType="edit" nzTheme="outline"></span>
+                        </button>
+                        <button nz-button nz-tooltip="Delete" nzDanger
+                            (click)="onProblemSnippetDeleteClicked(problemSnippet)">
+                            <span nz-icon nzType="delete" nzTheme="outline"></span>
+                        </button>
+                    </nz-button-group>
+                </td>
             </tr>
         </tbody>
     </nz-table>

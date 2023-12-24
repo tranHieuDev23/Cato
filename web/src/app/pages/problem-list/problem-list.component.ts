@@ -5,6 +5,7 @@ import { ActivatedRoute, Params, Router, RouterModule } from '@angular/router';
 import { CommonModule, Location } from '@angular/common';
 import {
   InvalidProblemListParam,
+  ProblemNotFoundError,
   ProblemService,
 } from '../../logic/problem.service';
 import {
@@ -20,6 +21,9 @@ import {
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { PageTitleService } from '../../logic/page-title.service';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 
 const DEFAULT_PAGE_INDEX = 1;
 const DEFAULT_PAGE_SIZE = 10;
@@ -34,6 +38,9 @@ const DEFAULT_PAGE_SIZE = 10;
     CommonModule,
     NzNotificationModule,
     NzButtonModule,
+    NzIconModule,
+    NzModalModule,
+    NzToolTipModule,
   ],
   templateUrl: './problem-list.component.html',
   styleUrl: './problem-list.component.scss',
@@ -54,7 +61,8 @@ export class ProblemListComponent implements OnInit {
     private readonly router: Router,
     private readonly notificationService: NzNotificationService,
     private readonly location: Location,
-    private readonly pageTitleService: PageTitleService
+    private readonly pageTitleService: PageTitleService,
+    private readonly modalService: NzModalService
   ) {}
 
   ngOnInit(): void {
@@ -160,5 +168,53 @@ export class ProblemListComponent implements OnInit {
       queryParams['size'] = size;
     }
     this.router.navigate(['/problem-list'], { queryParams });
+  }
+
+  public onProblemSnippetDeleteClicked(
+    problemSnippet: RpcProblemSnippet
+  ): void {
+    this.modalService.create({
+      nzContent: 'Are you sure? This action is <b>irreversible</b>',
+      nzOkDanger: true,
+      nzOnOk: async () => {
+        try {
+          await this.problemService.deleteProblem(problemSnippet.iD);
+          this.notificationService.success('Problem deleted successfully', '');
+          this.location.back();
+        } catch (e) {
+          if (e instanceof UnauthenticatedError) {
+            this.notificationService.error(
+              'Failed to delete problem',
+              'Not logged in'
+            );
+            this.router.navigateByUrl('/login');
+            return;
+          }
+
+          if (e instanceof PermissionDeniedError) {
+            this.notificationService.error(
+              'Failed to delete problem',
+              'Permission denied'
+            );
+            this.location.back();
+            return;
+          }
+
+          if (e instanceof ProblemNotFoundError) {
+            this.notificationService.error(
+              'Failed to delete problem',
+              'Problem not found'
+            );
+            await this.loadProblemSnippetList();
+            return;
+          }
+
+          this.notificationService.error(
+            'Failed to delete problem',
+            'Unknown error'
+          );
+        }
+      },
+    });
   }
 }
