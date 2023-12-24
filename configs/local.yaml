@@ -80,3 +80,5 @@ logic:
     account_name: system
     display_name: System
     password: changeme
+  problem_test_case_hash:
+    batch_size: 10

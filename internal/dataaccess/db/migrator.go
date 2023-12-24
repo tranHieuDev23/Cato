@@ -35,6 +35,7 @@ func (m migrator) Migrate(ctx context.Context) error {
 		new(Problem),
 		new(ProblemExample),
 		new(TestCase),
+		new(ProblemTestCaseHash),
 		new(Submission),
 	); err != nil {
 		utils.LoggerWithContext(ctx, m.logger).

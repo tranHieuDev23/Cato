@@ -4,6 +4,8 @@ import (
 	"archive/zip"
 	"bytes"
 	"context"
+	"encoding/base64"
+	"hash/fnv"
 	"io"
 	"path/filepath"
 	"sort"
@@ -14,6 +16,7 @@ import (
 
 	"github.com/samber/lo"
 
+	"github.com/tranHieuDev23/cato/internal/configs"
 	"github.com/tranHieuDev23/cato/internal/dataaccess/db"
 	"github.com/tranHieuDev23/cato/internal/handlers/http/rpc"
 	"github.com/tranHieuDev23/cato/internal/utils"
@@ -26,21 +29,26 @@ const (
 )
 
 type TestCase interface {
+	CalculateProblemTestCaseHash(ctx context.Context, problemID uint64) (string, error)
+	UpsertProblemTestCaseHash(ctx context.Context, problemID uint64) error
 	CreateTestCase(ctx context.Context, in *rpc.CreateTestCaseRequest, token string) (*rpc.CreateTestCaseResponse, error)
 	CreateTestCaseList(ctx context.Context, in *rpc.CreateTestCaseListRequest, token string) error
 	GetProblemTestCaseSnippetList(ctx context.Context, in *rpc.GetProblemTestCaseSnippetListRequest, token string) (*rpc.GetProblemTestCaseSnippetListResponse, error)
 	GetTestCase(ctx context.Context, in *rpc.GetTestCaseRequest, token string) (*rpc.GetTestCaseResponse, error)
 	UpdateTestCase(ctx context.Context, in *rpc.UpdateTestCaseRequest, token string) (*rpc.UpdateTestCaseResponse, error)
 	DeleteTestCase(ctx context.Context, in *rpc.DeleteTestCaseRequest, token string) error
+	WithDB(db *gorm.DB) TestCase
 }
 
 type testCase struct {
-	token                Token
-	role                 Role
-	problemDataAccessor  db.ProblemDataAccessor
-	testCaseDataAccessor db.TestCaseDataAccessor
-	db                   *gorm.DB
-	logger               *zap.Logger
+	token                           Token
+	role                            Role
+	problemDataAccessor             db.ProblemDataAccessor
+	testCaseDataAccessor            db.TestCaseDataAccessor
+	problemTestCaseHashDataAccessor db.ProblemTestCaseHashDataAccessor
+	db                              *gorm.DB
+	logger                          *zap.Logger
+	logicConfig                     configs.Logic
 }
 
 func NewTestCase(
@@ -48,16 +56,20 @@ func NewTestCase(
 	role Role,
 	problemDataAccessor db.ProblemDataAccessor,
 	testCaseDataAccessor db.TestCaseDataAccessor,
+	problemTestCaseHashDataAccessor db.ProblemTestCaseHashDataAccessor,
 	db *gorm.DB,
 	logger *zap.Logger,
+	logicConfig configs.Logic,
 ) TestCase {
 	return &testCase{
-		token:                token,
-		role:                 role,
-		problemDataAccessor:  problemDataAccessor,
-		testCaseDataAccessor: testCaseDataAccessor,
-		db:                   db,
-		logger:               logger,
+		token:                           token,
+		role:                            role,
+		problemDataAccessor:             problemDataAccessor,
+		testCaseDataAccessor:            testCaseDataAccessor,
+		problemTestCaseHashDataAccessor: problemTestCaseHashDataAccessor,
+		db:                              db,
+		logger:                          logger,
+		logicConfig:                     logicConfig,
 	}
 }
 
@@ -76,6 +88,54 @@ func (t testCase) dbTestCaseToRPCTestCaseSnippet(testCase *db.TestCase) rpc.Test
 		Output:   t.getTextSnippet(testCase.Output),
 		IsHidden: testCase.IsHidden,
 	}
+}
+
+func (t testCase) CalculateProblemTestCaseHash(ctx context.Context, problemID uint64) (string, error) {
+	fnvHash := fnv.New64a()
+	if txErr := t.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		totalTestCaseCount, err := t.testCaseDataAccessor.WithDB(tx).GetTestCaseCountOfProblem(ctx, problemID)
+		if err != nil {
+			return err
+		}
+
+		for i := uint64(0); i < totalTestCaseCount; i += t.logicConfig.ProblemTestCaseHash.BatchSize {
+			testCaseList, err := t.testCaseDataAccessor.
+				WithDB(tx).
+				GetTestCaseListOfProblem(ctx, problemID, i, t.logicConfig.ProblemTestCaseHash.BatchSize)
+			if err != nil {
+				return err
+			}
+
+			for _, testCase := range testCaseList {
+				fnvHash.Write([]byte(testCase.Hash))
+				fnvHash.Write([]byte{0})
+			}
+		}
+
+		return nil
+	}); txErr != nil {
+		return "", txErr
+	}
+
+	return base64.StdEncoding.EncodeToString(fnvHash.Sum(nil)), nil
+}
+
+func (t testCase) UpsertProblemTestCaseHash(ctx context.Context, problemID uint64) error {
+	return t.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		hash, err := t.WithDB(tx).CalculateProblemTestCaseHash(ctx, problemID)
+		if err != nil {
+			return err
+		}
+
+		if err := t.problemTestCaseHashDataAccessor.WithDB(tx).UpsertProblemTestCaseHash(ctx, &db.ProblemTestCaseHash{
+			OfProblemID: problemID,
+			Hash:        hash,
+		}); err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
 
 func (t testCase) CreateTestCase(ctx context.Context, in *rpc.CreateTestCaseRequest, token string) (*rpc.CreateTestCaseResponse, error) {
@@ -128,6 +188,10 @@ func (t testCase) CreateTestCase(ctx context.Context, in *rpc.CreateTestCaseRequ
 			IsHidden:    in.IsHidden,
 		}
 		if err := t.testCaseDataAccessor.WithDB(tx).CreateTestCase(ctx, testCase); err != nil {
+			return err
+		}
+
+		if err := t.WithDB(tx).UpsertProblemTestCaseHash(ctx, in.ProblemID); err != nil {
 			return err
 		}
 
@@ -262,7 +326,17 @@ func (t testCase) CreateTestCaseList(ctx context.Context, in *rpc.CreateTestCase
 		return err
 	}
 
-	return t.testCaseDataAccessor.CreateTestCaseList(ctx, testCaseList)
+	return t.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := t.testCaseDataAccessor.CreateTestCaseList(ctx, testCaseList); err != nil {
+			return err
+		}
+
+		if err := t.WithDB(tx).UpsertProblemTestCaseHash(ctx, in.ProblemID); err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
 
 func (t testCase) DeleteTestCase(ctx context.Context, in *rpc.DeleteTestCaseRequest, token string) error {
@@ -311,11 +385,19 @@ func (t testCase) DeleteTestCase(ctx context.Context, in *rpc.DeleteTestCaseRequ
 			}
 		}
 
+		if err := t.WithDB(tx).UpsertProblemTestCaseHash(ctx, uint64(problem.ID)); err != nil {
+			return err
+		}
+
 		return t.testCaseDataAccessor.WithDB(tx).DeleteTestCase(ctx, uint64(testCase.ID))
 	})
 }
 
-func (t testCase) GetProblemTestCaseSnippetList(ctx context.Context, in *rpc.GetProblemTestCaseSnippetListRequest, token string) (*rpc.GetProblemTestCaseSnippetListResponse, error) {
+func (t testCase) GetProblemTestCaseSnippetList(
+	ctx context.Context,
+	in *rpc.GetProblemTestCaseSnippetListRequest,
+	token string,
+) (*rpc.GetProblemTestCaseSnippetListResponse, error) {
 	account, err := t.token.GetAccount(ctx, token)
 	if err != nil {
 		return nil, err
@@ -487,6 +569,10 @@ func (t testCase) UpdateTestCase(ctx context.Context, in *rpc.UpdateTestCaseRequ
 			return err
 		}
 
+		if err := t.WithDB(tx).UpsertProblemTestCaseHash(ctx, uint64(problem.ID)); err != nil {
+			return err
+		}
+
 		response.TestCaseSnippet = t.dbTestCaseToRPCTestCaseSnippet(testCase)
 
 		return nil
@@ -495,4 +581,17 @@ func (t testCase) UpdateTestCase(ctx context.Context, in *rpc.UpdateTestCaseRequ
 	}
 
 	return response, nil
+}
+
+func (t testCase) WithDB(db *gorm.DB) TestCase {
+	return &testCase{
+		token:                           t.token.WithDB(db),
+		role:                            t.role,
+		problemDataAccessor:             t.problemDataAccessor.WithDB(db),
+		testCaseDataAccessor:            t.testCaseDataAccessor.WithDB(db),
+		problemTestCaseHashDataAccessor: t.problemTestCaseHashDataAccessor.WithDB(db),
+		db:                              db,
+		logger:                          t.logger,
+		logicConfig:                     t.logicConfig,
+	}
 }

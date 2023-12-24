@@ -28,36 +28,42 @@ type Problem interface {
 }
 
 type problem struct {
-	token                      Token
-	role                       Role
-	accountDataAccessor        db.AccountDataAccessor
-	problemDataAccessor        db.ProblemDataAccessor
-	problemExampleDataAccessor db.ProblemExampleDataAccessor
-	logger                     *zap.Logger
-	db                         *gorm.DB
-	displayNameSanitizePolicy  *bluemonday.Policy
-	descriptionSanitizePolicy  *bluemonday.Policy
+	token                           Token
+	role                            Role
+	testCase                        TestCase
+	accountDataAccessor             db.AccountDataAccessor
+	problemDataAccessor             db.ProblemDataAccessor
+	problemExampleDataAccessor      db.ProblemExampleDataAccessor
+	problemTestCaseHashDataAccessor db.ProblemTestCaseHashDataAccessor
+	logger                          *zap.Logger
+	db                              *gorm.DB
+	displayNameSanitizePolicy       *bluemonday.Policy
+	descriptionSanitizePolicy       *bluemonday.Policy
 }
 
 func NewProblem(
 	token Token,
 	role Role,
+	testCase TestCase,
 	accountDataAccessor db.AccountDataAccessor,
 	problemDataAccessor db.ProblemDataAccessor,
 	problemExampleDataAccessor db.ProblemExampleDataAccessor,
+	problemTestCaseHashDataAccessor db.ProblemTestCaseHashDataAccessor,
 	logger *zap.Logger,
 	db *gorm.DB,
 ) Problem {
 	return &problem{
-		token:                      token,
-		role:                       role,
-		accountDataAccessor:        accountDataAccessor,
-		problemDataAccessor:        problemDataAccessor,
-		problemExampleDataAccessor: problemExampleDataAccessor,
-		logger:                     logger,
-		db:                         db,
-		displayNameSanitizePolicy:  bluemonday.StrictPolicy(),
-		descriptionSanitizePolicy:  bluemonday.UGCPolicy(),
+		token:                           token,
+		role:                            role,
+		testCase:                        testCase,
+		accountDataAccessor:             accountDataAccessor,
+		problemDataAccessor:             problemDataAccessor,
+		problemExampleDataAccessor:      problemExampleDataAccessor,
+		problemTestCaseHashDataAccessor: problemTestCaseHashDataAccessor,
+		logger:                          logger,
+		db:                              db,
+		displayNameSanitizePolicy:       bluemonday.StrictPolicy(),
+		descriptionSanitizePolicy:       bluemonday.UGCPolicy(),
 	}
 }
 
@@ -168,6 +174,10 @@ func (p problem) CreateProblem(ctx context.Context, in *rpc.CreateProblemRequest
 			}
 		})
 		if err := p.problemExampleDataAccessor.WithDB(tx).CreateProblemExampleList(ctx, problemExampleList); err != nil {
+			return err
+		}
+
+		if err := p.testCase.WithDB(tx).UpsertProblemTestCaseHash(ctx, uint64(problem.ID)); err != nil {
 			return err
 		}
 
@@ -503,14 +513,15 @@ func (p problem) UpdateProblem(ctx context.Context, in *rpc.UpdateProblemRequest
 
 func (p problem) WithDB(db *gorm.DB) Problem {
 	return &problem{
-		token:                      p.token,
-		role:                       p.role,
-		accountDataAccessor:        p.accountDataAccessor.WithDB(db),
-		problemDataAccessor:        p.problemDataAccessor.WithDB(db),
-		problemExampleDataAccessor: p.problemExampleDataAccessor.WithDB(db),
-		logger:                     p.logger,
-		db:                         db,
-		displayNameSanitizePolicy:  p.displayNameSanitizePolicy,
-		descriptionSanitizePolicy:  p.descriptionSanitizePolicy,
+		token:                           p.token,
+		role:                            p.role,
+		accountDataAccessor:             p.accountDataAccessor.WithDB(db),
+		problemDataAccessor:             p.problemDataAccessor.WithDB(db),
+		problemExampleDataAccessor:      p.problemExampleDataAccessor.WithDB(db),
+		problemTestCaseHashDataAccessor: p.problemTestCaseHashDataAccessor.WithDB(db),
+		logger:                          p.logger,
+		db:                              db,
+		displayNameSanitizePolicy:       p.displayNameSanitizePolicy,
+		descriptionSanitizePolicy:       p.descriptionSanitizePolicy,
 	}
 }
