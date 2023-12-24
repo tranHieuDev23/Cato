@@ -61,8 +61,8 @@ func (a problemTestCaseHashDataAccessor) GetProblemTestCaseHashOfProblem(ctx con
 		}).
 		First(hash).
 		Error; err != nil {
-		if errors.Is(err, gorm.ErrDuplicatedKey) {
-			return nil, err
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
 		}
 
 		logger.With(zap.Error(err)).Error("failed to get test case hash list of problem")
