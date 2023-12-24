@@ -1,36 +1,39 @@
-<p nz-typography>
-    <nz-switch [(ngModel)]="autoReloadEnabled" (ngModelChange)="onAutoReloadEnabledChange($event)"></nz-switch>&nbsp;
-    Enable auto-reload
-</p>
-<p *ngIf="lastLoadedTime !== undefined" nz-typography>
-    Last updated at {{ lastLoadedTime | date:'long' }}
-</p>
-<nz-table #table [nzBordered]="true" [nzData]="submissionSnippetList" [nzPageIndex]="pageIndex" [nzPageSize]="pageSize"
-    [nzTotal]="totalSubmissionCount" [nzLoading]="loading" [nzShowSizeChanger]="true"
-    [nzPageSizeOptions]="[10, 20, 50, 100]" (nzPageIndexChange)="onPageIndexChange($event)"
-    (nzPageSizeChange)="onPageSizeChange($event)">
-    <thead>
-        <tr>
-            <th>#</th>
-            <th>Problem</th>
-            <th>Author</th>
-            <th>Language</th>
-            <th>Created time</th>
-            <th>Status</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr *ngFor="let submissionSnippet of table.data" (click)="onSubmissionSnippetClicked(submissionSnippet)">
-            <td>{{ submissionSnippet.iD }}</td>
-            <td>
-                <a routerLink="/problem/{{ submissionSnippet.problem.iD }}" (click)="$event.stopPropagation()">
-                    {{ submissionSnippet.problem.displayName }}
-                </a>
-            </td>
-            <td>{{ submissionSnippet.author.displayName }}</td>
-            <td>{{ submissionSnippet.language| language }}</td>
-            <td>{{ submissionSnippet.createdTime | date }}</td>
-            <td>{{ submissionSnippet | submissionStatus }}</td>
-        </tr>
-    </tbody>
-</nz-table>
+<div class="inner-content">
+    <p nz-typography>
+        <nz-switch [(ngModel)]="autoReloadEnabled"
+            (ngModelChange)="onAutoReloadEnabledChange($event)"></nz-switch>&nbsp;
+        Enable auto-reload
+    </p>
+    <p *ngIf="lastLoadedTime !== undefined" nz-typography>
+        Last updated at {{ lastLoadedTime | date:'long' }}
+    </p>
+    <nz-table #table [nzBordered]="true" [nzData]="submissionSnippetList" [nzPageIndex]="pageIndex"
+        [nzPageSize]="pageSize" [nzTotal]="totalSubmissionCount" [nzLoading]="loading" [nzShowSizeChanger]="true"
+        [nzPageSizeOptions]="[10, 20, 50, 100]" (nzPageIndexChange)="onPageIndexChange($event)"
+        (nzPageSizeChange)="onPageSizeChange($event)">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Problem</th>
+                <th>Author</th>
+                <th>Language</th>
+                <th>Created time</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let submissionSnippet of table.data" (click)="onSubmissionSnippetClicked(submissionSnippet)">
+                <td>{{ submissionSnippet.iD }}</td>
+                <td>
+                    <a routerLink="/problem/{{ submissionSnippet.problem.iD }}" (click)="$event.stopPropagation()">
+                        {{ submissionSnippet.problem.displayName }}
+                    </a>
+                </td>
+                <td>{{ submissionSnippet.author.displayName }}</td>
+                <td>{{ submissionSnippet.language| language }}</td>
+                <td>{{ submissionSnippet.createdTime | date }}</td>
+                <td>{{ submissionSnippet | submissionStatus }}</td>
+            </tr>
+        </tbody>
+    </nz-table>
+</div>

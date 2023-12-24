@@ -3,7 +3,8 @@
 @import "../node_modules/katex/dist/katex.min.css";
 
 .inner-content {
-  padding: 24px !important;
+  margin: 24px;
+  padding: 24px;
   background: #fff;
   height: calc(100vh - 112px);
   overflow: scroll;
