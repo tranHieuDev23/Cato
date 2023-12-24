@@ -9,7 +9,7 @@
                 <th>Account Name</th>
                 <th>Display Name</th>
                 <th>Role</th>
-                <th>Action</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -19,9 +19,8 @@
                 <td>{{ account.displayName }}</td>
                 <td>{{ account.role | role }}</td>
                 <td>
-                    <button nz-button (click)="onAccountEditClicked(account)">
+                    <button nz-button nz-tooltip="Edit" (click)="onAccountEditClicked(account)">
                         <span nz-icon nzType="edit" nzTheme="outline"></span>
-                        Edit
                     </button>
                 </td>
             </tr>

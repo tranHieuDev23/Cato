@@ -35,6 +35,7 @@ import { FormsModule } from '@angular/forms';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 
 export interface TestCaseListItem {
   id: number;
@@ -59,6 +60,7 @@ export interface TestCaseListItem {
     NzTypographyModule,
     NzModalModule,
     NzCheckboxModule,
+    NzToolTipModule,
   ],
   templateUrl: './test-case-list.component.html',
   styleUrl: './test-case-list.component.scss',
@@ -311,6 +313,58 @@ export class TestCaseListComponent implements OnInit {
           if (e instanceof ProblemNotFoundError) {
             this.notificationService.error(
               'Failed to update test case',
+              'TestCase not found'
+            );
+            await this.loadTestCaseSnippetList();
+            return;
+          }
+        }
+      },
+    });
+  }
+
+  public async onTestCaseDeleteClicked(
+    testCaseListItem: TestCaseListItem
+  ): Promise<void> {
+    if (testCaseListItem.loading) {
+      return;
+    }
+
+    const testCaseID = testCaseListItem.id;
+    this.modalService.create({
+      nzContent: 'Are you sure? This action is <b>irreversible</b>',
+      nzOkDanger: true,
+      nzCloseIcon: '',
+      nzOnOk: async () => {
+        try {
+          await this.testCaseService.deleteTestCase(testCaseID);
+          this.notificationService.success(
+            'Deleted test case successfully',
+            ''
+          );
+          await this.loadTestCaseSnippetList();
+        } catch (e) {
+          if (e instanceof UnauthenticatedError) {
+            this.notificationService.error(
+              'Failed to delete test case',
+              'Not logged in'
+            );
+            this.router.navigateByUrl('/login');
+            return;
+          }
+
+          if (e instanceof PermissionDeniedError) {
+            this.notificationService.error(
+              'Failed to delete test case',
+              'Permission denied'
+            );
+            this.location.back();
+            return;
+          }
+
+          if (e instanceof ProblemNotFoundError) {
+            this.notificationService.error(
+              'Failed to delete test case',
               'TestCase not found'
             );
             await this.loadTestCaseSnippetList();

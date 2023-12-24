@@ -177,4 +177,33 @@ export class TestCaseService {
       throw e;
     }
   }
+
+  public async deleteTestCase(id: number): Promise<void> {
+    try {
+      await this.api.deleteTestCase({ iD: id });
+    } catch (e) {
+      if (!this.api.isRpcError(e)) {
+        throw e;
+      }
+
+      const apiError = e as RpcError;
+      if (apiError.code == ErrorCode.JRPCErrorInvalidParams) {
+        throw new InvalidTestCaseInfo();
+      }
+
+      if (apiError.code == ErrorCode.Unauthenticated) {
+        throw new UnauthenticatedError();
+      }
+
+      if (apiError.code == ErrorCode.PermissionDenied) {
+        throw new PermissionDeniedError();
+      }
+
+      if (apiError.code == ErrorCode.NotFound) {
+        throw new TestCaseNotFoundError();
+      }
+
+      throw e;
+    }
+  }
 }

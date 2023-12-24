@@ -12,7 +12,7 @@
                 <th>#</th>
                 <th>Input</th>
                 <th>Output</th>
-                <th>Action</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -36,15 +36,19 @@
                 </td>
                 <td>
                     <nz-button-group>
-                        <button nz-button [disabled]="testCase.loading || !testCase.isSnippet"
+                        <button nz-button [disabled]="testCase.loading || !testCase.isSnippet" nz-tooltip="Expand"
                             (click)="expandTestCase(i, testCase)">
                             <span nz-icon nzType="expand-alt" nzTheme="outline"></span>
-                            Expand
                         </button>
                         <button *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'problem_setter'"
-                            nz-button [disabled]="testCase.loading" (click)="onTestCaseEditClicked(i, testCase)">
+                            nz-button [disabled]="testCase.loading" nz-tooltip="Edit"
+                            (click)="onTestCaseEditClicked(i, testCase)">
                             <span nz-icon nzType="edit" nzTheme="outline"></span>
-                            Edit
+                        </button>
+                        <button *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'problem_setter'"
+                            nz-button [disabled]="testCase.loading" nz-tooltip="Delete" nzDanger
+                            (click)="onTestCaseDeleteClicked(testCase)">
+                            <span nz-icon nzType="delete" nzTheme="outline"></span>
                         </button>
                     </nz-button-group>
                 </td>

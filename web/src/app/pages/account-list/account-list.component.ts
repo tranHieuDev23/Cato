@@ -31,6 +31,7 @@ import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSpaceModule } from 'ng-zorro-antd/space';
+import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 
 const DEFAULT_PAGE_INDEX = 1;
 const DEFAULT_PAGE_SIZE = 10;
@@ -50,6 +51,7 @@ const DEFAULT_PAGE_SIZE = 10;
     NzRadioModule,
     NzInputModule,
     NzSpaceModule,
+    NzToolTipModule,
   ],
   templateUrl: './account-list.component.html',
   styleUrl: './account-list.component.scss',
