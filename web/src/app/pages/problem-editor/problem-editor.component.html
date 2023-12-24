@@ -44,10 +44,9 @@
                         [disabled]="saving">
                     </nz-input-number>
                     <ng-template #timeLimitAddOnAfterTemplate>
-                        <nz-select style="width: 100px;" formControlName="timeLimitUnitInMillisecond"
-                            name="timeLimitUnitInMillisecond">
-                            <nz-option nzValue="1" nzLabel="ms"></nz-option>
-                            <nz-option nzValue="1000" nzLabel="second"></nz-option>
+                        <nz-select style="width: 100px;" formControlName="timeUnit" name="timeUnit">
+                            <nz-option nzValue="ms" nzLabel="ms"></nz-option>
+                            <nz-option nzValue="second" nzLabel="second"></nz-option>
                         </nz-select>
                     </ng-template>
                 </nz-input-number-group>
@@ -71,11 +70,11 @@
                         [disabled]="saving">
                     </nz-input-number>
                     <ng-template #memoryLimitAddOnAfterTemplate>
-                        <nz-select style="width: 100px;" formControlName="memoryLimitUnitInByte"
-                            name="memoryLimitUnitInByte">
-                            <nz-option nzValue="1024" nzLabel="kB"></nz-option>
-                            <nz-option nzValue="1048576" nzLabel="MB"></nz-option>
-                            <nz-option nzValue="1073741824" nzLabel="GB"></nz-option>
+                        <nz-select style="width: 100px;" formControlName="memoryUnit" name="memoryUnit">
+                            <nz-option nzValue="byte" nzLabel="byte"></nz-option>
+                            <nz-option nzValue="kB" nzLabel="kB"></nz-option>
+                            <nz-option nzValue="MB" nzLabel="MB"></nz-option>
+                            <nz-option nzValue="GB" nzLabel="GB"></nz-option>
                         </nz-select>
                     </ng-template>
                 </nz-input-number-group>

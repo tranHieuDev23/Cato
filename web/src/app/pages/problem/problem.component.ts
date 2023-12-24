@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { RpcAccount, RpcProblem } from '../../dataaccess/api';
 import { CommonModule, Location } from '@angular/common';
-import { ActivatedRoute, Params, Router } from '@angular/router';
+import { ActivatedRoute, Params, Router, RouterModule } from '@angular/router';
 import {
   AccountService,
   PermissionDeniedError,
@@ -67,6 +67,7 @@ import { TestCaseListComponent } from './test-case-list/test-case-list.component
     NzDescriptionsModule,
     KatexPipe,
     TestCaseListComponent,
+    RouterModule,
   ],
   templateUrl: './problem.component.html',
   styleUrl: './problem.component.scss',

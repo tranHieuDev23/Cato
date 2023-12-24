@@ -17,6 +17,7 @@ import {
 } from '../../logic/account.service';
 import {
   InvalidProblemInfo,
+  ProblemNotFoundError,
   ProblemService,
 } from '../../logic/problem.service';
 import {
@@ -24,7 +25,7 @@ import {
   NzNotificationService,
 } from 'ng-zorro-antd/notification';
 import { CommonModule, Location } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Params, Router } from '@angular/router';
 import { EditableRichTextComponent } from '../../components/editable-rich-text/editable-rich-text.component';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
@@ -32,10 +33,7 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { PageTitleService } from '../../logic/page-title.service';
-
-const KB_IN_BYTE = 1024;
-const MB_IN_BYTE = KB_IN_BYTE * 1024;
-const GB_IN_BYTE = MB_IN_BYTE * 1024;
+import { UnitService } from '../../logic/unit.service';
 
 @Component({
   selector: 'app-problem-editor',
@@ -60,6 +58,7 @@ export class ProblemEditorComponent implements OnInit {
   public sessionAccount: RpcAccount | undefined;
   public exampleList: RpcProblemExample[] = [];
 
+  private problemID: number | undefined;
   public formGroup: FormGroup;
   public saving = false;
 
@@ -70,42 +69,31 @@ export class ProblemEditorComponent implements OnInit {
     private readonly location: Location,
     private readonly router: Router,
     readonly formBuilder: FormBuilder,
-    private readonly pageTitleService: PageTitleService
+    private readonly pageTitleService: PageTitleService,
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly unitService: UnitService
   ) {
     this.formGroup = formBuilder.group(
       {
         displayName: ['', [Validators.required, this.displayNameValidator()]],
         description: ['', [Validators.required, Validators.maxLength(5000)]],
         timeLimit: [1, [Validators.required]],
-        timeLimitUnitInMillisecond: [1000, [Validators.required]],
+        timeUnit: ['second', [Validators.required]],
         memoryLimit: [1, [Validators.required]],
-        memoryLimitUnitInByte: [GB_IN_BYTE, [Validators.required]],
+        memoryUnit: ['GB', [Validators.required]],
       },
       {
         validators: [
-          this.valueAndUnitValidator(
-            'timeLimit',
-            'timeLimitUnitInMillisecond',
-            1,
-            10000
-          ),
+          this.valueAndUnitValidator('timeLimit', 'timeUnit', 1, 10000),
           this.valueAndUnitValidator(
             'memoryLimit',
-            'memoryLimitUnitInByte',
+            'memoryUnit',
             1,
-            8 * GB_IN_BYTE
+            8 * 1024 * 1024
           ),
         ],
       }
     );
-    this.formGroup.reset({
-      displayName: '',
-      description: '',
-      timeLimit: 1,
-      timeLimitUnitInMillisecond: 1000,
-      memoryLimit: 1,
-      memoryLimitUnitInByte: GB_IN_BYTE,
-    });
   }
 
   ngOnInit(): void {
@@ -123,6 +111,72 @@ export class ProblemEditorComponent implements OnInit {
       this.sessionAccount = sessionAccount;
       this.pageTitleService.setTitle('Problem Editor');
     })().then();
+    this.activatedRoute.params.subscribe(async (params) => {
+      await this.onParamsChanged(params);
+    });
+  }
+
+  private async onParamsChanged(params: Params): Promise<void> {
+    if (!params['id']) {
+      this.formGroup.reset({
+        displayName: '',
+        description: '',
+        timeLimit: 1,
+        timeUnit: 'second',
+        memoryLimit: 1,
+        memoryUnit: 'GB',
+      });
+      return;
+    }
+
+    this.problemID = +params['id'];
+    try {
+      const problem = await this.problemService.getProblem(this.problemID);
+      const { value: timeLimit, unit: timeUnit } =
+        this.unitService.timeLimitToValueAndUnit(
+          problem.timeLimitInMillisecond
+        );
+      const { value: memoryLimit, unit: memoryUnit } =
+        this.unitService.memoryLimitToValueAndUnit(problem.memoryLimitInByte);
+      this.formGroup.reset({
+        displayName: problem.displayName,
+        description: problem.description,
+        timeLimit: timeLimit,
+        timeUnit: timeUnit,
+        memoryLimit: memoryLimit,
+        memoryUnit: memoryUnit,
+      });
+    } catch (e) {
+      if (e instanceof UnauthenticatedError) {
+        this.notificationService.error(
+          'Failed to load problem',
+          'Not logged in'
+        );
+        this.router.navigateByUrl('/login');
+        return;
+      }
+
+      if (e instanceof PermissionDeniedError) {
+        this.notificationService.error(
+          'Failed to load problem',
+          'Permission denied'
+        );
+        this.location.back();
+        return;
+      }
+
+      if (e instanceof ProblemNotFoundError) {
+        this.notificationService.error(
+          'Failed to load problem',
+          'Problem cannot be found'
+        );
+        this.location.back();
+        return;
+      }
+
+      this.notificationService.error('Failed to load problem', 'Unknown error');
+      this.location.back();
+    }
   }
 
   private displayNameValidator(): ValidatorFn {
@@ -165,20 +219,33 @@ export class ProblemEditorComponent implements OnInit {
       displayName,
       description,
       timeLimit,
-      timeLimitUnitInMillisecond,
+      timeUnit,
       memoryLimit,
-      memoryLimitUnitInByte,
+      memoryUnit,
     } = this.formGroup.value;
     try {
       this.saving = true;
-      const problem = await this.problemService.createProblem(
-        displayName,
-        description,
-        timeLimit * timeLimitUnitInMillisecond,
-        memoryLimit * memoryLimitUnitInByte
-      );
-      this.notificationService.success('Problem saved successfully!', '');
-      this.router.navigateByUrl(`/problem/${problem.iD}`);
+      if (this.problemID === undefined) {
+        const problem = await this.problemService.createProblem(
+          displayName,
+          description,
+          this.unitService.timeValueAndUnitToLimit(timeLimit, timeUnit),
+          this.unitService.memoryValueAndUnitToLimit(memoryLimit, memoryUnit)
+        );
+
+        this.notificationService.success('Problem saved successfully!', '');
+        this.router.navigateByUrl(`/problem/${problem.iD}`);
+      } else {
+        await this.problemService.updateProblem(
+          this.problemID,
+          displayName,
+          description,
+          this.unitService.timeValueAndUnitToLimit(timeLimit, timeUnit),
+          this.unitService.memoryValueAndUnitToLimit(memoryLimit, memoryUnit)
+        );
+        this.notificationService.success('Problem updated successfully!', '');
+        this.router.navigateByUrl(`/problem/${this.problemID}`);
+      }
     } catch (e) {
       if (e instanceof UnauthenticatedError) {
         this.notificationService.error(
@@ -202,6 +269,15 @@ export class ProblemEditorComponent implements OnInit {
         this.notificationService.error(
           'Failed to save problem',
           'Invalid page index/size'
+        );
+        this.location.back();
+        return;
+      }
+
+      if (e instanceof ProblemNotFoundError) {
+        this.notificationService.error(
+          'Failed to save problem',
+          'Problem not found'
         );
         this.location.back();
         return;

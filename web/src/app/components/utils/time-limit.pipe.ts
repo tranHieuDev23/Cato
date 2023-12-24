@@ -1,19 +1,15 @@
 import { Pipe, PipeTransform } from '@angular/core';
+import { UnitService } from '../../logic/unit.service';
 
 @Pipe({
   name: 'timeLimit',
   standalone: true,
 })
 export class TimeLimitPipe implements PipeTransform {
-  transform(value: number): string {
-    if (value % 1000 === 0) {
-      if (value === 1000) {
-        return `1 second`;
-      }
+  constructor(private readonly unitService: UnitService) {}
 
-      return `${value / 1000} seconds`;
-    }
-
-    return `${value} ms`;
+  transform(input: number): string {
+    const { value, unit } = this.unitService.timeLimitToValueAndUnit(input);
+    return `${value} ${unit}`;
   }
 }

@@ -130,4 +130,47 @@ export class ProblemService {
       throw e;
     }
   }
+
+  public async updateProblem(
+    id: number,
+    displayName: string,
+    description: string,
+    timeLimitInMillisecond: number,
+    memoryLimitInByte: number
+  ): Promise<RpcProblem> {
+    try {
+      const response = await this.api.updateProblem({
+        iD: id,
+        displayName,
+        description,
+        timeLimitInMillisecond,
+        memoryLimitInByte,
+        exampleList: [],
+      });
+      return response.problem;
+    } catch (e) {
+      if (!this.api.isRpcError(e)) {
+        throw e;
+      }
+
+      const apiError = e as RpcError;
+      if (apiError.code == ErrorCode.JRPCErrorInvalidParams) {
+        throw new InvalidProblemInfo();
+      }
+
+      if (apiError.code == ErrorCode.Unauthenticated) {
+        throw new UnauthenticatedError();
+      }
+
+      if (apiError.code == ErrorCode.PermissionDenied) {
+        throw new PermissionDeniedError();
+      }
+
+      if (apiError.code == ErrorCode.NotFound) {
+        throw new ProblemNotFoundError();
+      }
+
+      throw e;
+    }
+  }
 }
