@@ -21,6 +21,7 @@
     "@angular/router": "^17.0.0",
     "@ctrl/ngx-codemirror": "^7.0.0",
     "codemirror": "^5.65.16",
+    "copy-to-clipboard": "^3.3.3",
     "katex": "^0.16.9",
     "ng-zorro-antd": "^17.1.0",
     "ngx-quill": "^24.0.4",

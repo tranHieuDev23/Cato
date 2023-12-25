@@ -18,18 +18,14 @@
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let problemSnippet of table.data">
+            <tr *ngFor="let problemSnippet of table.data" routerLink="/problem/{{ problemSnippet.iD }}">
                 <td>{{ problemSnippet.iD }}</td>
-                <td>
-                    <a routerLink="/problem/{{ problemSnippet.iD }}">
-                        {{ problemSnippet.displayName }}
-                    </a>
-                </td>
+                <td><a routerLink="/problem/{{ problemSnippet.iD }}">{{ problemSnippet.displayName }}</a></td>
                 <td>{{ problemSnippet.author.displayName }}</td>
                 <td>{{ problemSnippet.createdTime | date:'d/M/yyyy, h:mm a':'d/M/yyyy, h:mm a' }}</td>
                 <td>{{ problemSnippet.updatedTime | date:'d/M/yyyy, h:mm a':'d/M/yyyy, h:mm a' }}</td>
                 <td *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'problem_setter'">
-                    <nz-button-group>
+                    <nz-button-group (click)="$event.stopPropagation()">
                         <button nz-button nz-tooltip="Edit" routerLink="/problem-editor/{{problemSnippet.iD}}">
                             <span nz-icon nzType="edit" nzTheme="outline"></span>
                         </button>

@@ -8,6 +8,13 @@ import { SubmissionStatusPipe } from '../utils/submission-status.pipe';
 import { FormsModule } from '@angular/forms';
 import { CodeMirrorService } from '../../logic/code-mirror.service';
 import { NZ_MODAL_DATA } from 'ng-zorro-antd/modal';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import copyToClipboard from 'copy-to-clipboard';
+import {
+  NzNotificationModule,
+  NzNotificationService,
+} from 'ng-zorro-antd/notification';
 
 export interface SubmissionModalData {
   submission: RpcSubmission;
@@ -23,6 +30,9 @@ export interface SubmissionModalData {
     CommonModule,
     SubmissionStatusPipe,
     FormsModule,
+    NzButtonModule,
+    NzIconModule,
+    NzNotificationModule,
   ],
   templateUrl: './submission-modal.component.html',
   styleUrl: './submission-modal.component.scss',
@@ -33,12 +43,23 @@ export class SubmissionModalComponent implements OnInit {
   private readonly nzModalData: SubmissionModalData | null =
     inject(NZ_MODAL_DATA);
 
-  constructor(readonly codeMirrorService: CodeMirrorService) {}
+  constructor(
+    readonly codeMirrorService: CodeMirrorService,
+    private readonly notificationService: NzNotificationService
+  ) {}
 
   ngOnInit(): void {
     if (!this.nzModalData) {
       return;
     }
     this.submission = this.nzModalData.submission;
+  }
+
+  public onCopyClicked(): void {
+    if (!this.submission) {
+      return;
+    }
+    copyToClipboard(this.submission.content);
+    this.notificationService.success('Code copied to clipboard', '');
   }
 }

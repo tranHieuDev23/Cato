@@ -19,6 +19,11 @@
         </span>
     </nz-descriptions-item>
 </nz-descriptions><br />
+<p>
+    <button nz-button (click)="onCopyClicked()">
+        <span nz-icon nzType="copy" nzTheme="outline"></span> Copy
+    </button>
+</p>
 <ngx-codemirror *ngIf="submission" [ngModel]="submission.content" [options]="{
         theme: 'material',
         mode: codeMirrorService.submissionLanguageToCodeMirrorMode(submission.language),
