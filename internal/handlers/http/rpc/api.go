@@ -168,8 +168,8 @@ type DeleteProblemResponse struct{}
 
 type CreateTestCaseRequest struct {
 	ProblemID uint64
-	Input     string `validate:"max=5000"`
-	Output    string `validate:"max=5000"`
+	Input     string `validate:"max=5242880"`
+	Output    string `validate:"max=5242880"`
 	IsHidden  bool
 }
 
@@ -179,7 +179,7 @@ type CreateTestCaseResponse struct {
 
 type CreateTestCaseListRequest struct {
 	ProblemID      uint64
-	ZippedTestData string `validate:"max=5000"`
+	ZippedTestData string `validate:"max=5242880"`
 }
 
 type CreateTestCaseListResponse struct{}
@@ -205,8 +205,8 @@ type GetTestCaseResponse struct {
 
 type UpdateTestCaseRequest struct {
 	ID       uint64
-	Input    *string `validate:"omitnil,max=5000"`
-	Output   *string `validate:"omitnil,max=5000"`
+	Input    *string `validate:"omitnil,max=5242880"`
+	Output   *string `validate:"omitnil,max=5242880"`
 	IsHidden *bool
 }
 
@@ -233,7 +233,7 @@ type GetAccountProblemSnippetListResponse struct {
 
 type CreateSubmissionRequest struct {
 	ProblemID uint64
-	Content   string `validate:"min=1,max=5120"`
+	Content   string `validate:"min=1,max=64000"`
 	Language  string `validate:"max=32"`
 }
 

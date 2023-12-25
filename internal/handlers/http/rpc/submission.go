@@ -25,7 +25,7 @@ type Submission struct {
 	ID          uint64
 	Problem     SubmissionProblemSnippet
 	Author      Account
-	Content     string `validate:"min=1,max=5120"`
+	Content     string `validate:"min=1,max=64000"`
 	Language    string `validate:"max=32"`
 	Status      uint8  `validate:"oneof=1 2 3"`
 	Result      uint8
