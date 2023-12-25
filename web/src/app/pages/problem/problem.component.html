@@ -1,5 +1,5 @@
 <div nz-row>
-    <div nz-col [nzLg]="sessionAccount?.role === 'admin' || sessionAccount?.role === 'contestant'? 8 : 24" [nzMd]="24"
+    <div nz-col [nzLg]="sessionAccount?.role === 'admin' || sessionAccount?.role === 'contestant'? 12 : 24" [nzMd]="24"
         class="problem">
         <nz-tabset #problemTabSet>
             <nz-tab nzTitle="Description">
@@ -51,7 +51,7 @@
         </nz-tabset>
     </div>
 
-    <div *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'contestant'" nz-col [nzLg]="16"
+    <div *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'contestant'" nz-col [nzLg]="12"
         [nzMd]="24">
         <app-code-editor [(content)]="submissionContent" [(language)]="submissionLanguage"
             (submitClicked)="onSubmitClicked()"></app-code-editor>
