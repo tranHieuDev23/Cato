@@ -174,7 +174,11 @@ func (a submissionDataAccessor) GetSubmissionList(ctx context.Context, offset ui
 		With(zap.Uint64("offset", offset))
 	db := a.db.WithContext(ctx)
 	submissionList := make([]*Submission, 0)
-	if err := db.Model(new(Submission)).Limit(int(limit)).Offset(int(offset)).Find(&submissionList).Error; err != nil {
+	if err := db.Model(new(Submission)).
+		Order("id desc").
+		Limit(int(limit)).
+		Offset(int(offset)).
+		Find(&submissionList).Error; err != nil {
 		logger.
 			With(zap.Error(err)).
 			Error("failed to get submission list")
@@ -192,6 +196,7 @@ func (a submissionDataAccessor) GetAccountSubmissionList(ctx context.Context, ac
 	db := a.db.WithContext(ctx)
 	submissionList := make([]*Submission, 0)
 	if err := db.Model(new(Submission)).
+		Order("id desc").
 		Where(&Submission{
 			AuthorAccountID: accountID,
 		}).
@@ -216,6 +221,7 @@ func (a submissionDataAccessor) GetProblemSubmissionList(ctx context.Context, pr
 	db := a.db.WithContext(ctx)
 	submissionList := make([]*Submission, 0)
 	if err := db.Model(new(Submission)).
+		Order("id desc").
 		Where(&Submission{
 			OfProblemID: problemID,
 		}).
