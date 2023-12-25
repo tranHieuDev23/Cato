@@ -28,6 +28,8 @@ import { SubmissionStatusPipe } from '../../components/utils/submission-status.p
 import { PageTitleService } from '../../logic/page-title.service';
 import { SubmissionModalComponent } from '../../components/submission-modal/submission-modal.component';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzTagModule } from 'ng-zorro-antd/tag';
+import { SubmissionStatusColorPipe } from '../../components/utils/submission-status-color.pipe';
 
 const DEFAULT_PAGE_INDEX = 1;
 const DEFAULT_PAGE_SIZE = 10;
@@ -49,6 +51,8 @@ const SUBMISSION_LIST_RELOAD_INTERVAL = 10000;
     RouterModule,
     SubmissionStatusPipe,
     NzModalModule,
+    SubmissionStatusColorPipe,
+    NzTagModule,
   ],
 })
 export class SubmissionListComponent implements OnInit, OnDestroy {

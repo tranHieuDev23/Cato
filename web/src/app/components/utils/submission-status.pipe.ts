@@ -1,5 +1,9 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { RpcSubmission, RpcSubmissionSnippet } from '../../dataaccess/api';
+import {
+  SubmissionResult,
+  SubmissionStatus,
+} from '../../logic/submission.service';
 
 @Pipe({
   name: 'submissionStatus',
@@ -7,29 +11,29 @@ import { RpcSubmission, RpcSubmissionSnippet } from '../../dataaccess/api';
 })
 export class SubmissionStatusPipe implements PipeTransform {
   public transform(value: RpcSubmission | RpcSubmissionSnippet): string {
-    if (value.status === 1) {
+    if (value.status === SubmissionStatus.Submitted) {
       return 'Submitted';
     }
-    if (value.status === 2) {
+    if (value.status === SubmissionStatus.Executing) {
       return 'Executing';
     }
-    if (value.status === 3) {
-      if (value.result === 1) {
+    if (value.status === SubmissionStatus.Finished) {
+      if (value.result === SubmissionResult.OK) {
         return 'Accepted';
       }
-      if (value.result === 2) {
+      if (value.result === SubmissionResult.CompileError) {
         return 'Compile Error';
       }
-      if (value.result === 3) {
+      if (value.result === SubmissionResult.RuntimeError) {
         return 'Runtime Error';
       }
-      if (value.result === 4) {
+      if (value.result === SubmissionResult.TimeLimitExceeded) {
         return 'Time Limit Exceeded';
       }
-      if (value.result === 5) {
+      if (value.result === SubmissionResult.MemoryLimitExceed) {
         return 'Memory Limit Exceeded';
       }
-      if (value.result === 6) {
+      if (value.result === SubmissionResult.WrongAnswer) {
         return 'Wrong Answer';
       }
     }

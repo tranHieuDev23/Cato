@@ -22,11 +22,13 @@ import {
 } from '../../../logic/submission.service';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzTagModule } from 'ng-zorro-antd/tag';
 import { FormsModule } from '@angular/forms';
 import { ProblemNotFoundError } from '../../../logic/problem.service';
 import { LanguagePipe } from '../../../components/utils/language.pipe';
 import { SubmissionStatusPipe } from '../../../components/utils/submission-status.pipe';
 import { SubmissionModalComponent } from '../../../components/submission-modal/submission-modal.component';
+import { SubmissionStatusColorPipe } from '../../../components/utils/submission-status-color.pipe';
 
 const SUBMISSION_LIST_RELOAD_INTERVAL = 10000;
 
@@ -44,6 +46,8 @@ const SUBMISSION_LIST_RELOAD_INTERVAL = 10000;
     LanguagePipe,
     SubmissionStatusPipe,
     NzModalModule,
+    NzTagModule,
+    SubmissionStatusColorPipe,
   ],
 })
 export class SubmissionListComponent implements OnInit, OnDestroy {

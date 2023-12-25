@@ -14,6 +14,21 @@ import {
 } from './account.service';
 import { ProblemNotFoundError } from './problem.service';
 
+export enum SubmissionStatus {
+  Submitted = 1,
+  Executing = 2,
+  Finished = 3,
+}
+
+export enum SubmissionResult {
+  OK = 1,
+  CompileError = 2,
+  RuntimeError = 3,
+  TimeLimitExceeded = 4,
+  MemoryLimitExceed = 5,
+  WrongAnswer = 6,
+}
+
 export class InvalidSubmissionListParam extends Error {
   constructor() {
     super('Invalid submission list parameters');

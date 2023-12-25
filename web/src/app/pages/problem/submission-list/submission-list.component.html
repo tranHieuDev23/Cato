@@ -24,7 +24,11 @@
             <td>{{ submissionSnippet.author.displayName }}</td>
             <td>{{ submissionSnippet.language | language }}</td>
             <td>{{ submissionSnippet.createdTime | date:'d/M/yyyy, h:mm a':'d/M/yyyy, h:mm a' }}</td>
-            <td>{{ submissionSnippet | submissionStatus }}</td>
+            <td>
+                <nz-tag [nzColor]="submissionSnippet | submissionStatusColor">
+                    {{ submissionSnippet | submissionStatus }}
+                </nz-tag>
+            </td>
         </tr>
     </tbody>
 </nz-table>
