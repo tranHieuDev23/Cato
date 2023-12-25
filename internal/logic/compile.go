@@ -75,6 +75,7 @@ func NewCompile(
 			c.memoryInBytes = int64(memoryInBytes)
 		}
 
+		c.logger.Info("pulling compile image")
 		if _, err := dockerClient.ImagePull(context.Background(), compileConfig.Image, types.ImagePullOptions{}); err != nil {
 			c.logger.With(zap.Error(err)).Error("failed to load compile image")
 			return nil, err
@@ -82,14 +83,6 @@ func NewCompile(
 	}
 
 	return c, nil
-}
-
-func (c compile) getSourceFileName(sourceFile *os.File) string {
-	if c.compileConfig.SourceFileName != "" {
-		return c.compileConfig.SourceFileName
-	}
-
-	return filepath.Base(sourceFile.Name())
 }
 
 func (c compile) getProgramFileName() string {
@@ -100,13 +93,21 @@ func (c compile) getProgramFileName() string {
 	return uuid.NewString()
 }
 
+func (c compile) getWorkingDir() string {
+	if c.compileConfig.WorkingDir != "" {
+		return c.compileConfig.WorkingDir
+	}
+
+	return "/work"
+}
+
 func (c compile) getCompileCommand(commandTemplate []string, containerSourceFilePath, containerProgramFilePath string) []string {
 	command := make([]string, len(commandTemplate))
 	for i := range command {
 		switch commandTemplate[i] {
 		case compileSourceFilePathPlaceHolder:
 			command[i] = containerSourceFilePath
-		case containerProgramFilePath:
+		case compileProgramFilePathPlaceHolder:
 			command[i] = containerProgramFilePath
 		default:
 			command[i] = commandTemplate[i]
@@ -116,40 +117,31 @@ func (c compile) getCompileCommand(commandTemplate []string, containerSourceFile
 	return command
 }
 
-func (c compile) compileSourceFile(ctx context.Context, sourceFile *os.File) (CompileOutput, error) {
+func (c compile) compileSourceFile(ctx context.Context, hostWorkingDir string, sourceFile *os.File) (CompileOutput, error) {
 	logger := utils.LoggerWithContext(ctx, c.logger)
 
-	sourceFileName := c.getSourceFileName(sourceFile)
-	sourceFilePath := sourceFile.Name()
-	containerSourceFilePath := filepath.Join(c.compileConfig.WorkingDir, sourceFileName)
-
+	workingDir := c.getWorkingDir()
+	containerSourceFilePath := filepath.Join(workingDir, c.compileConfig.SourceFileName)
 	programFileName := c.getProgramFileName()
-	programFileDirectory, err := os.MkdirTemp("", "")
-	if err != nil {
-		logger.With(zap.Error(err)).Error("failed to create program file directory")
-		return CompileOutput{}, err
-	}
-
-	programFilePath := filepath.Join(programFileDirectory, programFileName)
-	containerProgramFilePath := filepath.Join(c.compileConfig.WorkingDir, programFileName)
+	programFilePath := filepath.Join(hostWorkingDir, programFileName)
+	containerProgramFilePath := filepath.Join(workingDir, programFileName)
 
 	dockerContainerCtx, dockerContainerCancelFunc := context.WithTimeout(ctx, c.timeoutDuration)
 	defer dockerContainerCancelFunc()
 
 	containerCreateResponse, err := c.dockerClient.ContainerCreate(dockerContainerCtx, &container.Config{
 		Image:        c.compileConfig.Image,
-		WorkingDir:   c.compileConfig.WorkingDir,
+		WorkingDir:   workingDir,
 		Cmd:          c.getCompileCommand(c.compileConfig.CommandTemplate, containerSourceFilePath, containerProgramFilePath),
 		AttachStdout: true,
 		AttachStderr: true,
 	}, &container.HostConfig{
 		Binds: []string{
-			fmt.Sprintf("%s:%s", sourceFilePath, containerSourceFilePath),
-			fmt.Sprintf("%s:%s", programFilePath, containerProgramFilePath),
+			fmt.Sprintf("%s:%s", hostWorkingDir, workingDir),
 		},
 		Resources: container.Resources{
-			CPUShares: c.compileConfig.CPUShares,
-			Memory:    c.memoryInBytes,
+			CPUQuota: c.compileConfig.CPUQuota,
+			Memory:   c.memoryInBytes,
 		},
 		NetworkMode: "none",
 	}, nil, nil, "")
@@ -174,7 +166,7 @@ func (c compile) compileSourceFile(ctx context.Context, sourceFile *os.File) (Co
 		logger.
 			With(zap.String("container_id", containerID)).
 			With(zap.Error(err)).
-			Error("failed to attached to compile container")
+			Error("failed to start compile container")
 		return CompileOutput{}, err
 	}
 
@@ -198,7 +190,11 @@ func (c compile) compileSourceFile(ctx context.Context, sourceFile *os.File) (Co
 
 			stdoutBuffer := new(bytes.Buffer)
 			stderrBuffer := new(bytes.Buffer)
-			stdcopy.StdCopy(stdoutBuffer, stderrBuffer, containerAttachResponse.Reader)
+			if _, err := stdcopy.StdCopy(stdoutBuffer, stderrBuffer, containerAttachResponse.Reader); err != nil {
+				logger.With(zap.Error(err)).Error("failed to read from stdout and stderr of container")
+				return CompileOutput{}, err
+			}
+
 			return CompileOutput{
 				ReturnCode: data.StatusCode,
 				StdOut:     stdoutBuffer.String(),
@@ -219,25 +215,50 @@ func (c compile) compileSourceFile(ctx context.Context, sourceFile *os.File) (Co
 	}
 }
 
-func (c compile) Compile(ctx context.Context, content string) (CompileOutput, error) {
-	logger := utils.LoggerWithContext(ctx, c.logger)
+func (c compile) createSourceFile(ctx context.Context, hostWorkingDir, sourceFileName, content string) (*os.File, error) {
+	logger := utils.LoggerWithContext(ctx, c.logger).
+		With(zap.String("host_woking_dir", hostWorkingDir)).
+		With(zap.String("source_file_name", sourceFileName))
 
-	sourceFile, err := os.CreateTemp("", "")
+	sourceFilePath := filepath.Join(hostWorkingDir, sourceFileName)
+	sourceFile, err := os.Create(sourceFilePath)
 	if err != nil {
 		logger.With(zap.Error(err)).Error("failed to create source file")
-		return CompileOutput{}, err
+		return nil, err
 	}
 
 	if _, err := sourceFile.Write([]byte(content)); err != nil {
 		logger.With(zap.Error(err)).Error("failed to write source file")
+		return nil, err
+	}
+
+	return sourceFile, nil
+}
+
+func (c compile) Compile(ctx context.Context, content string) (CompileOutput, error) {
+	logger := utils.LoggerWithContext(ctx, c.logger)
+
+	hostWorkingDir, err := os.MkdirTemp("", "")
+	if err != nil {
+		logger.With(zap.Error(err)).Error("failed to create working directory for compiling")
 		return CompileOutput{}, err
 	}
 
+	var sourceFile *os.File
 	if c.compileConfig == nil {
-		// Interpreted language, the source file is the program itself
+		sourceFile, err = c.createSourceFile(ctx, hostWorkingDir, uuid.NewString(), content)
+		if err != nil {
+			return CompileOutput{}, err
+		}
+
 		return CompileOutput{
 			ProgramFilePath: sourceFile.Name(),
 		}, nil
+	}
+
+	sourceFile, err = c.createSourceFile(ctx, hostWorkingDir, c.compileConfig.SourceFileName, content)
+	if err != nil {
+		return CompileOutput{}, err
 	}
 
 	defer func() {
@@ -247,5 +268,5 @@ func (c compile) Compile(ctx context.Context, content string) (CompileOutput, er
 	}()
 
 	// Compiled language, need to compile inside a container first
-	return c.compileSourceFile(ctx, sourceFile)
+	return c.compileSourceFile(ctx, hostWorkingDir, sourceFile)
 }

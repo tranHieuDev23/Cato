@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -34,6 +34,7 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { PageTitleService } from '../../logic/page-title.service';
 import { UnitService } from '../../logic/unit.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-problem-editor',
@@ -54,13 +55,15 @@ import { UnitService } from '../../logic/unit.service';
   templateUrl: './problem-editor.component.html',
   styleUrl: './problem-editor.component.scss',
 })
-export class ProblemEditorComponent implements OnInit {
+export class ProblemEditorComponent implements OnInit, OnDestroy {
   public sessionAccount: RpcAccount | undefined;
   public exampleList: RpcProblemExample[] = [];
 
   private problemID: number | undefined;
   public formGroup: FormGroup;
   public saving = false;
+
+  private queryParamsSubscription: Subscription | undefined;
 
   constructor(
     private readonly accountService: AccountService,
@@ -111,9 +114,15 @@ export class ProblemEditorComponent implements OnInit {
       this.sessionAccount = sessionAccount;
       this.pageTitleService.setTitle('Problem Editor');
     })().then();
-    this.activatedRoute.params.subscribe(async (params) => {
-      await this.onParamsChanged(params);
-    });
+    this.queryParamsSubscription = this.activatedRoute.params.subscribe(
+      async (params) => {
+        await this.onParamsChanged(params);
+      }
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.queryParamsSubscription?.unsubscribe();
   }
 
   private async onParamsChanged(params: Params): Promise<void> {
@@ -268,7 +277,7 @@ export class ProblemEditorComponent implements OnInit {
       if (e instanceof InvalidProblemInfo) {
         this.notificationService.error(
           'Failed to save problem',
-          'Invalid page index/size'
+          'Invalid problem information'
         );
         this.location.back();
         return;

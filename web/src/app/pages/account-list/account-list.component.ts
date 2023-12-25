@@ -1,4 +1,10 @@
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  OnInit,
+  TemplateRef,
+  ViewChild,
+} from '@angular/core';
 import { ActivatedRoute, Router, Params } from '@angular/router';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -32,6 +38,7 @@ import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSpaceModule } from 'ng-zorro-antd/space';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { Subscription } from 'rxjs';
 
 const DEFAULT_PAGE_INDEX = 1;
 const DEFAULT_PAGE_SIZE = 10;
@@ -56,7 +63,7 @@ const DEFAULT_PAGE_SIZE = 10;
   templateUrl: './account-list.component.html',
   styleUrl: './account-list.component.scss',
 })
-export class AccountListComponent implements OnInit {
+export class AccountListComponent implements OnInit, OnDestroy {
   @ViewChild('createAccountModal') createAccountModal:
     | TemplateRef<any>
     | undefined;
@@ -71,6 +78,8 @@ export class AccountListComponent implements OnInit {
 
   public createAccountForm: FormGroup;
   public editAccountForm: FormGroup;
+
+  private queryParamsSubscription: Subscription | undefined;
 
   constructor(
     private readonly accountService: AccountService,
@@ -144,9 +153,15 @@ export class AccountListComponent implements OnInit {
       this.sessionAccount = sessionAccount;
       this.pageTitleService.setTitle('Accounts');
     })().then();
-    this.activatedRoute.queryParams.subscribe(async (params) => {
-      await this.onQueryParamsChanged(params);
-    });
+    this.queryParamsSubscription = this.activatedRoute.queryParams.subscribe(
+      async (params) => {
+        await this.onQueryParamsChanged(params);
+      }
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.queryParamsSubscription?.unsubscribe();
   }
 
   private async onQueryParamsChanged(queryParams: Params): Promise<void> {

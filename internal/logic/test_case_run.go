@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
-	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -59,12 +58,29 @@ func NewTestCaseRun(
 		testCaseRunConfig: testCaseRunConfig,
 	}
 
+	t.logger.Info("pulling load test case run image")
 	if _, err := dockerClient.ImagePull(context.Background(), testCaseRunConfig.Image, types.ImagePullOptions{}); err != nil {
 		t.logger.With(zap.Error(err)).Error("failed to load test case run image")
 		return nil, err
 	}
 
 	return t, nil
+}
+
+func (t testCaseRun) getContainerProgramFileName(programFileName string) string {
+	if t.testCaseRunConfig.ProgramFileName != "" {
+		return t.testCaseRunConfig.ProgramFileName
+	}
+
+	return programFileName
+}
+
+func (t testCaseRun) getWorkingDir() string {
+	if t.testCaseRunConfig.WorkingDir != "" {
+		return t.testCaseRunConfig.WorkingDir
+	}
+
+	return "/work"
 }
 
 func (t testCaseRun) getContainerCommand(commandTemplate []string, containerProgramFilePath string) []string {
@@ -90,25 +106,27 @@ func (t testCaseRun) Run(
 ) (RunOutput, error) {
 	logger := utils.LoggerWithContext(ctx, t.logger)
 
-	timeoutDuration := time.Millisecond * time.Duration(timeLimitInMillisecond)
-	dockerContainerCtx, dockerContainerCancelFunc := context.WithTimeout(ctx, timeoutDuration)
-	defer dockerContainerCancelFunc()
-
+	workingDir := t.getWorkingDir()
 	programFileName := filepath.Base(programFilePath)
-	containerProgramFilePath := filepath.Join(t.testCaseRunConfig.WorkingDir, programFileName)
-	containerCreateResponse, err := t.dockerClient.ContainerCreate(dockerContainerCtx, &container.Config{
+	programFileDirectory := filepath.Dir(programFilePath)
+	containerProgramFileName := t.getContainerProgramFileName(programFileName)
+	containerProgramFilePath := filepath.Join(workingDir, containerProgramFileName)
+
+	containerCreateResponse, err := t.dockerClient.ContainerCreate(ctx, &container.Config{
 		Image:        t.testCaseRunConfig.Image,
 		Cmd:          t.getContainerCommand(t.testCaseRunConfig.CommandTemplate, containerProgramFilePath),
-		WorkingDir:   t.testCaseRunConfig.WorkingDir,
+		WorkingDir:   workingDir,
+		AttachStdin:  true,
 		AttachStdout: true,
 		AttachStderr: true,
+		OpenStdin:    true,
 	}, &container.HostConfig{
 		Binds: []string{
-			fmt.Sprintf("%s:%s", programFilePath, containerProgramFilePath),
+			fmt.Sprintf("%s:%s", programFileDirectory, workingDir),
 		},
 		Resources: container.Resources{
-			CPUShares: t.testCaseRunConfig.CPUShares,
-			Memory:    int64(memoryLimitInByte),
+			CPUQuota: t.testCaseRunConfig.CPUQuota,
+			Memory:   int64(memoryLimitInByte),
 		},
 		NetworkMode: "none",
 	}, nil, nil, "")
@@ -124,8 +142,9 @@ func (t testCaseRun) Run(
 	}()
 
 	containerID := containerCreateResponse.ID
-	containerAttachResponse, err := t.dockerClient.ContainerAttach(dockerContainerCtx, containerID, types.ContainerAttachOptions{
+	containerAttachResponse, err := t.dockerClient.ContainerAttach(ctx, containerID, types.ContainerAttachOptions{
 		Stream: true,
+		Stdin:  true,
 		Stdout: true,
 		Stderr: true,
 	})
@@ -139,18 +158,20 @@ func (t testCaseRun) Run(
 
 	defer containerAttachResponse.Close()
 
-	containerAttachResponse.Conn.Write([]byte(input))
-	containerAttachResponse.Conn.Write([]byte{'\n'})
-
-	if err := t.dockerClient.ContainerStart(dockerContainerCtx, containerID, types.ContainerStartOptions{}); err != nil {
-		logger.
-			With(zap.String("container_id", containerID)).
-			With(zap.Error(err)).
-			Error("failed to attached to run test case container")
+	if _, err := containerAttachResponse.Conn.Write(append([]byte(input), '\n')); err != nil {
+		logger.With(zap.Error(err)).Error("failed to write to stdin of container")
 		return RunOutput{}, err
 	}
 
-	dataChan, errChan := t.dockerClient.ContainerWait(dockerContainerCtx, containerID, container.WaitConditionNotRunning)
+	if err := t.dockerClient.ContainerStart(ctx, containerID, types.ContainerStartOptions{}); err != nil {
+		logger.
+			With(zap.String("container_id", containerID)).
+			With(zap.Error(err)).
+			Error("failed to start run test case container")
+		return RunOutput{}, err
+	}
+
+	dataChan, errChan := t.dockerClient.ContainerWait(ctx, containerID, container.WaitConditionNotRunning)
 	select {
 	case data := <-dataChan:
 		if data.StatusCode != 0 {
@@ -161,11 +182,15 @@ func (t testCaseRun) Run(
 
 		stdoutBuffer := new(bytes.Buffer)
 		stderrBuffer := new(bytes.Buffer)
-		stdcopy.StdCopy(stdoutBuffer, stderrBuffer, containerAttachResponse.Reader)
+		if _, err := stdcopy.StdCopy(stdoutBuffer, stderrBuffer, containerAttachResponse.Reader); err != nil {
+			logger.With(zap.Error(err)).Error("failed to read from stdout and stderr of container")
+			return RunOutput{}, err
+		}
+
 		return RunOutput{
 			ReturnCode: data.StatusCode,
-			StdOut:     stdoutBuffer.String(),
-			StdErr:     stderrBuffer.String(),
+			StdOut:     utils.TrimSpaceRight(stdoutBuffer.String()),
+			StdErr:     utils.TrimSpaceRight(stderrBuffer.String()),
 		}, nil
 
 	case err := <-errChan:

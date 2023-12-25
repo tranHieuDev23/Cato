@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 	"errors"
+	"os"
 
 	"github.com/docker/docker/client"
 	"github.com/gammazero/workerpool"
@@ -123,7 +124,7 @@ func (e judge) judgeDBSubmission(ctx context.Context, submission *db.Submission)
 	logger.Info("compiling submission")
 	compileLogic, ok := e.languageToCompileLogic[submission.Language]
 	if !ok {
-		logger.With(zap.String("language", submission.Language)).Info("submission has supported language")
+		logger.With(zap.String("language", submission.Language)).Info("submission has unsupported language")
 		return e.updateSubmissionStatusAndResult(
 			ctx, submission, db.SubmissionStatusFinished, db.SubmissionResultUnsupportedLanguage)
 	}
@@ -133,6 +134,15 @@ func (e judge) judgeDBSubmission(ctx context.Context, submission *db.Submission)
 		logger.With(zap.Error(err)).Error("failed to compile submission")
 		return err
 	}
+
+	defer func() {
+		if err := os.Remove(compileOutput.ProgramFilePath); err != nil {
+			logger.
+				With(zap.String("program_file_path", compileOutput.ProgramFilePath)).
+				With(zap.Error(err)).
+				Error("failed to remove program file")
+		}
+	}()
 
 	if compileOutput.ProgramFilePath == "" {
 		logger.With(zap.Any("compile_output", compileOutput)).Info("submission has compile error")
@@ -285,6 +295,6 @@ func NewDistributedJudge(
 		db,
 		logger,
 		logicConfig,
-		false,
+		true,
 	)
 }

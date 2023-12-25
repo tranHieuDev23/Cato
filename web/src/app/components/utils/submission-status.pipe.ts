@@ -36,6 +36,9 @@ export class SubmissionStatusPipe implements PipeTransform {
       if (value.result === SubmissionResult.WrongAnswer) {
         return 'Wrong Answer';
       }
+      if (value.result === SubmissionResult.UnsupportedLanguage) {
+        return 'Unsupported Language';
+      }
     }
     return 'Unknown';
   }

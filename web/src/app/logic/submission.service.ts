@@ -27,6 +27,7 @@ export enum SubmissionResult {
   TimeLimitExceeded = 4,
   MemoryLimitExceed = 5,
   WrongAnswer = 6,
+  UnsupportedLanguage = 7,
 }
 
 export class InvalidSubmissionListParam extends Error {

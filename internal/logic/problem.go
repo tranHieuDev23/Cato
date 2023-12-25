@@ -35,6 +35,8 @@ type problem struct {
 	problemDataAccessor             db.ProblemDataAccessor
 	problemExampleDataAccessor      db.ProblemExampleDataAccessor
 	problemTestCaseHashDataAccessor db.ProblemTestCaseHashDataAccessor
+	testCaseDataAccessor            db.TestCaseDataAccessor
+	submissionDataAccessor          db.SubmissionDataAccessor
 	logger                          *zap.Logger
 	db                              *gorm.DB
 	displayNameSanitizePolicy       *bluemonday.Policy
@@ -49,6 +51,8 @@ func NewProblem(
 	problemDataAccessor db.ProblemDataAccessor,
 	problemExampleDataAccessor db.ProblemExampleDataAccessor,
 	problemTestCaseHashDataAccessor db.ProblemTestCaseHashDataAccessor,
+	testCaseDataAccessor db.TestCaseDataAccessor,
+	submissionDataAccessor db.SubmissionDataAccessor,
 	logger *zap.Logger,
 	db *gorm.DB,
 ) Problem {
@@ -60,6 +64,8 @@ func NewProblem(
 		problemDataAccessor:             problemDataAccessor,
 		problemExampleDataAccessor:      problemExampleDataAccessor,
 		problemTestCaseHashDataAccessor: problemTestCaseHashDataAccessor,
+		testCaseDataAccessor:            testCaseDataAccessor,
+		submissionDataAccessor:          submissionDataAccessor,
 		logger:                          logger,
 		db:                              db,
 		displayNameSanitizePolicy:       bluemonday.StrictPolicy(),
@@ -169,8 +175,8 @@ func (p problem) CreateProblem(ctx context.Context, in *rpc.CreateProblemRequest
 		problemExampleList := lo.Map(in.ExampleList, func(item rpc.ProblemExample, _ int) *db.ProblemExample {
 			return &db.ProblemExample{
 				OfProblemID: uint64(problem.ID),
-				Input:       item.Input,
-				Output:      item.Output,
+				Input:       utils.TrimSpaceRight(item.Input),
+				Output:      utils.TrimSpaceRight(item.Output),
 			}
 		})
 		if err := p.problemExampleDataAccessor.WithDB(tx).CreateProblemExampleList(ctx, problemExampleList); err != nil {
@@ -231,6 +237,30 @@ func (p problem) DeleteProblem(ctx context.Context, in *rpc.DeleteProblemRequest
 			} else if !hasPermission {
 				return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
 			}
+		}
+
+		if err := p.problemExampleDataAccessor.
+			WithDB(tx).
+			DeleteProblemExampleOfProblem(ctx, uint64(problem.ID)); err != nil {
+			return err
+		}
+
+		if err := p.testCaseDataAccessor.
+			WithDB(tx).
+			DeleteTestCaseOfProblem(ctx, uint64(problem.ID)); err != nil {
+			return err
+		}
+
+		if err := p.submissionDataAccessor.
+			WithDB(tx).
+			DeleteSubmissionOfProblem(ctx, uint64(problem.ID)); err != nil {
+			return err
+		}
+
+		if err := p.problemTestCaseHashDataAccessor.
+			WithDB(tx).
+			DeleteProblemTestCaseHashOfProblem(ctx, uint64(problem.ID)); err != nil {
+			return err
 		}
 
 		return p.problemDataAccessor.WithDB(tx).DeleteProblem(ctx, uint64(problem.ID))
@@ -519,6 +549,9 @@ func (p problem) WithDB(db *gorm.DB) Problem {
 		problemDataAccessor:             p.problemDataAccessor.WithDB(db),
 		problemExampleDataAccessor:      p.problemExampleDataAccessor.WithDB(db),
 		problemTestCaseHashDataAccessor: p.problemTestCaseHashDataAccessor.WithDB(db),
+		testCase:                        p.testCase.WithDB(db),
+		testCaseDataAccessor:            p.testCaseDataAccessor.WithDB(db),
+		submissionDataAccessor:          p.submissionDataAccessor.WithDB(db),
 		logger:                          p.logger,
 		db:                              db,
 		displayNameSanitizePolicy:       p.displayNameSanitizePolicy,

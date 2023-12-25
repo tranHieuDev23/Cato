@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"net/http"
 
 	"gitlab.com/pjrpc/pjrpc/v2"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/tranHieuDev23/cato/internal/configs"
 	"github.com/tranHieuDev23/cato/internal/handlers/http/rpc/rpcserver"
+	"github.com/tranHieuDev23/cato/internal/utils"
 )
 
 type Server interface {
@@ -43,6 +45,11 @@ func NewServer(
 
 func (s server) Start() error {
 	srv := pjrpc.NewServerHTTP()
+	srv.OnPanic = func(ctx context.Context, err error) *pjrpc.ErrorResponse {
+		utils.LoggerWithContext(ctx, s.logger).With(zap.Error(err)).Error("panic occurred")
+		return srv.DefaultRestoreOnPanic(ctx, err)
+	}
+
 	rpcserver.RegisterAPIServer(srv, s.apiServerHandler, s.pjrpcMiddlewareList...)
 
 	var apiHandler http.Handler = srv

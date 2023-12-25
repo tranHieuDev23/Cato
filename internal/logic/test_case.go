@@ -225,8 +225,8 @@ func (t testCase) CreateTestCase(ctx context.Context, in *rpc.CreateTestCaseRequ
 
 		testCase := &db.TestCase{
 			OfProblemID: in.ProblemID,
-			Input:       in.Input,
-			Output:      in.Output,
+			Input:       utils.TrimSpaceRight(in.Input),
+			Output:      utils.TrimSpaceRight(in.Output),
 			IsHidden:    in.IsHidden,
 			Hash:        t.calculateTestCaseHash(in.Input, in.Output),
 		}
@@ -319,8 +319,8 @@ func (t testCase) getTestCaseListFromZippedData(ctx context.Context, problemID u
 
 		testCaseList = append(testCaseList, &db.TestCase{
 			OfProblemID: problemID,
-			Input:       *unzippedTestCase.Input,
-			Output:      *unzippedTestCase.Output,
+			Input:       utils.TrimSpaceRight(*unzippedTestCase.Input),
+			Output:      utils.TrimSpaceRight(*unzippedTestCase.Output),
 			IsHidden:    true,
 			Hash:        t.calculateTestCaseHash(*unzippedTestCase.Input, *unzippedTestCase.Output),
 		})
@@ -603,11 +603,11 @@ func (t testCase) UpdateTestCase(ctx context.Context, in *rpc.UpdateTestCaseRequ
 		}
 
 		if in.Input != nil {
-			testCase.Input = *in.Input
+			testCase.Input = utils.TrimSpaceRight(*in.Input)
 		}
 
 		if in.Output != nil {
-			testCase.Output = *in.Output
+			testCase.Output = utils.TrimSpaceRight(*in.Output)
 		}
 
 		if in.IsHidden != nil {

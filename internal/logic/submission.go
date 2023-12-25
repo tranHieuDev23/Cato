@@ -19,16 +19,18 @@ type Submission interface {
 	GetAccountSubmissionSnippetList(ctx context.Context, in *rpc.GetAccountSubmissionSnippetListRequest, token string) (*rpc.GetAccountSubmissionSnippetListResponse, error)
 	GetProblemSubmissionSnippetList(ctx context.Context, in *rpc.GetProblemSubmissionSnippetListRequest, token string) (*rpc.GetProblemSubmissionSnippetListResponse, error)
 	GetAccountProblemSubmissionSnippetList(ctx context.Context, in *rpc.GetAccountProblemSubmissionSnippetListRequest, token string) (*rpc.GetAccountProblemSubmissionSnippetListResponse, error)
+	ScheduleSubmittedExecutingSubmissionToJudge(ctx context.Context) error
 }
 
 type submission struct {
-	token                  Token
-	role                   Role
-	judge                  Judge
-	accountDataAccessor    db.AccountDataAccessor
-	problemDataAccessor    db.ProblemDataAccessor
-	submissionDataAccessor db.SubmissionDataAccessor
-	logger                 *zap.Logger
+	token                                  Token
+	role                                   Role
+	judge                                  Judge
+	accountDataAccessor                    db.AccountDataAccessor
+	problemDataAccessor                    db.ProblemDataAccessor
+	submissionDataAccessor                 db.SubmissionDataAccessor
+	logger                                 *zap.Logger
+	shouldScheduleCreatedSubmissionToJudge bool
 }
 
 func NewSubmission(
@@ -39,15 +41,17 @@ func NewSubmission(
 	problemDataAccessor db.ProblemDataAccessor,
 	submissionDataAccessor db.SubmissionDataAccessor,
 	logger *zap.Logger,
+	shouldScheduleCreatedSubmissionToJudge bool,
 ) Submission {
 	return &submission{
-		token:                  token,
-		role:                   role,
-		judge:                  judge,
-		accountDataAccessor:    accountDataAccessor,
-		problemDataAccessor:    problemDataAccessor,
-		submissionDataAccessor: submissionDataAccessor,
-		logger:                 logger,
+		token:                                  token,
+		role:                                   role,
+		judge:                                  judge,
+		accountDataAccessor:                    accountDataAccessor,
+		problemDataAccessor:                    problemDataAccessor,
+		submissionDataAccessor:                 submissionDataAccessor,
+		logger:                                 logger,
+		shouldScheduleCreatedSubmissionToJudge: shouldScheduleCreatedSubmissionToJudge,
 	}
 }
 
@@ -140,7 +144,9 @@ func (s submission) CreateSubmission(ctx context.Context, in *rpc.CreateSubmissi
 		return nil, err
 	}
 
-	s.judge.ScheduleSubmissionToJudge(uint64(submission.ID))
+	if s.shouldScheduleCreatedSubmissionToJudge {
+		s.judge.ScheduleSubmissionToJudge(uint64(submission.ID))
+	}
 
 	return &rpc.CreateSubmissionResponse{
 		SubmissionSnippet: s.dbSubmissionToRPCSubmissionSnippet(submission, problem, account),
@@ -533,6 +539,38 @@ func (s submission) GetSubmissionSnippetList(ctx context.Context, in *rpc.GetSub
 	}, nil
 }
 
+func (s submission) ScheduleSubmittedExecutingSubmissionToJudge(ctx context.Context) error {
+	submittedSubmissionIDList, err := s.submissionDataAccessor.GetSubmissionIDListWithStatus(ctx, db.SubmissionStatusSubmitted)
+	if err != nil {
+		return err
+	}
+
+	for _, id := range submittedSubmissionIDList {
+		s.judge.ScheduleSubmissionToJudge(id)
+	}
+
+	executingSubmissionIDList, err := s.submissionDataAccessor.GetSubmissionIDListWithStatus(ctx, db.SubmissionStatusExecuting)
+	if err != nil {
+		return err
+	}
+
+	for _, id := range executingSubmissionIDList {
+		submission, err := s.submissionDataAccessor.GetSubmission(ctx, id)
+		if err != nil {
+			return err
+		}
+
+		submission.Status = db.SubmissionStatusSubmitted
+		if err := s.submissionDataAccessor.UpdateSubmission(ctx, submission); err != nil {
+			return err
+		}
+
+		s.judge.ScheduleSubmissionToJudge(id)
+	}
+
+	return nil
+}
+
 type LocalSubmission Submission
 
 func NewLocalSubmission(
@@ -544,7 +582,8 @@ func NewLocalSubmission(
 	submissionDataAccessor db.SubmissionDataAccessor,
 	logger *zap.Logger,
 ) LocalSubmission {
-	return NewSubmission(token, role, judge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, logger)
+	return NewSubmission(
+		token, role, judge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, logger, true)
 }
 
 type DistributedSubmission Submission
@@ -558,5 +597,6 @@ func NewDistributedSubmission(
 	submissionDataAccessor db.SubmissionDataAccessor,
 	logger *zap.Logger,
 ) DistributedSubmission {
-	return NewSubmission(token, role, judge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, logger)
+	return NewSubmission(
+		token, role, judge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, logger, false)
 }

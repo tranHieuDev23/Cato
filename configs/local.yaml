@@ -82,3 +82,23 @@ logic:
     password: changeme
   problem_test_case_hash:
     batch_size: 10
+  judge:
+    languages:
+      cpp:
+        compile:
+          image: "gcc:9.5.0-bullseye"
+          command_template: ["g++", "-o", "$PROGRAM", "-O2", "$SOURCE"]
+          timeout: 30s
+          cpu_quota: 4000000
+          memory: 4GiB
+          source_file_name: main.cpp
+          program_file_name: a.out
+        test_case_run:
+          image: "debian:bullseye-slim"
+          command_template: ["$PROGRAM"]
+          cpu_quota: 1000000
+      py:
+        test_case_run:
+          image: "python:alpine3.19"
+          command_template: ["python", "$PROGRAM"]
+          cpu_quota: 1000000

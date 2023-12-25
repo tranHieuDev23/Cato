@@ -30,6 +30,7 @@ import { SubmissionModalComponent } from '../../components/submission-modal/subm
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { SubmissionStatusColorPipe } from '../../components/utils/submission-status-color.pipe';
+import { Subscription } from 'rxjs';
 
 const DEFAULT_PAGE_INDEX = 1;
 const DEFAULT_PAGE_SIZE = 10;
@@ -65,6 +66,7 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
   public lastLoadedTime: number | undefined;
   public autoReloadEnabled = true;
 
+  private queryParamsSubscription: Subscription | undefined;
   private submissionListReloadInterval:
     | ReturnType<typeof setInterval>
     | undefined;
@@ -96,15 +98,18 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
       this.sessionAccount = sessionAccount;
       this.pageTitleService.setTitle('Submissions');
     })().then();
-    this.activatedRoute.queryParams.subscribe(async (params) => {
-      await this.onQueryParamsChanged(params);
-    });
+    this.queryParamsSubscription = this.activatedRoute.queryParams.subscribe(
+      async (params) => {
+        await this.onQueryParamsChanged(params);
+      }
+    );
     this.submissionListReloadInterval = setInterval(async () => {
       await this.loadSubmissionSnippetList();
     }, SUBMISSION_LIST_RELOAD_INTERVAL);
   }
 
   ngOnDestroy(): void {
+    this.queryParamsSubscription?.unsubscribe();
     if (this.submissionListReloadInterval !== undefined) {
       clearInterval(this.submissionListReloadInterval);
     }

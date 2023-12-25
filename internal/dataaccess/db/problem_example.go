@@ -16,9 +16,8 @@ const (
 type ProblemExample struct {
 	gorm.Model
 	OfProblemID uint64
-	Problem     Problem `gorm:"foreignKey:OfProblemID"`
-	Input       string  `gorm:"type:text"`
-	Output      string  `gorm:"type:text"`
+	Input       string `gorm:"type:text"`
+	Output      string `gorm:"type:text"`
 }
 
 type ProblemExampleDataAccessor interface {
@@ -57,10 +56,11 @@ func (a problemExampleDataAccessor) CreateProblemExampleList(ctx context.Context
 func (a problemExampleDataAccessor) DeleteProblemExampleOfProblem(ctx context.Context, problemID uint64) error {
 	logger := utils.LoggerWithContext(ctx, a.logger).With(zap.Uint64("problem_id", problemID))
 	db := a.db.WithContext(ctx)
-	if err := db.Model(new(ProblemExample)).
+	if err := db.
 		Where(&ProblemExample{
 			OfProblemID: problemID,
 		}).
+		Delete(new(ProblemExample)).
 		Error; err != nil {
 		logger.With(zap.Error(err)).Error("failed to delete problem example list")
 		return err

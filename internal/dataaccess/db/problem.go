@@ -14,8 +14,7 @@ type Problem struct {
 	gorm.Model
 	DisplayName            string
 	AuthorAccountID        uint64
-	Author                 Account `gorm:"foreignKey:AuthorAccountID"`
-	Description            string  `gorm:"type:text"`
+	Description            string `gorm:"type:text"`
 	TimeLimitInMillisecond uint64
 	MemoryLimitInByte      uint64
 }
@@ -156,9 +155,7 @@ func (a problemDataAccessor) DeleteProblem(ctx context.Context, id uint64) error
 	logger := utils.LoggerWithContext(ctx, a.logger).
 		With(zap.Uint64("id", id))
 	db := a.db.WithContext(ctx)
-	if err := db.Delete(&Problem{
-		Model: gorm.Model{ID: uint(id)},
-	}).Error; err != nil {
+	if err := db.Delete(&Problem{Model: gorm.Model{ID: uint(id)}}).Error; err != nil {
 		logger.With(zap.Error(err)).Error("failed to delete problem")
 		return err
 	}

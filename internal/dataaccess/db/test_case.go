@@ -17,9 +17,8 @@ const (
 type TestCase struct {
 	gorm.Model
 	OfProblemID uint64
-	Problem     Problem `gorm:"foreignKey:OfProblemID"`
-	Input       string  `gorm:"type:text"`
-	Output      string  `gorm:"type:text"`
+	Input       string `gorm:"type:text"`
+	Output      string `gorm:"type:text"`
 	Hash        string
 	IsHidden    bool
 }
@@ -34,6 +33,7 @@ type TestCaseDataAccessor interface {
 	GetTestCaseCountOfProblem(ctx context.Context, problemID uint64) (uint64, error)
 	UpdateTestCase(ctx context.Context, testCase *TestCase) error
 	DeleteTestCase(ctx context.Context, id uint64) error
+	DeleteTestCaseOfProblem(ctx context.Context, problemID uint64) error
 	WithDB(db *gorm.DB) TestCaseDataAccessor
 }
 
@@ -104,9 +104,7 @@ func (a testCaseDataAccessor) DeleteTestCase(ctx context.Context, id uint64) err
 	logger := utils.LoggerWithContext(ctx, a.logger).
 		With(zap.Uint64("id", id))
 	db := a.db.WithContext(ctx)
-	if err := db.Delete(&TestCase{
-		Model: gorm.Model{ID: uint(id)},
-	}).Error; err != nil {
+	if err := db.Delete(&TestCase{Model: gorm.Model{ID: uint(id)}}).Error; err != nil {
 		logger.With(zap.Error(err)).Error("failed to update test case")
 		return err
 	}
@@ -189,6 +187,22 @@ func (a testCaseDataAccessor) GetTestCaseCountOfProblem(ctx context.Context, pro
 	}
 
 	return uint64(count), nil
+}
+
+func (a testCaseDataAccessor) DeleteTestCaseOfProblem(ctx context.Context, problemID uint64) error {
+	logger := utils.LoggerWithContext(ctx, a.logger).With(zap.Uint64("problem_id", problemID))
+	db := a.db.WithContext(ctx)
+	if err := db.
+		Where(&TestCase{
+			OfProblemID: problemID,
+		}).
+		Delete(new(TestCase)).
+		Error; err != nil {
+		logger.With(zap.Error(err)).Error("failed to delete test case of problem")
+		return err
+	}
+
+	return nil
 }
 
 func (a testCaseDataAccessor) WithDB(db *gorm.DB) TestCaseDataAccessor {

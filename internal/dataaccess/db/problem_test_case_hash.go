@@ -13,7 +13,6 @@ import (
 type ProblemTestCaseHash struct {
 	gorm.Model
 	OfProblemID uint64
-	Problem     Problem `gorm:"foreignKey:OfProblemID"`
 	Hash        string
 }
 
@@ -21,6 +20,7 @@ type ProblemTestCaseHashDataAccessor interface {
 	CreateProblemTestCaseHash(ctx context.Context, problemTestCaseHash *ProblemTestCaseHash) error
 	UpdateProblemTestCaseHash(ctx context.Context, problemTestCaseHash *ProblemTestCaseHash) error
 	GetProblemTestCaseHashOfProblem(ctx context.Context, problemID uint64) (*ProblemTestCaseHash, error)
+	DeleteProblemTestCaseHashOfProblem(ctx context.Context, problemID uint64) error
 	WithDB(db *gorm.DB) ProblemTestCaseHashDataAccessor
 }
 
@@ -77,6 +77,22 @@ func (a problemTestCaseHashDataAccessor) UpdateProblemTestCaseHash(ctx context.C
 	db := a.db.WithContext(ctx)
 	if err := db.Save(problemTestCaseHash).Error; err != nil {
 		logger.With(zap.Error(err)).Error("failed to update problem test case hash")
+		return err
+	}
+
+	return nil
+}
+
+func (a problemTestCaseHashDataAccessor) DeleteProblemTestCaseHashOfProblem(ctx context.Context, problemID uint64) error {
+	logger := utils.LoggerWithContext(ctx, a.logger).With(zap.Uint64("problem_id", problemID))
+	db := a.db.WithContext(ctx)
+	if err := db.
+		Where(&TestCase{
+			OfProblemID: problemID,
+		}).
+		Delete(new(TestCase)).
+		Error; err != nil {
+		logger.With(zap.Error(err)).Error("failed to delete test case hash of problem")
 		return err
 	}
 

@@ -30,10 +30,8 @@ const (
 type Submission struct {
 	gorm.Model
 	OfProblemID     uint64
-	Problem         Problem `gorm:"foreignKey:OfProblemID"`
 	AuthorAccountID uint64
-	Author          Account `gorm:"foreignKey:AuthorAccountID"`
-	Content         string  `gorm:"type:text"`
+	Content         string `gorm:"type:text"`
 	Language        string
 	Status          SubmissionStatus
 	Result          SubmissionResult
@@ -43,8 +41,10 @@ type SubmissionDataAccessor interface {
 	CreateSubmission(ctx context.Context, submission *Submission) error
 	UpdateSubmission(ctx context.Context, submission *Submission) error
 	DeleteSubmission(ctx context.Context, id uint64) error
+	DeleteSubmissionOfProblem(ctx context.Context, problemID uint64) error
 	GetSubmission(ctx context.Context, id uint64) (*Submission, error)
 	GetSubmissionList(ctx context.Context, offset, limit uint64) ([]*Submission, error)
+	GetSubmissionIDListWithStatus(ctx context.Context, status SubmissionStatus) ([]uint64, error)
 	GetAccountSubmissionList(ctx context.Context, accountID uint64, offset, limit uint64) ([]*Submission, error)
 	GetProblemSubmissionList(ctx context.Context, problemID uint64, offset, limit uint64) ([]*Submission, error)
 	GetAccountProblemSubmissionList(ctx context.Context, accountID, problemID, offset, limit uint64) ([]*Submission, error)
@@ -107,9 +107,7 @@ func (a submissionDataAccessor) UpdateSubmission(ctx context.Context, submission
 func (a submissionDataAccessor) DeleteSubmission(ctx context.Context, id uint64) error {
 	logger := utils.LoggerWithContext(ctx, a.logger).With(zap.Uint64("id", id))
 	db := a.db.WithContext(ctx)
-	if err := db.Delete(&Submission{
-		Model: gorm.Model{ID: uint(id)},
-	}).Error; err != nil {
+	if err := db.Delete(&Submission{Model: gorm.Model{ID: uint(id)}}).Error; err != nil {
 		logger.With(zap.Error(err)).Error("failed to delete submission")
 		return pjrpc.JRPCErrInternalError()
 	}
@@ -274,6 +272,7 @@ func (a submissionDataAccessor) GetAccountProblemSubmissionList(
 			AuthorAccountID: accountID,
 			OfProblemID:     problemID,
 		}).
+		Order("id desc").
 		Limit(int(limit)).
 		Offset(int(offset)).
 		Find(&submissionList).
@@ -285,6 +284,39 @@ func (a submissionDataAccessor) GetAccountProblemSubmissionList(
 	}
 
 	return submissionList, nil
+}
+
+func (a submissionDataAccessor) GetSubmissionIDListWithStatus(ctx context.Context, status SubmissionStatus) ([]uint64, error) {
+	logger := utils.LoggerWithContext(ctx, a.logger)
+	db := a.db.WithContext(ctx)
+	idList := make([]uint64, 0)
+	if err := db.Model(new(Submission)).
+		Where(&Submission{
+			Status: status,
+		}).
+		Pluck("id", &idList).
+		Error; err != nil {
+		logger.With(zap.Error(err)).Error("failed to get submitted submission id list")
+		return make([]uint64, 0), err
+	}
+
+	return idList, nil
+}
+
+func (a submissionDataAccessor) DeleteSubmissionOfProblem(ctx context.Context, problemID uint64) error {
+	logger := utils.LoggerWithContext(ctx, a.logger).With(zap.Uint64("problem_id", problemID))
+	db := a.db.WithContext(ctx)
+	if err := db.
+		Where(&Submission{
+			OfProblemID: problemID,
+		}).
+		Delete(new(Submission)).
+		Error; err != nil {
+		logger.With(zap.Error(err)).Error("failed to delete submission of problem")
+		return err
+	}
+
+	return nil
 }
 
 func (a submissionDataAccessor) WithDB(db *gorm.DB) SubmissionDataAccessor {

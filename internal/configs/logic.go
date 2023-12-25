@@ -20,7 +20,7 @@ type Compile struct {
 	Image           string   `yaml:"image"`
 	CommandTemplate []string `yaml:"command_template"`
 	Timeout         string   `yaml:"timeout"`
-	CPUShares       int64    `yaml:"cpu_shares"`
+	CPUQuota        int64    `yaml:"cpu_quota"`
 	Memory          string   `yaml:"memory"`
 	WorkingDir      string   `yaml:"working_dir"`
 	SourceFileName  string   `yaml:"source_file_name"`
@@ -38,17 +38,18 @@ func (c Compile) GetMemoryInBytes() (uint64, error) {
 type TestCaseRun struct {
 	Image           string   `yaml:"image"`
 	CommandTemplate []string `yaml:"command_template"`
-	CPUShares       int64    `yaml:"cpu_shares"`
+	CPUQuota        int64    `yaml:"cpu_quota"`
 	WorkingDir      string   `yaml:"working_dir"`
+	ProgramFileName string   `yaml:"program_file_name"`
 }
 
 type Language struct {
 	Compile     *Compile    `yaml:"compile"`
-	TestCaseRun TestCaseRun `yaml:"run"`
+	TestCaseRun TestCaseRun `yaml:"test_case_run"`
 }
 
 type Judge struct {
-	Languages map[string]Language
+	Languages map[string]Language `yaml:"languages"`
 }
 
 type Logic struct {

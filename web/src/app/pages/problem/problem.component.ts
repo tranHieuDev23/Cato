@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { RpcAccount, RpcProblem } from '../../dataaccess/api';
 import { CommonModule, Location } from '@angular/common';
@@ -43,6 +43,7 @@ import { PageTitleService } from '../../logic/page-title.service';
 import { KatexPipe } from '../../components/utils/katex.pipe';
 import { TestCaseListComponent } from './test-case-list/test-case-list.component';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-problem',
@@ -74,7 +75,7 @@ import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
   templateUrl: './problem.component.html',
   styleUrl: './problem.component.scss',
 })
-export class ProblemComponent implements OnInit {
+export class ProblemComponent implements OnInit, OnDestroy {
   @ViewChild('problemTabSet') problemTabSet: NzTabSetComponent | undefined;
   @ViewChild('submissionTab') submissionTab: NzTabComponent | undefined;
 
@@ -83,6 +84,8 @@ export class ProblemComponent implements OnInit {
 
   public submissionContent = '';
   public submissionLanguage = 'cpp';
+
+  private queryParamsSubscription: Subscription | undefined;
 
   constructor(
     private readonly accountService: AccountService,
@@ -110,9 +113,15 @@ export class ProblemComponent implements OnInit {
 
       this.sessionAccount = sessionAccount;
     })().then();
-    this.activatedRoute.params.subscribe(async (params) => {
-      await this.onParamsChanged(params);
-    });
+    this.queryParamsSubscription = this.activatedRoute.params.subscribe(
+      async (params) => {
+        await this.onParamsChanged(params);
+      }
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.queryParamsSubscription?.unsubscribe();
   }
 
   private async onParamsChanged(params: Params): Promise<void> {

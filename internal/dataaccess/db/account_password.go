@@ -13,7 +13,6 @@ import (
 type AccountPassword struct {
 	gorm.Model
 	OfAccountID uint64
-	Account     Account `gorm:"foreignKey:OfAccountID"`
 	Hash        string
 }
 

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { RpcAccount, RpcProblemSnippet } from '../../dataaccess/api';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { ActivatedRoute, Params, Router, RouterModule } from '@angular/router';
@@ -24,6 +24,7 @@ import { PageTitleService } from '../../logic/page-title.service';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { Subscription } from 'rxjs';
 
 const DEFAULT_PAGE_INDEX = 1;
 const DEFAULT_PAGE_SIZE = 10;
@@ -45,13 +46,15 @@ const DEFAULT_PAGE_SIZE = 10;
   templateUrl: './problem-list.component.html',
   styleUrl: './problem-list.component.scss',
 })
-export class ProblemListComponent implements OnInit {
+export class ProblemListComponent implements OnInit, OnDestroy {
   public sessionAccount: RpcAccount | undefined;
   public problemSnippetList: RpcProblemSnippet[] = [];
   public totalProblemCount = 0;
   public pageIndex = DEFAULT_PAGE_INDEX;
   public pageSize = DEFAULT_PAGE_SIZE;
   public loading = false;
+
+  private queryParamsSubscription: Subscription | undefined;
 
   constructor(
     private readonly accountService: AccountService,
@@ -80,9 +83,15 @@ export class ProblemListComponent implements OnInit {
       this.sessionAccount = sessionAccount;
       this.pageTitleService.setTitle('Problems');
     })().then();
-    this.activatedRoute.queryParams.subscribe(async (params) => {
-      await this.onQueryParamsChanged(params);
-    });
+    this.queryParamsSubscription = this.activatedRoute.queryParams.subscribe(
+      async (params) => {
+        await this.onQueryParamsChanged(params);
+      }
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.queryParamsSubscription?.unsubscribe();
   }
 
   private async onQueryParamsChanged(queryParams: Params): Promise<void> {
@@ -180,7 +189,7 @@ export class ProblemListComponent implements OnInit {
         try {
           await this.problemService.deleteProblem(problemSnippet.iD);
           this.notificationService.success('Problem deleted successfully', '');
-          this.location.back();
+          await this.loadProblemSnippetList();
         } catch (e) {
           if (e instanceof UnauthenticatedError) {
             this.notificationService.error(
