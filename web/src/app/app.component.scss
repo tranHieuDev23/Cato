@@ -6,7 +6,7 @@
 }
 
 .app-layout {
-  height: 100vh;
+  min-height: 100vh;
 }
 
 .menu-sidebar {
@@ -29,20 +29,16 @@
 }
 
 .sidebar-logo {
-  position: relative;
   height: 64px;
-  padding-left: 24px;
-  overflow: hidden;
   line-height: 64px;
-  background: #001529;
+  overflow: hidden;
+  padding-left: 16px;
   transition: all 0.3s;
 }
 
 .sidebar-logo img {
-  display: inline-block;
   height: 32px;
   width: 32px;
-  vertical-align: middle;
 }
 
 .sidebar-logo h1 {

@@ -14,6 +14,7 @@ import {
   EditOutline,
   DeleteOutline,
   CopyOutline,
+  InboxOutline,
 } from '@ant-design/icons-angular/icons';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 
@@ -32,6 +33,7 @@ const icons = [
   EditOutline,
   DeleteOutline,
   CopyOutline,
+  InboxOutline,
 ];
 
 export function provideNzIcons(): EnvironmentProviders {

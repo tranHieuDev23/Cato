@@ -1,8 +1,16 @@
 <div class="content">
-    <button *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'problem_setter'" nz-button
-        class="create-test-case-button" (click)="onCreateTestCaseClicked()">
-        Create test case
-    </button>
+    <p *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'problem_setter'">
+        <nz-button-group>
+            <button nz-button (click)="onCreateTestCaseClicked()">
+                <span nz-icon nzType="plus" nzTheme="outline"></span>
+                Create test case
+            </button>
+            <button nz-button (click)="onUploadZippedTestCasesClicked()">
+                <span nz-icon nzType="upload" nzTheme="outline"></span>
+                Upload zipped test cases
+            </button>
+        </nz-button-group>
+    </p>
     <nz-table #table [nzData]="testCaseList" [nzPageIndex]="pageIndex" [nzPageSize]="pageSize"
         [nzTotal]="totalTestCaseCount" [nzLoading]="loading" [nzShowSizeChanger]="true"
         [nzPageSizeOptions]="[10, 20, 50, 100]" (nzPageIndexChange)="onPageIndexChange($event)"
@@ -92,5 +100,18 @@
             <br />
             <label nz-checkbox [(ngModel)]="editModalTestCaseIsHidden">Is hidden</label>
         </div>
+    </ng-template>
+    <ng-template #uploadTestCaseModal>
+        <nz-upload nzType="drag" nzAction="/#" [nzBeforeUpload]="onLoadFile">
+            <div class="upload-hint">
+                <p class="ant-upload-drag-icon"><span nz-icon nzType="inbox"></span></p>
+                <p class="ant-upload-text">Click or drag file to this area to upload</p>
+                <p class="ant-upload-hint">
+                    <code>.zip</code> files are supported. Each pair of <code>input.txt</code> and
+                    <code>output.txt</code> in the same directory - including subdirectories - will be used as one test
+                    case.
+                </p>
+            </div>
+        </nz-upload>
     </ng-template>
 </div>

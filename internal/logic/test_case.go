@@ -248,10 +248,16 @@ func (t testCase) CreateTestCase(ctx context.Context, in *rpc.CreateTestCaseRequ
 	return response, nil
 }
 
-func (t testCase) getTestCaseListFromZippedData(ctx context.Context, problemID uint64, zippedData []byte) ([]*db.TestCase, error) {
+func (t testCase) getTestCaseListFromZippedData(ctx context.Context, problemID uint64, zippedTestData string) ([]*db.TestCase, error) {
 	logger := utils.LoggerWithContext(ctx, t.logger)
 
-	zippedDataReader, err := zip.NewReader(bytes.NewReader(zippedData), int64(len(zippedData)))
+	decodedZippedTestData, err := base64.StdEncoding.DecodeString(zippedTestData)
+	if err != nil {
+		logger.With(zap.Error(err)).Error("failed to decode zipped test data")
+		return nil, pjrpc.JRPCErrInternalError()
+	}
+
+	zippedDataReader, err := zip.NewReader(bytes.NewReader(decodedZippedTestData), int64(len(decodedZippedTestData)))
 	if err != nil {
 		logger.With(zap.Error(err)).Error("failed to open zip reader")
 		return nil, pjrpc.JRPCErrInternalError()
@@ -263,14 +269,13 @@ func (t testCase) getTestCaseListFromZippedData(ctx context.Context, problemID u
 	}
 
 	fileDirectoryToUnzippedTestCaseMap := make(map[string]*unzippedTestCase)
-
 	for i := range zippedDataReader.File {
 		fileInfo := zippedDataReader.File[i].FileInfo()
 		if fileInfo.IsDir() {
 			continue
 		}
 
-		filePath := fileInfo.Name()
+		filePath := zippedDataReader.File[i].Name
 		fileDirectory, fileName := filepath.Split(filePath)
 		if fileName != testCaseInputFileName && fileName != testCaseOutputFileName {
 			continue
@@ -365,7 +370,7 @@ func (t testCase) CreateTestCaseList(ctx context.Context, in *rpc.CreateTestCase
 		}
 	}
 
-	testCaseList, err := t.getTestCaseListFromZippedData(ctx, in.ProblemID, []byte(in.ZippedTestData))
+	testCaseList, err := t.getTestCaseListFromZippedData(ctx, in.ProblemID, in.ZippedTestData)
 	if err != nil {
 		return err
 	}

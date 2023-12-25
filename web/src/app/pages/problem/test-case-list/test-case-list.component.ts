@@ -34,10 +34,11 @@ import { CodemirrorComponent, CodemirrorModule } from '@ctrl/ngx-codemirror';
 import { FormsModule } from '@angular/forms';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
-import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzModalModule, NzModalRef, NzModalService } from 'ng-zorro-antd/modal';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import copyToClipboard from 'copy-to-clipboard';
 import { EllipsisPipe } from '../../../components/utils/ellipsis.pipe';
+import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 
 export interface TestCaseListItem {
   id: number;
@@ -64,6 +65,7 @@ export interface TestCaseListItem {
     NzCheckboxModule,
     NzToolTipModule,
     EllipsisPipe,
+    NzUploadModule,
   ],
   templateUrl: './test-case-list.component.html',
   styleUrl: './test-case-list.component.scss',
@@ -79,6 +81,9 @@ export class TestCaseListComponent implements OnInit {
     | TemplateRef<any>
     | undefined;
   @ViewChild('editTestCaseModal') editTestCaseModal:
+    | TemplateRef<any>
+    | undefined;
+  @ViewChild('uploadTestCaseModal') uploadTestCaseModal:
     | TemplateRef<any>
     | undefined;
 
@@ -98,6 +103,8 @@ export class TestCaseListComponent implements OnInit {
   public editTestCaseModalInput = '';
   public editTestCaseModalOutput = '';
   public editModalTestCaseIsHidden = true;
+
+  private uploadTestCaseModalRef: NzModalRef | undefined;
 
   constructor(
     private readonly accountService: AccountService,
@@ -325,11 +332,16 @@ export class TestCaseListComponent implements OnInit {
           if (e instanceof ProblemNotFoundError) {
             this.notificationService.error(
               'Failed to update test case',
-              'TestCase not found'
+              'Test case not found'
             );
             await this.loadTestCaseSnippetList();
             return;
           }
+
+          this.notificationService.error(
+            'Failed to update test case',
+            'Unknown error'
+          );
         }
       },
     });
@@ -377,11 +389,16 @@ export class TestCaseListComponent implements OnInit {
           if (e instanceof ProblemNotFoundError) {
             this.notificationService.error(
               'Failed to delete test case',
-              'TestCase not found'
+              'Test case not found'
             );
             await this.loadTestCaseSnippetList();
             return;
           }
+
+          this.notificationService.error(
+            'Failed to delete test case',
+            'Unknown error'
+          );
         }
       },
     });
@@ -429,7 +446,7 @@ export class TestCaseListComponent implements OnInit {
           if (e instanceof ProblemNotFoundError) {
             this.notificationService.error(
               'Failed to create test case',
-              'TestCase not found'
+              'Problem not found'
             );
             await this.loadTestCaseSnippetList();
             return;
@@ -438,6 +455,66 @@ export class TestCaseListComponent implements OnInit {
       },
     });
   }
+
+  public onUploadZippedTestCasesClicked(): void {
+    this.uploadTestCaseModalRef?.close();
+    this.uploadTestCaseModalRef = this.modalService.create({
+      nzContent: this.uploadTestCaseModal,
+      nzWidth: 'fit-content',
+      nzCloseIcon: '',
+      nzOkText: null,
+    });
+  }
+
+  public onLoadFile = (file: NzUploadFile): boolean => {
+    const fileReader = new FileReader();
+    fileReader.onload = async (event) => {
+      this.uploadTestCaseModalRef?.close();
+      try {
+        const content = event.target?.result as ArrayBuffer;
+        await this.testCaseService.createTestCaseList(this.problemID, content);
+        this.notificationService.success(
+          'Uploaded zipped test cases successfully',
+          ''
+        );
+        await this.loadTestCaseSnippetList();
+      } catch (e) {
+        if (e instanceof UnauthenticatedError) {
+          this.notificationService.error(
+            'Failed to upload zipped test cases',
+            'Not logged in'
+          );
+          this.router.navigateByUrl('/login');
+          return;
+        }
+
+        if (e instanceof PermissionDeniedError) {
+          this.notificationService.error(
+            'Failed to upload zipped test cases',
+            'Permission denied'
+          );
+          this.location.back();
+          return;
+        }
+
+        if (e instanceof ProblemNotFoundError) {
+          this.notificationService.error(
+            'Failed to upload zipped test cases',
+            'Problem not found'
+          );
+          await this.loadTestCaseSnippetList();
+          return;
+        }
+
+        this.notificationService.error(
+          'Failed to upload zipped test cases',
+          'Unknown error'
+        );
+      }
+    };
+    fileReader.readAsArrayBuffer(file as any);
+    return false;
+  };
 
   private async loadTestCaseFromSnippet(
     index: number,
@@ -485,11 +562,16 @@ export class TestCaseListComponent implements OnInit {
       if (e instanceof TestCaseNotFoundError) {
         this.notificationService.error(
           'Failed to load test case',
-          'TestCase not found'
+          'Test case not found'
         );
         await this.loadTestCaseSnippetList();
         return;
       }
+
+      this.notificationService.error(
+        'Failed to load test case',
+        'Unknown error'
+      );
     } finally {
       this.testCaseList = [...this.testCaseList];
       this.testCaseList[index] = {

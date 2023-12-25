@@ -26,3 +26,6 @@ __debug_bin
 
 # Database file
 *.db
+
+# Test input zip file
+testinputdata.zip

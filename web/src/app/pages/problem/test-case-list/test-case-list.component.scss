@@ -2,10 +2,6 @@
   overflow-x: scroll;
 }
 
-.create-test-case-button {
-  margin-bottom: 8px;
-}
-
 .edit-test-case-modal {
   width: 720px;
 }
@@ -13,4 +9,9 @@
 .editor {
   display: block;
   height: 200px;
+}
+
+.upload-hint {
+  width: 500px;
+  padding: 8px;
 }

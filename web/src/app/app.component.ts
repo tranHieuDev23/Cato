@@ -1,4 +1,10 @@
-import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  HostListener,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, RouterOutlet } from '@angular/router';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -8,6 +14,7 @@ import { AccountService } from './logic/account.service';
 import { NzPageHeaderModule } from 'ng-zorro-antd/page-header';
 import { PageTitleService } from './logic/page-title.service';
 import { Subscription } from 'rxjs';
+import { NzSpaceModule } from 'ng-zorro-antd/space';
 
 @Component({
   selector: 'app-root',
@@ -20,6 +27,7 @@ import { Subscription } from 'rxjs';
     SideMenuComponent,
     RouterModule,
     NzPageHeaderModule,
+    NzSpaceModule,
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
@@ -27,6 +35,7 @@ import { Subscription } from 'rxjs';
 export class AppComponent implements OnInit, OnDestroy {
   public collapsed = false;
   public pageTitle = 'Cato';
+  public windowWidth = 0;
 
   private titleChangedSubscription: Subscription;
 
@@ -35,6 +44,7 @@ export class AppComponent implements OnInit, OnDestroy {
     private readonly pageTitleService: PageTitleService,
     private readonly changeDetector: ChangeDetectorRef
   ) {
+    this.windowWidth = window.innerWidth;
     this.titleChangedSubscription =
       this.pageTitleService.titleChanged.subscribe((title) => {
         this.pageTitle = title;
@@ -48,5 +58,10 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.titleChangedSubscription.unsubscribe();
+  }
+
+  @HostListener('window: resize')
+  public onWindowResize(): void {
+    this.windowWidth = window.innerWidth;
   }
 }

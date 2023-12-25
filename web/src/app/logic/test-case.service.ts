@@ -3,6 +3,7 @@ import { RpcTestCase, RpcError, RpcTestCaseSnippet } from '../dataaccess/api';
 import { ApiService, ErrorCode } from '../dataaccess/api.service';
 import { UnauthenticatedError, PermissionDeniedError } from './account.service';
 import { ProblemNotFoundError } from './problem.service';
+import { Encoder } from 'bazinga64';
 
 export class InvalidTestCaseListParam extends Error {
   constructor() {
@@ -112,6 +113,41 @@ export class TestCaseService {
         isHidden,
       });
       return response.testCaseSnippet;
+    } catch (e) {
+      if (!this.api.isRpcError(e)) {
+        throw e;
+      }
+
+      const apiError = e as RpcError;
+      if (apiError.code == ErrorCode.JRPCErrorInvalidParams) {
+        throw new InvalidTestCaseInfo();
+      }
+
+      if (apiError.code == ErrorCode.Unauthenticated) {
+        throw new UnauthenticatedError();
+      }
+
+      if (apiError.code == ErrorCode.PermissionDenied) {
+        throw new PermissionDeniedError();
+      }
+
+      if (apiError.code == ErrorCode.NotFound) {
+        throw new ProblemNotFoundError();
+      }
+
+      throw e;
+    }
+  }
+
+  public async createTestCaseList(
+    problemID: number,
+    zippedTestData: ArrayBuffer
+  ): Promise<void> {
+    try {
+      await this.api.createTestCaseList({
+        problemID,
+        zippedTestData: Encoder.toBase64(zippedTestData).asString,
+      });
     } catch (e) {
       if (!this.api.isRpcError(e)) {
         throw e;

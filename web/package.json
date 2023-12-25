@@ -20,6 +20,7 @@
     "@angular/platform-browser-dynamic": "^17.0.0",
     "@angular/router": "^17.0.0",
     "@ctrl/ngx-codemirror": "^7.0.0",
+    "bazinga64": "^6.3.4",
     "codemirror": "^5.65.16",
     "copy-to-clipboard": "^3.3.3",
     "katex": "^0.16.9",

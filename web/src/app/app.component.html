@@ -1,11 +1,13 @@
 <nz-layout class="app-layout">
-  <nz-sider class="menu-sidebar" nzCollapsible nzWidth="256px" nzBreakpoint="md" [(nzCollapsed)]="collapsed"
-    [nzTrigger]="null">
-    <div class="sidebar-logo">
-      <a routerLink="/">
-        <img src="https://ng.ant.design/assets/img/logo.svg" alt="logo">
-        <h1>Cato</h1>
-      </a>
+  <nz-sider class="menu-sidebar" nzCollapsible nzWidth="256px" [nzCollapsedWidth]="windowWidth < 992? 0 : 64"
+    nzBreakpoint="xl" [(nzCollapsed)]="collapsed" [nzTrigger]="null">
+    <div nz-space nzAlign="center" nzDirection="horizontal" class="sidebar-logo">
+      <ng-container nzSpaceItem>
+        <a routerLink="/">
+          <img src="https://ng.ant.design/assets/img/logo.svg" alt="logo">
+        </a>
+        <h1 *ngIf="!collapsed">Cato</h1>
+      </ng-container>
     </div>
     <app-side-menu [collapsed]="collapsed"></app-side-menu>
   </nz-sider>
