@@ -233,7 +233,7 @@ export class ProblemEditorComponent implements OnInit {
           this.unitService.memoryValueAndUnitToLimit(memoryLimit, memoryUnit)
         );
 
-        this.notificationService.success('Problem saved successfully!', '');
+        this.notificationService.success('Problem saved successfully', '');
         this.router.navigateByUrl(`/problem/${problem.iD}`);
       } else {
         await this.problemService.updateProblem(
@@ -243,7 +243,7 @@ export class ProblemEditorComponent implements OnInit {
           this.unitService.timeValueAndUnitToLimit(timeLimit, timeUnit),
           this.unitService.memoryValueAndUnitToLimit(memoryLimit, memoryUnit)
         );
-        this.notificationService.success('Problem updated successfully!', '');
+        this.notificationService.success('Problem updated successfully', '');
         this.router.navigateByUrl(`/problem/${this.problemID}`);
       }
     } catch (e) {
