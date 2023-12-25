@@ -8,7 +8,9 @@ import (
 
 var WireSet = wire.NewSet(
 	middlewares.WireSet,
-	NewAPIServerHandler,
+	NewLocalAPIServerHandler,
+	NewDistributedAPIServerHandler,
 	NewSPAHandler,
-	NewServer,
+	NewLocalServer,
+	NewDistributedServer,
 )

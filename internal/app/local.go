@@ -10,24 +10,24 @@ import (
 	"github.com/tranHieuDev23/cato/internal/handlers/jobs"
 )
 
-type Cato interface {
+type App interface {
 	Start() error
 }
 
-type cato struct {
+type LocalCato struct {
 	dbMigrator                 db.Migrator
 	createFirstAdminAccountJob jobs.CreateFirstAdminAccount
 	httpServer                 http.Server
 	logger                     *zap.Logger
 }
 
-func NewCato(
+func NewLocalCato(
 	dbMigrator db.Migrator,
 	createFirstAdminAccountJob jobs.CreateFirstAdminAccount,
-	httpServer http.Server,
+	httpServer http.LocalServer,
 	logger *zap.Logger,
-) Cato {
-	return &cato{
+) *LocalCato {
+	return &LocalCato{
 		dbMigrator:                 dbMigrator,
 		createFirstAdminAccountJob: createFirstAdminAccountJob,
 		httpServer:                 httpServer,
@@ -35,7 +35,7 @@ func NewCato(
 	}
 }
 
-func (c cato) Start() error {
+func (c LocalCato) Start() error {
 	if err := c.dbMigrator.Migrate(context.Background()); err != nil {
 		return err
 	}

@@ -59,3 +59,29 @@ func (s server) Start() error {
 		Info("starting http server")
 	return http.ListenAndServe(s.httpConfig.Address, mux)
 }
+
+type LocalServer Server
+
+func NewLocalServer(
+	apiServerHandler LocalAPIServerHandler,
+	middlewareList []pjrpc.Middleware,
+	httpMiddlewareList []func(http.Handler) http.Handler,
+	spaHandler SPAHandler,
+	logger *zap.Logger,
+	httpConfig configs.HTTP,
+) LocalServer {
+	return NewServer(apiServerHandler, middlewareList, httpMiddlewareList, spaHandler, logger, httpConfig)
+}
+
+type DistributedServer Server
+
+func NewDistributedServer(
+	apiServerHandler DistributedAPIServerHandler,
+	middlewareList []pjrpc.Middleware,
+	httpMiddlewareList []func(http.Handler) http.Handler,
+	spaHandler SPAHandler,
+	logger *zap.Logger,
+	httpConfig configs.HTTP,
+) DistributedServer {
+	return NewServer(apiServerHandler, middlewareList, httpMiddlewareList, spaHandler, logger, httpConfig)
+}

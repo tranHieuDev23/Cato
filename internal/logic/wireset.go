@@ -9,9 +9,10 @@ var WireSet = wire.NewSet(
 	NewAccount,
 	NewProblem,
 	NewTestCase,
-	NewSubmission,
+	NewLocalSubmission,
+	NewDistributedSubmission,
 	NewCompile,
 	NewTestCaseRun,
 	NewLocalJudge,
-	NewRemoteJudge,
+	NewDistributedJudge,
 )

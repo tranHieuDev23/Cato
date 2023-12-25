@@ -343,3 +343,27 @@ func (a apiServerHandler) UpdateTestCase(ctx context.Context, in *rpc.UpdateTest
 	token := a.getAuthorizationBearerToken(ctx)
 	return a.testCaseLogic.UpdateTestCase(ctx, in, token)
 }
+
+type LocalAPIServerHandler rpcserver.APIServer
+
+func NewLocalAPIServerHandler(
+	accountLogic logic.Account,
+	problemLogic logic.Problem,
+	testCaseLogic logic.TestCase,
+	submissionLogic logic.LocalSubmission,
+	logger *zap.Logger,
+) LocalAPIServerHandler {
+	return NewAPIServerHandler(accountLogic, problemLogic, testCaseLogic, submissionLogic, logger)
+}
+
+type DistributedAPIServerHandler rpcserver.APIServer
+
+func NewDistributedAPIServerHandler(
+	accountLogic logic.Account,
+	problemLogic logic.Problem,
+	testCaseLogic logic.TestCase,
+	submissionLogic logic.DistributedSubmission,
+	logger *zap.Logger,
+) DistributedAPIServerHandler {
+	return NewAPIServerHandler(accountLogic, problemLogic, testCaseLogic, submissionLogic, logger)
+}

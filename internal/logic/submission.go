@@ -24,6 +24,7 @@ type Submission interface {
 type submission struct {
 	token                  Token
 	role                   Role
+	judge                  Judge
 	accountDataAccessor    db.AccountDataAccessor
 	problemDataAccessor    db.ProblemDataAccessor
 	submissionDataAccessor db.SubmissionDataAccessor
@@ -33,6 +34,7 @@ type submission struct {
 func NewSubmission(
 	token Token,
 	role Role,
+	judge Judge,
 	accountDataAccessor db.AccountDataAccessor,
 	problemDataAccessor db.ProblemDataAccessor,
 	submissionDataAccessor db.SubmissionDataAccessor,
@@ -41,6 +43,7 @@ func NewSubmission(
 	return &submission{
 		token:                  token,
 		role:                   role,
+		judge:                  judge,
 		accountDataAccessor:    accountDataAccessor,
 		problemDataAccessor:    problemDataAccessor,
 		submissionDataAccessor: submissionDataAccessor,
@@ -136,6 +139,8 @@ func (s submission) CreateSubmission(ctx context.Context, in *rpc.CreateSubmissi
 	if err := s.submissionDataAccessor.CreateSubmission(ctx, submission); err != nil {
 		return nil, err
 	}
+
+	s.judge.ScheduleSubmissionToJudge(uint64(submission.ID))
 
 	return &rpc.CreateSubmissionResponse{
 		SubmissionSnippet: s.dbSubmissionToRPCSubmissionSnippet(submission, problem, account),
@@ -526,4 +531,32 @@ func (s submission) GetSubmissionSnippetList(ctx context.Context, in *rpc.GetSub
 		TotalSubmissionCount:  totalSubmissionCount,
 		SubmissionSnippetList: submissionSnippetList,
 	}, nil
+}
+
+type LocalSubmission Submission
+
+func NewLocalSubmission(
+	token Token,
+	role Role,
+	judge LocalJudge,
+	accountDataAccessor db.AccountDataAccessor,
+	problemDataAccessor db.ProblemDataAccessor,
+	submissionDataAccessor db.SubmissionDataAccessor,
+	logger *zap.Logger,
+) LocalSubmission {
+	return NewSubmission(token, role, judge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, logger)
+}
+
+type DistributedSubmission Submission
+
+func NewDistributedSubmission(
+	token Token,
+	role Role,
+	judge DistributedJudge,
+	accountDataAccessor db.AccountDataAccessor,
+	problemDataAccessor db.ProblemDataAccessor,
+	submissionDataAccessor db.SubmissionDataAccessor,
+	logger *zap.Logger,
+) DistributedSubmission {
+	return NewSubmission(token, role, judge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, logger)
 }

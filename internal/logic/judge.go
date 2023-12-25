@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/docker/docker/client"
+	"github.com/gammazero/workerpool"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
@@ -15,6 +16,7 @@ import (
 
 type Judge interface {
 	JudgeSubmission(ctx context.Context, id uint64) error
+	ScheduleSubmissionToJudge(id uint64)
 }
 
 type judge struct {
@@ -27,6 +29,7 @@ type judge struct {
 	logger                     *zap.Logger
 	logicConfig                configs.Logic
 	shouldValidateProblemHash  bool
+	workerPool                 *workerpool.WorkerPool
 	languageToCompileLogic     map[string]Compile
 	languageToTestCaseRunLogic map[string]TestCaseRun
 }
@@ -43,7 +46,7 @@ func NewJudge(
 	logicConfig configs.Logic,
 	shouldValidateProblemHash bool,
 ) (Judge, error) {
-	e := &judge{
+	j := &judge{
 		problemDataAccessor:        problemDataAccessor,
 		submissionDataAccessor:     submissionDataAccessor,
 		testCaseDataAccessor:       testCaseDataAccessor,
@@ -51,6 +54,7 @@ func NewJudge(
 		logger:                     logger,
 		logicConfig:                logicConfig,
 		shouldValidateProblemHash:  shouldValidateProblemHash,
+		workerPool:                 workerpool.New(1),
 		languageToCompileLogic:     make(map[string]Compile),
 		languageToTestCaseRunLogic: make(map[string]TestCaseRun),
 	}
@@ -61,25 +65,25 @@ func NewJudge(
 			return nil, err
 		}
 
-		e.languageToCompileLogic[language] = compile
+		j.languageToCompileLogic[language] = compile
 
 		testCaseRun, err := NewTestCaseRun(dockerClient, logger, language, config.TestCaseRun)
 		if err != nil {
 			return nil, err
 		}
 
-		e.languageToTestCaseRunLogic[language] = testCaseRun
+		j.languageToTestCaseRunLogic[language] = testCaseRun
 	}
 
-	return e, nil
+	return j, nil
 }
 
-func (e judge) validateProblemHash(ctx context.Context, problem *db.Problem) error {
+func (j judge) validateProblemHash(ctx context.Context, problem *db.Problem) error {
 	// TODO: Fill this in when implement worker APIs
 	return nil
 }
 
-func (e judge) updateSubmissionStatusAndResult(
+func (j judge) updateSubmissionStatusAndResult(
 	ctx context.Context,
 	submission *db.Submission,
 	status db.SubmissionStatus,
@@ -87,7 +91,7 @@ func (e judge) updateSubmissionStatusAndResult(
 ) error {
 	submission.Status = status
 	submission.Result = result
-	return e.submissionDataAccessor.UpdateSubmission(ctx, submission)
+	return j.submissionDataAccessor.UpdateSubmission(ctx, submission)
 }
 
 func (e judge) judgeDBSubmission(ctx context.Context, submission *db.Submission) error {
@@ -176,16 +180,16 @@ func (e judge) judgeDBSubmission(ctx context.Context, submission *db.Submission)
 	return e.updateSubmissionStatusAndResult(ctx, submission, db.SubmissionStatusFinished, db.SubmissionResultOK)
 }
 
-func (e judge) JudgeSubmission(ctx context.Context, id uint64) error {
+func (j judge) JudgeSubmission(ctx context.Context, id uint64) error {
 	var (
-		logger     = utils.LoggerWithContext(ctx, e.logger).With(zap.Uint64("id", id))
+		logger     = utils.LoggerWithContext(ctx, j.logger).With(zap.Uint64("id", id))
 		submission *db.Submission
 		err        error
 	)
 
 	logger.Info("retrieving submission information")
-	if txErr := e.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		submission, err = e.submissionDataAccessor.WithDB(tx).GetSubmission(ctx, id)
+	if txErr := j.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		submission, err = j.submissionDataAccessor.WithDB(tx).GetSubmission(ctx, id)
 		if err != nil {
 			return err
 		}
@@ -201,7 +205,7 @@ func (e judge) JudgeSubmission(ctx context.Context, id uint64) error {
 		}
 
 		submission.Status = db.SubmissionStatusExecuting
-		if err := e.submissionDataAccessor.WithDB(tx).UpdateSubmission(ctx, submission); err != nil {
+		if err := j.submissionDataAccessor.WithDB(tx).UpdateSubmission(ctx, submission); err != nil {
 			return err
 		}
 
@@ -210,10 +214,10 @@ func (e judge) JudgeSubmission(ctx context.Context, id uint64) error {
 		return txErr
 	}
 
-	if err := e.judgeDBSubmission(ctx, submission); err != nil {
+	if err := j.judgeDBSubmission(ctx, submission); err != nil {
 		logger.With(zap.Error(err)).Error("encountered error while judging submission, reverting status to submitted")
 
-		if revertErr := e.updateSubmissionStatusAndResult(
+		if revertErr := j.updateSubmissionStatusAndResult(
 			ctx, submission, db.SubmissionStatusSubmitted, 0,
 		); revertErr != nil {
 			logger.With(zap.Error(revertErr)).Error("failed to revert submission status to submitted")
@@ -223,6 +227,12 @@ func (e judge) JudgeSubmission(ctx context.Context, id uint64) error {
 	}
 
 	return nil
+}
+
+func (j judge) ScheduleSubmissionToJudge(id uint64) {
+	j.workerPool.Submit(func() {
+		_ = j.JudgeSubmission(context.Background(), id)
+	})
 }
 
 type LocalJudge Judge
@@ -252,9 +262,9 @@ func NewLocalJudge(
 	)
 }
 
-type RemoteJudge Judge
+type DistributedJudge Judge
 
-func NewRemoteJudge(
+func NewDistributedJudge(
 	testCaseLogic TestCase,
 	problemDataAccessor db.ProblemDataAccessor,
 	submissionDataAccessor db.SubmissionDataAccessor,
@@ -264,7 +274,7 @@ func NewRemoteJudge(
 	db *gorm.DB,
 	logger *zap.Logger,
 	logicConfig configs.Logic,
-) (LocalJudge, error) {
+) (DistributedJudge, error) {
 	return NewJudge(
 		testCaseLogic,
 		problemDataAccessor,
