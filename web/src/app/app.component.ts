@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, RouterOutlet } from '@angular/router';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
-import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { SideMenuComponent } from './components/side-menu/side-menu.component';
 import { AccountService } from './logic/account.service';
 import { NzPageHeaderModule } from 'ng-zorro-antd/page-header';
