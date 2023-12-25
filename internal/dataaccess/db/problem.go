@@ -48,8 +48,7 @@ func NewProblemDataAccessor(
 }
 
 func (a problemDataAccessor) CreateProblem(ctx context.Context, problem *Problem) error {
-	logger := utils.LoggerWithContext(ctx, a.logger).
-		With(zap.Any("problem", problem))
+	logger := utils.LoggerWithContext(ctx, a.logger)
 	db := a.db.WithContext(ctx)
 	if err := db.Create(problem).Error; err != nil {
 		logger.With(zap.Error(err)).Error("failed to create problem")
@@ -143,8 +142,7 @@ func (a problemDataAccessor) GetAccountProblemList(ctx context.Context, accountI
 }
 
 func (a problemDataAccessor) UpdateProblem(ctx context.Context, problem *Problem) error {
-	logger := utils.LoggerWithContext(ctx, a.logger).
-		With(zap.Any("problem", problem))
+	logger := utils.LoggerWithContext(ctx, a.logger)
 	db := a.db.WithContext(ctx)
 	if err := db.Save(problem).Error; err != nil {
 		logger.With(zap.Error(err)).Error("failed to update problem")

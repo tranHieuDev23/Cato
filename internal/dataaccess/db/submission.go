@@ -70,8 +70,7 @@ func NewSubmissionDataAccessor(
 }
 
 func (a submissionDataAccessor) CreateSubmission(ctx context.Context, submission *Submission) error {
-	logger := utils.LoggerWithContext(ctx, a.logger).
-		With(zap.Any("submission", submission))
+	logger := utils.LoggerWithContext(ctx, a.logger)
 	db := a.db.WithContext(ctx)
 	if err := db.Create(submission).Error; err != nil {
 		logger.With(zap.Error(err)).Error("failed to create submission")
@@ -82,8 +81,7 @@ func (a submissionDataAccessor) CreateSubmission(ctx context.Context, submission
 }
 
 func (a submissionDataAccessor) GetSubmission(ctx context.Context, id uint64) (*Submission, error) {
-	logger := utils.LoggerWithContext(ctx, a.logger).
-		With(zap.Any("id", id))
+	logger := utils.LoggerWithContext(ctx, a.logger).With(zap.Uint64("id", id))
 	db := a.db.WithContext(ctx)
 	submission := &Submission{}
 	if err := db.First(submission, id).Error; err != nil {
@@ -95,8 +93,7 @@ func (a submissionDataAccessor) GetSubmission(ctx context.Context, id uint64) (*
 }
 
 func (a submissionDataAccessor) UpdateSubmission(ctx context.Context, submission *Submission) error {
-	logger := utils.LoggerWithContext(ctx, a.logger).
-		With(zap.Any("submission", submission))
+	logger := utils.LoggerWithContext(ctx, a.logger)
 	db := a.db.WithContext(ctx)
 	if err := db.Save(submission).Error; err != nil {
 		logger.With(zap.Error(err)).Error("failed to update submission")
@@ -107,8 +104,7 @@ func (a submissionDataAccessor) UpdateSubmission(ctx context.Context, submission
 }
 
 func (a submissionDataAccessor) DeleteSubmission(ctx context.Context, id uint64) error {
-	logger := utils.LoggerWithContext(ctx, a.logger).
-		With(zap.Any("id", id))
+	logger := utils.LoggerWithContext(ctx, a.logger).With(zap.Uint64("id", id))
 	db := a.db.WithContext(ctx)
 	if err := db.Delete(&Submission{
 		Model: gorm.Model{ID: uint(id)},

@@ -52,8 +52,7 @@ func NewAccountDataAccessor(
 }
 
 func (a accountDataAccessor) CreateAccount(ctx context.Context, account *Account) error {
-	logger := utils.LoggerWithContext(ctx, a.logger).
-		With(zap.Any("account", account))
+	logger := utils.LoggerWithContext(ctx, a.logger)
 	db := a.db.WithContext(ctx)
 	if err := db.Create(account).Error; err != nil {
 		logger.With(zap.Error(err)).Error("failed to create account")
@@ -64,8 +63,7 @@ func (a accountDataAccessor) CreateAccount(ctx context.Context, account *Account
 }
 
 func (a accountDataAccessor) GetAccount(ctx context.Context, id uint64) (*Account, error) {
-	logger := utils.LoggerWithContext(ctx, a.logger).
-		With(zap.Any("id", id))
+	logger := utils.LoggerWithContext(ctx, a.logger).With(zap.Uint64("id", id))
 	db := a.db.WithContext(ctx)
 	account := new(Account)
 	if err := db.First(account, id).Error; err != nil {
@@ -126,8 +124,7 @@ func (a accountDataAccessor) GetAccountList(ctx context.Context, offset uint64, 
 }
 
 func (a accountDataAccessor) UpdateAccount(ctx context.Context, account *Account) error {
-	logger := utils.LoggerWithContext(ctx, a.logger).
-		With(zap.Any("account", account))
+	logger := utils.LoggerWithContext(ctx, a.logger)
 	db := a.db.WithContext(ctx)
 	if err := db.Save(account).Error; err != nil {
 		logger.With(zap.Error(err)).Error("failed to update account")

@@ -70,7 +70,7 @@ func (t token) GetAccountIDAndExpireTime(ctx context.Context, tokenString string
 
 	parsedToken, err := jwt.Parse(tokenString, func(parsedToken *jwt.Token) (interface{}, error) {
 		if _, ok := parsedToken.Method.(*jwt.SigningMethodRSA); !ok {
-			logger.With(zap.Any("alg", parsedToken.Header["alg"])).Error("unexpected signing method")
+			logger.Error("unexpected signing method")
 			return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeUnauthenticated))
 		}
 
