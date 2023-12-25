@@ -21,11 +21,9 @@ type Judge interface {
 }
 
 type judge struct {
-	testCaseLogic              TestCase
 	problemDataAccessor        db.ProblemDataAccessor
 	submissionDataAccessor     db.SubmissionDataAccessor
 	testCaseDataAccessor       db.TestCaseDataAccessor
-	dockerClient               *client.Client
 	db                         *gorm.DB
 	logger                     *zap.Logger
 	logicConfig                configs.Logic
@@ -36,11 +34,9 @@ type judge struct {
 }
 
 func NewJudge(
-	testCaseLogic TestCase,
 	problemDataAccessor db.ProblemDataAccessor,
 	submissionDataAccessor db.SubmissionDataAccessor,
 	testCaseDataAccessor db.TestCaseDataAccessor,
-	problemTestCaseHashDataAccessor db.ProblemTestCaseHashDataAccessor,
 	dockerClient *client.Client,
 	db *gorm.DB,
 	logger *zap.Logger,
@@ -79,7 +75,7 @@ func NewJudge(
 	return j, nil
 }
 
-func (j judge) validateProblemHash(ctx context.Context, problem *db.Problem) error {
+func (j judge) validateProblemHash(_ context.Context, _ *db.Problem) error {
 	// TODO: Fill this in when implement worker APIs
 	return nil
 }
@@ -95,10 +91,10 @@ func (j judge) updateSubmissionStatusAndResult(
 	return j.submissionDataAccessor.UpdateSubmission(ctx, submission)
 }
 
-func (e judge) judgeDBSubmission(ctx context.Context, submission *db.Submission) error {
-	logger := utils.LoggerWithContext(ctx, e.logger).With(zap.Uint("id", submission.ID))
+func (j judge) judgeDBSubmission(ctx context.Context, submission *db.Submission) error {
+	logger := utils.LoggerWithContext(ctx, j.logger).With(zap.Uint("id", submission.ID))
 
-	problem, err := e.problemDataAccessor.GetProblem(ctx, submission.OfProblemID)
+	problem, err := j.problemDataAccessor.GetProblem(ctx, submission.OfProblemID)
 	if err != nil {
 		return err
 	}
@@ -108,24 +104,25 @@ func (e judge) judgeDBSubmission(ctx context.Context, submission *db.Submission)
 		return errors.New("cannot find problem")
 	}
 
-	if e.shouldValidateProblemHash {
+	if j.shouldValidateProblemHash {
 		logger.Info("validating problem hash")
-		if err := e.validateProblemHash(ctx, problem); err != nil {
+		err = j.validateProblemHash(ctx, problem)
+		if err != nil {
 			return err
 		}
 	}
 
 	logger.Info("retrieving test case information")
-	testCaseID, err := e.testCaseDataAccessor.GetTestCaseIDListOfProblem(ctx, uint64(problem.ID))
+	testCaseID, err := j.testCaseDataAccessor.GetTestCaseIDListOfProblem(ctx, uint64(problem.ID))
 	if err != nil {
 		return err
 	}
 
 	logger.Info("compiling submission")
-	compileLogic, ok := e.languageToCompileLogic[submission.Language]
+	compileLogic, ok := j.languageToCompileLogic[submission.Language]
 	if !ok {
 		logger.With(zap.String("language", submission.Language)).Info("submission has unsupported language")
-		return e.updateSubmissionStatusAndResult(
+		return j.updateSubmissionStatusAndResult(
 			ctx, submission, db.SubmissionStatusFinished, db.SubmissionResultUnsupportedLanguage)
 	}
 
@@ -136,7 +133,8 @@ func (e judge) judgeDBSubmission(ctx context.Context, submission *db.Submission)
 	}
 
 	defer func() {
-		if err := os.Remove(compileOutput.ProgramFilePath); err != nil {
+		err = os.Remove(compileOutput.ProgramFilePath)
+		if err != nil {
 			logger.
 				With(zap.String("program_file_path", compileOutput.ProgramFilePath)).
 				With(zap.Error(err)).
@@ -146,28 +144,28 @@ func (e judge) judgeDBSubmission(ctx context.Context, submission *db.Submission)
 
 	if compileOutput.ProgramFilePath == "" {
 		logger.With(zap.Any("compile_output", compileOutput)).Info("submission has compile error")
-		return e.updateSubmissionStatusAndResult(
+		return j.updateSubmissionStatusAndResult(
 			ctx, submission, db.SubmissionStatusFinished, db.SubmissionResultCompileError)
 	}
 
 	logger.Info("running submission against test cases")
-	runLogic := e.languageToTestCaseRunLogic[submission.Language]
+	runLogic := j.languageToTestCaseRunLogic[submission.Language]
 	for _, testCaseID := range testCaseID {
-		testCase, err := e.testCaseDataAccessor.GetTestCase(ctx, testCaseID)
-		if err != nil {
-			return err
+		testCase, testCaseErr := j.testCaseDataAccessor.GetTestCase(ctx, testCaseID)
+		if testCaseErr != nil {
+			return testCaseErr
 		}
 
 		logger.With(zap.Uint64("test_case_id", testCaseID)).Info("running submission against test case")
-		runOutput, err := runLogic.Run(
+		runOutput, testCaseErr := runLogic.Run(
 			ctx,
 			compileOutput.ProgramFilePath,
 			testCase.Input,
 			problem.TimeLimitInMillisecond,
 			problem.MemoryLimitInByte,
 		)
-		if err != nil {
-			return err
+		if testCaseErr != nil {
+			return testCaseErr
 		}
 
 		if runOutput.ReturnCode != 0 {
@@ -175,19 +173,19 @@ func (e judge) judgeDBSubmission(ctx context.Context, submission *db.Submission)
 				With(zap.Uint64("test_case_id", testCaseID)).
 				With(zap.Int64("return_code", runOutput.ReturnCode)).
 				Info("submission has runtime error")
-			return e.updateSubmissionStatusAndResult(
+			return j.updateSubmissionStatusAndResult(
 				ctx, submission, db.SubmissionStatusFinished, db.SubmissionResultRuntimeError)
 		}
 
 		if runOutput.StdOut != testCase.Output {
 			logger.With(zap.Uint64("test_case_id", testCaseID)).Info("submission gave incorrect output")
-			return e.updateSubmissionStatusAndResult(
+			return j.updateSubmissionStatusAndResult(
 				ctx, submission, db.SubmissionStatusFinished, db.SubmissionResultWrongAnswer)
 		}
 	}
 
 	logger.Info("submission passed")
-	return e.updateSubmissionStatusAndResult(ctx, submission, db.SubmissionStatusFinished, db.SubmissionResultOK)
+	return j.updateSubmissionStatusAndResult(ctx, submission, db.SubmissionStatusFinished, db.SubmissionResultOK)
 }
 
 func (j judge) JudgeSubmission(ctx context.Context, id uint64) error {
@@ -215,7 +213,8 @@ func (j judge) JudgeSubmission(ctx context.Context, id uint64) error {
 		}
 
 		submission.Status = db.SubmissionStatusExecuting
-		if err := j.submissionDataAccessor.WithDB(tx).UpdateSubmission(ctx, submission); err != nil {
+		err = j.submissionDataAccessor.WithDB(tx).UpdateSubmission(ctx, submission)
+		if err != nil {
 			return err
 		}
 
@@ -224,7 +223,8 @@ func (j judge) JudgeSubmission(ctx context.Context, id uint64) error {
 		return txErr
 	}
 
-	if err := j.judgeDBSubmission(ctx, submission); err != nil {
+	err = j.judgeDBSubmission(ctx, submission)
+	if err != nil {
 		logger.With(zap.Error(err)).Error("encountered error while judging submission, reverting status to submitted")
 
 		if revertErr := j.updateSubmissionStatusAndResult(
@@ -248,22 +248,18 @@ func (j judge) ScheduleSubmissionToJudge(id uint64) {
 type LocalJudge Judge
 
 func NewLocalJudge(
-	testCaseLogic TestCase,
 	problemDataAccessor db.ProblemDataAccessor,
 	submissionDataAccessor db.SubmissionDataAccessor,
 	testCaseDataAccessor db.TestCaseDataAccessor,
-	problemTestCaseHashDataAccessor db.ProblemTestCaseHashDataAccessor,
 	dockerClient *client.Client,
 	db *gorm.DB,
 	logger *zap.Logger,
 	logicConfig configs.Logic,
 ) (LocalJudge, error) {
 	return NewJudge(
-		testCaseLogic,
 		problemDataAccessor,
 		submissionDataAccessor,
 		testCaseDataAccessor,
-		problemTestCaseHashDataAccessor,
 		dockerClient,
 		db,
 		logger,
@@ -275,22 +271,18 @@ func NewLocalJudge(
 type DistributedJudge Judge
 
 func NewDistributedJudge(
-	testCaseLogic TestCase,
 	problemDataAccessor db.ProblemDataAccessor,
 	submissionDataAccessor db.SubmissionDataAccessor,
 	testCaseDataAccessor db.TestCaseDataAccessor,
-	problemTestCaseHashDataAccessor db.ProblemTestCaseHashDataAccessor,
 	dockerClient *client.Client,
 	db *gorm.DB,
 	logger *zap.Logger,
 	logicConfig configs.Logic,
 ) (DistributedJudge, error) {
 	return NewJudge(
-		testCaseLogic,
 		problemDataAccessor,
 		submissionDataAccessor,
 		testCaseDataAccessor,
-		problemTestCaseHashDataAccessor,
 		dockerClient,
 		db,
 		logger,

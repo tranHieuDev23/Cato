@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -35,6 +36,39 @@ func setAuthorizationBearerToken(w http.ResponseWriter, token string, expireTime
 	})
 }
 
+func unsetAuthorizationBearerToken(w http.ResponseWriter) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     AuthorizationCookie,
+		Value:    "",
+		HttpOnly: true,
+		Expires:  time.Unix(0, 0),
+		SameSite: http.SameSiteStrictMode,
+	})
+}
+
+func regenerateTokenIfDurationToExpireIsWithinThreshold(
+	ctx context.Context,
+	token string,
+	tokenLogic logic.Token,
+	regenerateTokenBeforeExpiryDuration time.Duration,
+) (string, time.Time, error) {
+	accountID, expireTime, err := tokenLogic.GetAccountIDAndExpireTime(ctx, token)
+	if err != nil {
+		return "", time.Time{}, err
+	}
+
+	if !time.Now().Add(regenerateTokenBeforeExpiryDuration).After(expireTime) {
+		return token, expireTime, nil
+	}
+
+	newToken, newExpireTime, newTokenErr := tokenLogic.GetToken(ctx, accountID)
+	if newTokenErr != nil {
+		return "", time.Time{}, newTokenErr
+	}
+
+	return newToken, newExpireTime, nil
+}
+
 func NewHTTPAuth(
 	tokenLogic logic.Token,
 	tokenConfig configs.Token,
@@ -51,44 +85,38 @@ func NewHTTPAuth(
 
 	return func(baseHandler http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+
 			inMemoryWriter := newInMemoryResponseWriter()
 			baseHandler.ServeHTTP(inMemoryWriter, r)
 
 			postRequestToken := getAuthorizationBearerToken(r)
 			if postRequestToken == "" {
-				http.SetCookie(inMemoryWriter, &http.Cookie{
-					Name:     AuthorizationCookie,
-					Value:    "",
-					HttpOnly: true,
-					Expires:  time.Unix(0, 0),
-					SameSite: http.SameSiteStrictMode,
-				})
-				inMemoryWriter.Apply(w)
-				return
-			}
-
-			ctx := r.Context()
-			accountID, expireTime, err := tokenLogic.GetAccountIDAndExpireTime(ctx, postRequestToken)
-			if err != nil {
-				w.WriteHeader(http.StatusUnauthorized)
-				w.Write(make([]byte, 0))
-				return
-			}
-
-			if time.Now().Add(regenerateTokenBeforeExpiryDuration).After(expireTime) {
-				newToken, newExpireTime, err := tokenLogic.GetToken(ctx, accountID)
-				if err != nil {
-					w.WriteHeader(http.StatusInternalServerError)
-					w.Write(make([]byte, 0))
-					return
+				unsetAuthorizationBearerToken(inMemoryWriter)
+				applyErr := inMemoryWriter.Apply(w)
+				if applyErr != nil {
+					logger.With(zap.Error(applyErr)).Error("failed to apply in-memory writer to response writer")
 				}
 
-				postRequestToken = newToken
-				expireTime = newExpireTime
+				return
 			}
 
-			setAuthorizationBearerToken(inMemoryWriter, postRequestToken, expireTime)
-			inMemoryWriter.Apply(w)
+			regenerateToken, regenerateExpireTime, regenerateErr := regenerateTokenIfDurationToExpireIsWithinThreshold(
+				ctx, postRequestToken, tokenLogic, regenerateTokenBeforeExpiryDuration)
+			if regenerateErr != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				if _, writeErr := w.Write(make([]byte, 0)); writeErr != nil {
+					logger.With(zap.Error(writeErr)).Error("failed to write to response writer")
+				}
+
+				return
+			}
+
+			setAuthorizationBearerToken(inMemoryWriter, regenerateToken, regenerateExpireTime)
+			err = inMemoryWriter.Apply(w)
+			if err != nil {
+				logger.With(zap.Error(err)).Error("failed to apply in-memory writer to response writer")
+			}
 		})
 	}, nil
 }

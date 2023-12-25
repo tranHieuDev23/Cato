@@ -74,7 +74,10 @@ func (a apiServerHandler) setAuthorizationBearerToken(ctx context.Context, token
 	})
 }
 
-func (a apiServerHandler) validateRequest(ctx context.Context, in any) error {
+func (a apiServerHandler) validateRequest(
+	ctx context.Context,
+	in any,
+) error {
 	logger := utils.LoggerWithContext(ctx, a.logger)
 	if err := a.validate.StructCtx(ctx, in); err != nil {
 		logger.With(zap.Error(err)).Error("invalid request params")
@@ -84,7 +87,10 @@ func (a apiServerHandler) validateRequest(ctx context.Context, in any) error {
 	return nil
 }
 
-func (a apiServerHandler) CreateAccount(ctx context.Context, in *rpc.CreateAccountRequest) (*rpc.CreateAccountResponse, error) {
+func (a apiServerHandler) CreateAccount(
+	ctx context.Context,
+	in *rpc.CreateAccountRequest,
+) (*rpc.CreateAccountResponse, error) {
 	if err := a.validateRequest(ctx, in); err != nil {
 		return nil, err
 	}
@@ -93,7 +99,10 @@ func (a apiServerHandler) CreateAccount(ctx context.Context, in *rpc.CreateAccou
 	return a.accountLogic.CreateAccount(ctx, in, token)
 }
 
-func (a apiServerHandler) CreateProblem(ctx context.Context, in *rpc.CreateProblemRequest) (*rpc.CreateProblemResponse, error) {
+func (a apiServerHandler) CreateProblem(
+	ctx context.Context,
+	in *rpc.CreateProblemRequest,
+) (*rpc.CreateProblemResponse, error) {
 	if err := a.validateRequest(ctx, in); err != nil {
 		return nil, err
 	}
@@ -102,7 +111,10 @@ func (a apiServerHandler) CreateProblem(ctx context.Context, in *rpc.CreateProbl
 	return a.problemLogic.CreateProblem(ctx, in, token)
 }
 
-func (a apiServerHandler) CreateSession(ctx context.Context, in *rpc.CreateSessionRequest) (*rpc.CreateSessionResponse, error) {
+func (a apiServerHandler) CreateSession(
+	ctx context.Context,
+	in *rpc.CreateSessionRequest,
+) (*rpc.CreateSessionResponse, error) {
 	if err := a.validateRequest(ctx, in); err != nil {
 		return nil, err
 	}
@@ -116,7 +128,10 @@ func (a apiServerHandler) CreateSession(ctx context.Context, in *rpc.CreateSessi
 	return response, err
 }
 
-func (a apiServerHandler) CreateSubmission(ctx context.Context, in *rpc.CreateSubmissionRequest) (*rpc.CreateSubmissionResponse, error) {
+func (a apiServerHandler) CreateSubmission(
+	ctx context.Context,
+	in *rpc.CreateSubmissionRequest,
+) (*rpc.CreateSubmissionResponse, error) {
 	if err := a.validateRequest(ctx, in); err != nil {
 		return nil, err
 	}
@@ -125,7 +140,10 @@ func (a apiServerHandler) CreateSubmission(ctx context.Context, in *rpc.CreateSu
 	return a.submissionLogic.CreateSubmission(ctx, in, token)
 }
 
-func (a apiServerHandler) CreateTestCase(ctx context.Context, in *rpc.CreateTestCaseRequest) (*rpc.CreateTestCaseResponse, error) {
+func (a apiServerHandler) CreateTestCase(
+	ctx context.Context,
+	in *rpc.CreateTestCaseRequest,
+) (*rpc.CreateTestCaseResponse, error) {
 	if err := a.validateRequest(ctx, in); err != nil {
 		return nil, err
 	}
@@ -134,7 +152,10 @@ func (a apiServerHandler) CreateTestCase(ctx context.Context, in *rpc.CreateTest
 	return a.testCaseLogic.CreateTestCase(ctx, in, token)
 }
 
-func (a apiServerHandler) CreateTestCaseList(ctx context.Context, in *rpc.CreateTestCaseListRequest) (*rpc.CreateTestCaseListResponse, error) {
+func (a apiServerHandler) CreateTestCaseList(
+	ctx context.Context,
+	in *rpc.CreateTestCaseListRequest,
+) (*rpc.CreateTestCaseListResponse, error) {
 	if err := a.validateRequest(ctx, in); err != nil {
 		return nil, err
 	}
@@ -147,7 +168,10 @@ func (a apiServerHandler) CreateTestCaseList(ctx context.Context, in *rpc.Create
 	return &rpc.CreateTestCaseListResponse{}, nil
 }
 
-func (a apiServerHandler) DeleteProblem(ctx context.Context, in *rpc.DeleteProblemRequest) (*rpc.DeleteProblemResponse, error) {
+func (a apiServerHandler) DeleteProblem(
+	ctx context.Context,
+	in *rpc.DeleteProblemRequest,
+) (*rpc.DeleteProblemResponse, error) {
 	if err := a.validateRequest(ctx, in); err != nil {
 		return nil, err
 	}
@@ -160,7 +184,10 @@ func (a apiServerHandler) DeleteProblem(ctx context.Context, in *rpc.DeleteProbl
 	return &rpc.DeleteProblemResponse{}, nil
 }
 
-func (a apiServerHandler) DeleteSession(ctx context.Context, in *rpc.DeleteSessionRequest) (*rpc.DeleteSessionResponse, error) {
+func (a apiServerHandler) DeleteSession(
+	ctx context.Context,
+	in *rpc.DeleteSessionRequest,
+) (*rpc.DeleteSessionResponse, error) {
 	if err := a.validateRequest(ctx, in); err != nil {
 		return nil, err
 	}
@@ -174,7 +201,10 @@ func (a apiServerHandler) DeleteSession(ctx context.Context, in *rpc.DeleteSessi
 	return &rpc.DeleteSessionResponse{}, nil
 }
 
-func (a apiServerHandler) DeleteSubmission(ctx context.Context, in *rpc.DeleteSubmissionRequest) (*rpc.DeleteSubmissionResponse, error) {
+func (a apiServerHandler) DeleteSubmission(
+	ctx context.Context,
+	in *rpc.DeleteSubmissionRequest,
+) (*rpc.DeleteSubmissionResponse, error) {
 	if err := a.validateRequest(ctx, in); err != nil {
 		return nil, err
 	}
@@ -187,7 +217,10 @@ func (a apiServerHandler) DeleteSubmission(ctx context.Context, in *rpc.DeleteSu
 	return &rpc.DeleteSubmissionResponse{}, nil
 }
 
-func (a apiServerHandler) DeleteTestCase(ctx context.Context, in *rpc.DeleteTestCaseRequest) (*rpc.DeleteTestCaseResponse, error) {
+func (a apiServerHandler) DeleteTestCase(
+	ctx context.Context,
+	in *rpc.DeleteTestCaseRequest,
+) (*rpc.DeleteTestCaseResponse, error) {
 	if err := a.validateRequest(ctx, in); err != nil {
 		return nil, err
 	}
@@ -200,7 +233,10 @@ func (a apiServerHandler) DeleteTestCase(ctx context.Context, in *rpc.DeleteTest
 	return &rpc.DeleteTestCaseResponse{}, nil
 }
 
-func (a apiServerHandler) GetAccount(ctx context.Context, in *rpc.GetAccountRequest) (*rpc.GetAccountResponse, error) {
+func (a apiServerHandler) GetAccount(
+	ctx context.Context,
+	in *rpc.GetAccountRequest,
+) (*rpc.GetAccountResponse, error) {
 	if err := a.validateRequest(ctx, in); err != nil {
 		return nil, err
 	}
@@ -209,7 +245,10 @@ func (a apiServerHandler) GetAccount(ctx context.Context, in *rpc.GetAccountRequ
 	return a.accountLogic.GetAccount(ctx, in, token)
 }
 
-func (a apiServerHandler) GetAccountList(ctx context.Context, in *rpc.GetAccountListRequest) (*rpc.GetAccountListResponse, error) {
+func (a apiServerHandler) GetAccountList(
+	ctx context.Context,
+	in *rpc.GetAccountListRequest,
+) (*rpc.GetAccountListResponse, error) {
 	if err := a.validateRequest(ctx, in); err != nil {
 		return nil, err
 	}
@@ -218,7 +257,10 @@ func (a apiServerHandler) GetAccountList(ctx context.Context, in *rpc.GetAccount
 	return a.accountLogic.GetAccountList(ctx, in, token)
 }
 
-func (a apiServerHandler) GetAccountProblemSnippetList(ctx context.Context, in *rpc.GetAccountProblemSnippetListRequest) (*rpc.GetAccountProblemSnippetListResponse, error) {
+func (a apiServerHandler) GetAccountProblemSnippetList(
+	ctx context.Context,
+	in *rpc.GetAccountProblemSnippetListRequest,
+) (*rpc.GetAccountProblemSnippetListResponse, error) {
 	if err := a.validateRequest(ctx, in); err != nil {
 		return nil, err
 	}
@@ -227,7 +269,10 @@ func (a apiServerHandler) GetAccountProblemSnippetList(ctx context.Context, in *
 	return a.problemLogic.GetAccountProblemSnippetList(ctx, in, token)
 }
 
-func (a apiServerHandler) GetAccountProblemSubmissionSnippetList(ctx context.Context, in *rpc.GetAccountProblemSubmissionSnippetListRequest) (*rpc.GetAccountProblemSubmissionSnippetListResponse, error) {
+func (a apiServerHandler) GetAccountProblemSubmissionSnippetList(
+	ctx context.Context,
+	in *rpc.GetAccountProblemSubmissionSnippetListRequest,
+) (*rpc.GetAccountProblemSubmissionSnippetListResponse, error) {
 	if err := a.validateRequest(ctx, in); err != nil {
 		return nil, err
 	}
@@ -236,7 +281,10 @@ func (a apiServerHandler) GetAccountProblemSubmissionSnippetList(ctx context.Con
 	return a.submissionLogic.GetAccountProblemSubmissionSnippetList(ctx, in, token)
 }
 
-func (a apiServerHandler) GetAccountSubmissionSnippetList(ctx context.Context, in *rpc.GetAccountSubmissionSnippetListRequest) (*rpc.GetAccountSubmissionSnippetListResponse, error) {
+func (a apiServerHandler) GetAccountSubmissionSnippetList(
+	ctx context.Context,
+	in *rpc.GetAccountSubmissionSnippetListRequest,
+) (*rpc.GetAccountSubmissionSnippetListResponse, error) {
 	if err := a.validateRequest(ctx, in); err != nil {
 		return nil, err
 	}
@@ -245,7 +293,10 @@ func (a apiServerHandler) GetAccountSubmissionSnippetList(ctx context.Context, i
 	return a.submissionLogic.GetAccountSubmissionSnippetList(ctx, in, token)
 }
 
-func (a apiServerHandler) GetSession(ctx context.Context, in *rpc.GetSessionRequest) (*rpc.GetSessionResponse, error) {
+func (a apiServerHandler) GetSession(
+	ctx context.Context,
+	in *rpc.GetSessionRequest,
+) (*rpc.GetSessionResponse, error) {
 	if err := a.validateRequest(ctx, in); err != nil {
 		return nil, err
 	}
@@ -254,7 +305,10 @@ func (a apiServerHandler) GetSession(ctx context.Context, in *rpc.GetSessionRequ
 	return a.accountLogic.GetSession(ctx, token)
 }
 
-func (a apiServerHandler) GetProblem(ctx context.Context, in *rpc.GetProblemRequest) (*rpc.GetProblemResponse, error) {
+func (a apiServerHandler) GetProblem(
+	ctx context.Context,
+	in *rpc.GetProblemRequest,
+) (*rpc.GetProblemResponse, error) {
 	if err := a.validateRequest(ctx, in); err != nil {
 		return nil, err
 	}
@@ -263,7 +317,10 @@ func (a apiServerHandler) GetProblem(ctx context.Context, in *rpc.GetProblemRequ
 	return a.problemLogic.GetProblem(ctx, in, token)
 }
 
-func (a apiServerHandler) GetProblemSnippetList(ctx context.Context, in *rpc.GetProblemSnippetListRequest) (*rpc.GetProblemSnippetListResponse, error) {
+func (a apiServerHandler) GetProblemSnippetList(
+	ctx context.Context,
+	in *rpc.GetProblemSnippetListRequest,
+) (*rpc.GetProblemSnippetListResponse, error) {
 	if err := a.validateRequest(ctx, in); err != nil {
 		return nil, err
 	}
@@ -272,7 +329,10 @@ func (a apiServerHandler) GetProblemSnippetList(ctx context.Context, in *rpc.Get
 	return a.problemLogic.GetProblemSnippetList(ctx, in, token)
 }
 
-func (a apiServerHandler) GetProblemSubmissionSnippetList(ctx context.Context, in *rpc.GetProblemSubmissionSnippetListRequest) (*rpc.GetProblemSubmissionSnippetListResponse, error) {
+func (a apiServerHandler) GetProblemSubmissionSnippetList(
+	ctx context.Context,
+	in *rpc.GetProblemSubmissionSnippetListRequest,
+) (*rpc.GetProblemSubmissionSnippetListResponse, error) {
 	if err := a.validateRequest(ctx, in); err != nil {
 		return nil, err
 	}
@@ -281,7 +341,10 @@ func (a apiServerHandler) GetProblemSubmissionSnippetList(ctx context.Context, i
 	return a.submissionLogic.GetProblemSubmissionSnippetList(ctx, in, token)
 }
 
-func (a apiServerHandler) GetProblemTestCaseSnippetList(ctx context.Context, in *rpc.GetProblemTestCaseSnippetListRequest) (*rpc.GetProblemTestCaseSnippetListResponse, error) {
+func (a apiServerHandler) GetProblemTestCaseSnippetList(
+	ctx context.Context,
+	in *rpc.GetProblemTestCaseSnippetListRequest,
+) (*rpc.GetProblemTestCaseSnippetListResponse, error) {
 	if err := a.validateRequest(ctx, in); err != nil {
 		return nil, err
 	}
@@ -290,7 +353,10 @@ func (a apiServerHandler) GetProblemTestCaseSnippetList(ctx context.Context, in 
 	return a.testCaseLogic.GetProblemTestCaseSnippetList(ctx, in, token)
 }
 
-func (a apiServerHandler) GetSubmission(ctx context.Context, in *rpc.GetSubmissionRequest) (*rpc.GetSubmissionResponse, error) {
+func (a apiServerHandler) GetSubmission(
+	ctx context.Context,
+	in *rpc.GetSubmissionRequest,
+) (*rpc.GetSubmissionResponse, error) {
 	if err := a.validateRequest(ctx, in); err != nil {
 		return nil, err
 	}
@@ -299,7 +365,10 @@ func (a apiServerHandler) GetSubmission(ctx context.Context, in *rpc.GetSubmissi
 	return a.submissionLogic.GetSubmission(ctx, in, token)
 }
 
-func (a apiServerHandler) GetSubmissionSnippetList(ctx context.Context, in *rpc.GetSubmissionSnippetListRequest) (*rpc.GetSubmissionSnippetListResponse, error) {
+func (a apiServerHandler) GetSubmissionSnippetList(
+	ctx context.Context,
+	in *rpc.GetSubmissionSnippetListRequest,
+) (*rpc.GetSubmissionSnippetListResponse, error) {
 	if err := a.validateRequest(ctx, in); err != nil {
 		return nil, err
 	}
@@ -308,7 +377,10 @@ func (a apiServerHandler) GetSubmissionSnippetList(ctx context.Context, in *rpc.
 	return a.submissionLogic.GetSubmissionSnippetList(ctx, in, token)
 }
 
-func (a apiServerHandler) GetTestCase(ctx context.Context, in *rpc.GetTestCaseRequest) (*rpc.GetTestCaseResponse, error) {
+func (a apiServerHandler) GetTestCase(
+	ctx context.Context,
+	in *rpc.GetTestCaseRequest,
+) (*rpc.GetTestCaseResponse, error) {
 	if err := a.validateRequest(ctx, in); err != nil {
 		return nil, err
 	}
@@ -317,7 +389,10 @@ func (a apiServerHandler) GetTestCase(ctx context.Context, in *rpc.GetTestCaseRe
 	return a.testCaseLogic.GetTestCase(ctx, in, token)
 }
 
-func (a apiServerHandler) UpdateAccount(ctx context.Context, in *rpc.UpdateAccountRequest) (*rpc.UpdateAccountResponse, error) {
+func (a apiServerHandler) UpdateAccount(
+	ctx context.Context,
+	in *rpc.UpdateAccountRequest,
+) (*rpc.UpdateAccountResponse, error) {
 	if err := a.validateRequest(ctx, in); err != nil {
 		return nil, err
 	}
@@ -326,7 +401,10 @@ func (a apiServerHandler) UpdateAccount(ctx context.Context, in *rpc.UpdateAccou
 	return a.accountLogic.UpdateAccount(ctx, in, token)
 }
 
-func (a apiServerHandler) UpdateProblem(ctx context.Context, in *rpc.UpdateProblemRequest) (*rpc.UpdateProblemResponse, error) {
+func (a apiServerHandler) UpdateProblem(
+	ctx context.Context,
+	in *rpc.UpdateProblemRequest,
+) (*rpc.UpdateProblemResponse, error) {
 	if err := a.validateRequest(ctx, in); err != nil {
 		return nil, err
 	}
@@ -335,7 +413,10 @@ func (a apiServerHandler) UpdateProblem(ctx context.Context, in *rpc.UpdateProbl
 	return a.problemLogic.UpdateProblem(ctx, in, token)
 }
 
-func (a apiServerHandler) UpdateTestCase(ctx context.Context, in *rpc.UpdateTestCaseRequest) (*rpc.UpdateTestCaseResponse, error) {
+func (a apiServerHandler) UpdateTestCase(
+	ctx context.Context,
+	in *rpc.UpdateTestCaseRequest,
+) (*rpc.UpdateTestCaseResponse, error) {
 	if err := a.validateRequest(ctx, in); err != nil {
 		return nil, err
 	}

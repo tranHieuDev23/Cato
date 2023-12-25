@@ -39,7 +39,10 @@ func NewProblemTestCaseHashDataAccessor(
 	}
 }
 
-func (a problemTestCaseHashDataAccessor) CreateProblemTestCaseHash(ctx context.Context, problemTestCaseHash *ProblemTestCaseHash) error {
+func (a problemTestCaseHashDataAccessor) CreateProblemTestCaseHash(
+	ctx context.Context,
+	problemTestCaseHash *ProblemTestCaseHash,
+) error {
 	logger := utils.LoggerWithContext(ctx, a.logger)
 	db := a.db.WithContext(ctx)
 	if err := db.Create(problemTestCaseHash).Error; err != nil {
@@ -50,7 +53,10 @@ func (a problemTestCaseHashDataAccessor) CreateProblemTestCaseHash(ctx context.C
 	return nil
 }
 
-func (a problemTestCaseHashDataAccessor) GetProblemTestCaseHashOfProblem(ctx context.Context, problemID uint64) (*ProblemTestCaseHash, error) {
+func (a problemTestCaseHashDataAccessor) GetProblemTestCaseHashOfProblem(
+	ctx context.Context,
+	problemID uint64,
+) (*ProblemTestCaseHash, error) {
 	logger := utils.LoggerWithContext(ctx, a.logger).
 		With(zap.Uint64("problem_id", problemID))
 	db := a.db.WithContext(ctx)
@@ -72,7 +78,10 @@ func (a problemTestCaseHashDataAccessor) GetProblemTestCaseHashOfProblem(ctx con
 	return hash, nil
 }
 
-func (a problemTestCaseHashDataAccessor) UpdateProblemTestCaseHash(ctx context.Context, problemTestCaseHash *ProblemTestCaseHash) error {
+func (a problemTestCaseHashDataAccessor) UpdateProblemTestCaseHash(
+	ctx context.Context,
+	problemTestCaseHash *ProblemTestCaseHash,
+) error {
 	logger := utils.LoggerWithContext(ctx, a.logger)
 	db := a.db.WithContext(ctx)
 	if err := db.Save(problemTestCaseHash).Error; err != nil {
@@ -83,7 +92,10 @@ func (a problemTestCaseHashDataAccessor) UpdateProblemTestCaseHash(ctx context.C
 	return nil
 }
 
-func (a problemTestCaseHashDataAccessor) DeleteProblemTestCaseHashOfProblem(ctx context.Context, problemID uint64) error {
+func (a problemTestCaseHashDataAccessor) DeleteProblemTestCaseHashOfProblem(
+	ctx context.Context,
+	problemID uint64,
+) error {
 	logger := utils.LoggerWithContext(ctx, a.logger).With(zap.Uint64("problem_id", problemID))
 	db := a.db.WithContext(ctx)
 	if err := db.

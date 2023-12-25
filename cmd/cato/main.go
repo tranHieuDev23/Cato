@@ -61,11 +61,20 @@ func main() {
 	}
 
 	rootCommand.Flags().Bool(
-		flagDistributed, false, "If provided, will start the problem in distributed mode.")
+		flagDistributed,
+		false,
+		"If provided, will start the problem in distributed mode.",
+	)
 	rootCommand.Flags().Bool(
-		flagWorker, false, "If provided and --distributed is set, will start the problem in distributed mode as a worker process.")
+		flagWorker,
+		false,
+		"If provided and --distributed is set, will start the problem in distributed mode as a worker process.",
+	)
 	rootCommand.Flags().String(
-		flagConfigFilePath, "", "If provided, will use the provided config file.")
+		flagConfigFilePath,
+		"",
+		"If provided, will use the provided config file.",
+	)
 
 	if err := rootCommand.Execute(); err != nil {
 		log.Panic(err)

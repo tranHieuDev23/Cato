@@ -3,6 +3,7 @@ package http
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"gitlab.com/pjrpc/pjrpc/v2"
 	"go.uber.org/zap"
@@ -61,10 +62,14 @@ func (s server) Start() error {
 	mux.Handle("/api/", apiHandler)
 	mux.Handle("/", s.spaHandler)
 
-	s.logger.
-		With(zap.String("address", s.httpConfig.Address)).
-		Info("starting http server")
-	return http.ListenAndServe(s.httpConfig.Address, mux)
+	httpServer := &http.Server{
+		Addr:              s.httpConfig.Address,
+		Handler:           mux,
+		ReadHeaderTimeout: time.Minute,
+	}
+
+	s.logger.With(zap.String("address", s.httpConfig.Address)).Info("starting http server")
+	return httpServer.ListenAndServe()
 }
 
 type LocalServer Server

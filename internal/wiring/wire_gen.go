@@ -56,22 +56,22 @@ func InitializeLocalCato(filePath configs.ConfigFilePath) (*app.LocalCato, func(
 	account := logic.NewAccount(logicHash, logicToken, role, accountDataAccessor, accountPasswordDataAccessor, gormDB, logger, configsLogic)
 	createFirstAdminAccount := jobs.NewCreateFirstAdminAccount(account)
 	problemDataAccessor := db.NewProblemDataAccessor(gormDB, logger)
-	testCaseDataAccessor := db.NewTestCaseDataAccessor(gormDB, logger)
-	problemTestCaseHashDataAccessor := db.NewProblemTestCaseHashDataAccessor(gormDB, logger)
-	testCase := logic.NewTestCase(logicToken, role, problemDataAccessor, testCaseDataAccessor, problemTestCaseHashDataAccessor, gormDB, logger, configsLogic)
 	submissionDataAccessor := db.NewSubmissionDataAccessor(gormDB, logger)
+	testCaseDataAccessor := db.NewTestCaseDataAccessor(gormDB, logger)
 	client, err := utils.InitializeDockerClient()
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
-	localJudge, err := logic.NewLocalJudge(testCase, problemDataAccessor, submissionDataAccessor, testCaseDataAccessor, problemTestCaseHashDataAccessor, client, gormDB, logger, configsLogic)
+	localJudge, err := logic.NewLocalJudge(problemDataAccessor, submissionDataAccessor, testCaseDataAccessor, client, gormDB, logger, configsLogic)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
 	localSubmission := logic.NewLocalSubmission(logicToken, role, localJudge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, logger)
 	localScheduleSubmittedExecutingSubmissionToJudge := jobs.NewLocalScheduleSubmittedExecutingSubmissionToJudge(localSubmission)
+	problemTestCaseHashDataAccessor := db.NewProblemTestCaseHashDataAccessor(gormDB, logger)
+	testCase := logic.NewTestCase(logicToken, role, problemDataAccessor, testCaseDataAccessor, problemTestCaseHashDataAccessor, gormDB, logger, configsLogic)
 	problemExampleDataAccessor := db.NewProblemExampleDataAccessor(gormDB, logger)
 	problem := logic.NewProblem(logicToken, role, testCase, accountDataAccessor, problemDataAccessor, problemExampleDataAccessor, problemTestCaseHashDataAccessor, testCaseDataAccessor, submissionDataAccessor, logger, gormDB)
 	localAPIServerHandler := http.NewLocalAPIServerHandler(account, problem, testCase, localSubmission, logger)
@@ -135,7 +135,7 @@ func InitializeDistributedHostCato(filePath configs.ConfigFilePath) (*app.Distri
 		cleanup()
 		return nil, nil, err
 	}
-	localJudge, err := logic.NewLocalJudge(testCase, problemDataAccessor, submissionDataAccessor, testCaseDataAccessor, problemTestCaseHashDataAccessor, client, gormDB, logger, configsLogic)
+	localJudge, err := logic.NewLocalJudge(problemDataAccessor, submissionDataAccessor, testCaseDataAccessor, client, gormDB, logger, configsLogic)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
@@ -185,17 +185,15 @@ func InitializeDistributedWorkerCato(filePath configs.ConfigFilePath) (*app.Dist
 	}
 	role := logic.NewRole(logger)
 	problemDataAccessor := db.NewProblemDataAccessor(gormDB, logger)
-	testCaseDataAccessor := db.NewTestCaseDataAccessor(gormDB, logger)
-	problemTestCaseHashDataAccessor := db.NewProblemTestCaseHashDataAccessor(gormDB, logger)
-	configsLogic := config.Logic
-	testCase := logic.NewTestCase(logicToken, role, problemDataAccessor, testCaseDataAccessor, problemTestCaseHashDataAccessor, gormDB, logger, configsLogic)
 	submissionDataAccessor := db.NewSubmissionDataAccessor(gormDB, logger)
+	testCaseDataAccessor := db.NewTestCaseDataAccessor(gormDB, logger)
 	client, err := utils.InitializeDockerClient()
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
-	distributedJudge, err := logic.NewDistributedJudge(testCase, problemDataAccessor, submissionDataAccessor, testCaseDataAccessor, problemTestCaseHashDataAccessor, client, gormDB, logger, configsLogic)
+	configsLogic := config.Logic
+	distributedJudge, err := logic.NewDistributedJudge(problemDataAccessor, submissionDataAccessor, testCaseDataAccessor, client, gormDB, logger, configsLogic)
 	if err != nil {
 		cleanup()
 		return nil, nil, err

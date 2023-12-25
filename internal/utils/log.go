@@ -14,7 +14,8 @@ func InitializeLogger() (*zap.Logger, func(), error) {
 	}
 
 	cleanup := func() {
-		logger.Sync()
+		// deliberately ignore the returned error here
+		_ = logger.Sync()
 	}
 
 	return logger, cleanup, err

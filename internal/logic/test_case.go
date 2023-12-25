@@ -14,6 +14,7 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
+	"github.com/mikespook/gorbac"
 	"github.com/samber/lo"
 
 	"github.com/tranHieuDev23/cato/internal/configs"
@@ -33,7 +34,11 @@ type TestCase interface {
 	UpsertProblemTestCaseHash(ctx context.Context, problemID uint64) error
 	CreateTestCase(ctx context.Context, in *rpc.CreateTestCaseRequest, token string) (*rpc.CreateTestCaseResponse, error)
 	CreateTestCaseList(ctx context.Context, in *rpc.CreateTestCaseListRequest, token string) error
-	GetProblemTestCaseSnippetList(ctx context.Context, in *rpc.GetProblemTestCaseSnippetListRequest, token string) (*rpc.GetProblemTestCaseSnippetListResponse, error)
+	GetProblemTestCaseSnippetList(
+		ctx context.Context,
+		in *rpc.GetProblemTestCaseSnippetListRequest,
+		token string,
+	) (*rpc.GetProblemTestCaseSnippetListResponse, error)
 	GetTestCase(ctx context.Context, in *rpc.GetTestCaseRequest, token string) (*rpc.GetTestCaseResponse, error)
 	UpdateTestCase(ctx context.Context, in *rpc.UpdateTestCaseRequest, token string) (*rpc.UpdateTestCaseResponse, error)
 	DeleteTestCase(ctx context.Context, in *rpc.DeleteTestCaseRequest, token string) error
@@ -97,7 +102,10 @@ func (t testCase) dbTestCaseToRPCTestCase(testCase *db.TestCase, shouldHideInput
 	}
 }
 
-func (t testCase) dbTestCaseToRPCTestCaseSnippet(testCase *db.TestCase, shouldHideInputOutput bool) rpc.TestCaseSnippet {
+func (t testCase) dbTestCaseToRPCTestCaseSnippet(
+	testCase *db.TestCase,
+	shouldHideInputOutput bool,
+) rpc.TestCaseSnippet {
 	if shouldHideInputOutput && testCase.IsHidden {
 		return rpc.TestCaseSnippet{
 			ID:       uint64(testCase.ID),
@@ -131,11 +139,11 @@ func (t testCase) CalculateProblemTestCaseHash(ctx context.Context, problemID ui
 		}
 
 		for i := uint64(0); i < totalTestCaseCount; i += t.logicConfig.ProblemTestCaseHash.BatchSize {
-			hashList, err := t.testCaseDataAccessor.
+			hashList, hashListErr := t.testCaseDataAccessor.
 				WithDB(tx).
 				GetTestCaseHashListOfProblem(ctx, problemID, i, t.logicConfig.ProblemTestCaseHash.BatchSize)
-			if err != nil {
-				return err
+			if hashListErr != nil {
+				return hashListErr
 			}
 
 			for _, hash := range hashList {
@@ -159,7 +167,8 @@ func (t testCase) UpsertProblemTestCaseHash(ctx context.Context, problemID uint6
 			return err
 		}
 
-		problemTestCaseHash, err := t.problemTestCaseHashDataAccessor.WithDB(tx).GetProblemTestCaseHashOfProblem(ctx, problemID)
+		problemTestCaseHash, err := t.problemTestCaseHashDataAccessor.
+			WithDB(tx).GetProblemTestCaseHashOfProblem(ctx, problemID)
 		if err != nil {
 			return err
 		}
@@ -172,7 +181,8 @@ func (t testCase) UpsertProblemTestCaseHash(ctx context.Context, problemID uint6
 		}
 
 		problemTestCaseHash.Hash = hash
-		if err := t.problemTestCaseHashDataAccessor.WithDB(tx).UpdateProblemTestCaseHash(ctx, problemTestCaseHash); err != nil {
+		err = t.problemTestCaseHashDataAccessor.WithDB(tx).UpdateProblemTestCaseHash(ctx, problemTestCaseHash)
+		if err != nil {
 			return err
 		}
 
@@ -180,7 +190,11 @@ func (t testCase) UpsertProblemTestCaseHash(ctx context.Context, problemID uint6
 	})
 }
 
-func (t testCase) CreateTestCase(ctx context.Context, in *rpc.CreateTestCaseRequest, token string) (*rpc.CreateTestCaseResponse, error) {
+func (t testCase) CreateTestCase(
+	ctx context.Context,
+	in *rpc.CreateTestCaseRequest,
+	token string,
+) (*rpc.CreateTestCaseResponse, error) {
 	logger := utils.LoggerWithContext(ctx, t.logger)
 
 	account, err := t.token.GetAccount(ctx, token)
@@ -188,22 +202,11 @@ func (t testCase) CreateTestCase(ctx context.Context, in *rpc.CreateTestCaseRequ
 		return nil, err
 	}
 
-	if hasPermission, err := t.role.AccountHasPermission(
-		ctx,
-		string(account.Role),
-		PermissionTestCasesSelfWrite,
-		PermissionTestCasesAllWrite,
-	); err != nil {
-		return nil, err
-	} else if !hasPermission {
-		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
-	}
-
 	response := &rpc.CreateTestCaseResponse{}
 	if txErr := t.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		problem, err := t.problemDataAccessor.WithDB(tx).GetProblem(ctx, in.ProblemID)
-		if err != nil {
-			return err
+		problem, problemErr := t.problemDataAccessor.WithDB(tx).GetProblem(ctx, in.ProblemID)
+		if problemErr != nil {
+			return problemErr
 		}
 
 		if problem == nil {
@@ -211,16 +214,17 @@ func (t testCase) CreateTestCase(ctx context.Context, in *rpc.CreateTestCaseRequ
 			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 		}
 
-		if problem.AuthorAccountID != uint64(account.ID) {
-			if hasPermission, err := t.role.AccountHasPermission(
-				ctx,
-				string(account.Role),
-				PermissionTestCasesAllWrite,
-			); err != nil {
-				return err
-			} else if !hasPermission {
-				return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
-			}
+		requiredPermissionList := []gorbac.Permission{PermissionTestCasesAllWrite}
+		if problem.AuthorAccountID == uint64(account.ID) {
+			requiredPermissionList = append(requiredPermissionList, PermissionTestCasesSelfWrite)
+		}
+
+		hasPermission, permissionErr := t.role.AccountHasPermission(ctx, string(account.Role), requiredPermissionList...)
+		if permissionErr != nil {
+			return permissionErr
+		}
+		if !hasPermission {
+			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
 		}
 
 		testCase := &db.TestCase{
@@ -230,12 +234,13 @@ func (t testCase) CreateTestCase(ctx context.Context, in *rpc.CreateTestCaseRequ
 			IsHidden:    in.IsHidden,
 			Hash:        t.calculateTestCaseHash(in.Input, in.Output),
 		}
-		if err := t.testCaseDataAccessor.WithDB(tx).CreateTestCase(ctx, testCase); err != nil {
-			return err
-		}
 
-		if err := t.WithDB(tx).UpsertProblemTestCaseHash(ctx, in.ProblemID); err != nil {
-			return err
+		problemErr = utils.ExecuteUntilFirstError(
+			func() error { return t.testCaseDataAccessor.WithDB(tx).CreateTestCase(ctx, testCase) },
+			func() error { return t.WithDB(tx).UpsertProblemTestCaseHash(ctx, in.ProblemID) },
+		)
+		if problemErr != nil {
+			return problemErr
 		}
 
 		response.TestCaseSnippet = t.dbTestCaseToRPCTestCaseSnippet(testCase, false)
@@ -248,35 +253,24 @@ func (t testCase) CreateTestCase(ctx context.Context, in *rpc.CreateTestCaseRequ
 	return response, nil
 }
 
-func (t testCase) getTestCaseListFromZippedData(ctx context.Context, problemID uint64, zippedTestData string) ([]*db.TestCase, error) {
+type unzippedTestCase struct {
+	Input  *string
+	Output *string
+}
+
+func (t testCase) getFileDirectoryToUnzippedTestCaseMap(
+	ctx context.Context,
+	zipReader *zip.Reader,
+) (map[string]*unzippedTestCase, error) {
 	logger := utils.LoggerWithContext(ctx, t.logger)
 
-	decodedZippedTestData, err := base64.StdEncoding.DecodeString(zippedTestData)
-	if err != nil {
-		logger.With(zap.Error(err)).Error("failed to decode zipped test data")
-		return nil, pjrpc.JRPCErrInternalError()
-	}
-
-	zippedDataReader, err := zip.NewReader(bytes.NewReader(decodedZippedTestData), int64(len(decodedZippedTestData)))
-	if err != nil {
-		logger.With(zap.Error(err)).Error("failed to open zip reader")
-		return nil, pjrpc.JRPCErrInternalError()
-	}
-
-	type unzippedTestCase struct {
-		Input  *string
-		Output *string
-	}
-
 	fileDirectoryToUnzippedTestCaseMap := make(map[string]*unzippedTestCase)
-	for i := range zippedDataReader.File {
-		fileInfo := zippedDataReader.File[i].FileInfo()
-		if fileInfo.IsDir() {
+	for i := range zipReader.File {
+		if zipReader.File[i].FileInfo().IsDir() {
 			continue
 		}
 
-		filePath := zippedDataReader.File[i].Name
-		fileDirectory, fileName := filepath.Split(filePath)
+		fileDirectory, fileName := filepath.Split(zipReader.File[i].Name)
 		if fileName != testCaseInputFileName && fileName != testCaseOutputFileName {
 			continue
 		}
@@ -285,15 +279,15 @@ func (t testCase) getTestCaseListFromZippedData(ctx context.Context, problemID u
 			fileDirectoryToUnzippedTestCaseMap[fileDirectory] = &unzippedTestCase{}
 		}
 
-		fileReader, err := zippedDataReader.File[i].Open()
-		if err != nil {
-			logger.With(zap.Error(err)).Error("failed to open file reader")
+		fileReader, fileReaderErr := zipReader.File[i].Open()
+		if fileReaderErr != nil {
+			logger.With(zap.Error(fileReaderErr)).Error("failed to open file reader")
 			return nil, pjrpc.JRPCErrInternalError()
 		}
 
-		fileContent, err := io.ReadAll(fileReader)
-		if err != nil {
-			logger.With(zap.Error(err)).Error("failed to read file content")
+		fileContent, fileContentErr := io.ReadAll(fileReader)
+		if fileContentErr != nil {
+			logger.With(zap.Error(fileContentErr)).Error("failed to read file content")
 			return nil, pjrpc.JRPCErrInternalError()
 		}
 
@@ -303,6 +297,33 @@ func (t testCase) getTestCaseListFromZippedData(ctx context.Context, problemID u
 		} else {
 			fileDirectoryToUnzippedTestCaseMap[fileDirectory].Output = &fileContentString
 		}
+	}
+
+	return fileDirectoryToUnzippedTestCaseMap, nil
+}
+
+func (t testCase) getTestCaseListFromZippedData(
+	ctx context.Context,
+	problemID uint64,
+	zippedTestData string,
+) ([]*db.TestCase, error) {
+	logger := utils.LoggerWithContext(ctx, t.logger)
+
+	decodedZippedTestData, err := base64.StdEncoding.DecodeString(zippedTestData)
+	if err != nil {
+		logger.With(zap.Error(err)).Error("failed to decode zipped test data")
+		return nil, pjrpc.JRPCErrInternalError()
+	}
+
+	zippedTestDataReader, err := zip.NewReader(bytes.NewReader(decodedZippedTestData), int64(len(decodedZippedTestData)))
+	if err != nil {
+		logger.With(zap.Error(err)).Error("failed to open zip reader")
+		return nil, pjrpc.JRPCErrInternalError()
+	}
+
+	fileDirectoryToUnzippedTestCaseMap, err := t.getFileDirectoryToUnzippedTestCaseMap(ctx, zippedTestDataReader)
+	if err != nil {
+		return nil, err
 	}
 
 	fileDirectoryToUnzippedTestCaseEntryList := lo.Entries[string, *unzippedTestCase](fileDirectoryToUnzippedTestCaseMap)
@@ -337,17 +358,6 @@ func (t testCase) CreateTestCaseList(ctx context.Context, in *rpc.CreateTestCase
 		return err
 	}
 
-	if hasPermission, err := t.role.AccountHasPermission(
-		ctx,
-		string(account.Role),
-		PermissionTestCasesSelfWrite,
-		PermissionTestCasesAllWrite,
-	); err != nil {
-		return err
-	} else if !hasPermission {
-		return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
-	}
-
 	problem, err := t.problemDataAccessor.GetProblem(ctx, in.ProblemID)
 	if err != nil {
 		return err
@@ -358,16 +368,17 @@ func (t testCase) CreateTestCaseList(ctx context.Context, in *rpc.CreateTestCase
 		return pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 	}
 
-	if problem.AuthorAccountID != uint64(account.ID) {
-		if hasPermission, err := t.role.AccountHasPermission(
-			ctx,
-			string(account.Role),
-			PermissionTestCasesAllWrite,
-		); err != nil {
-			return err
-		} else if !hasPermission {
-			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
-		}
+	requiredPermissionList := []gorbac.Permission{PermissionTestCasesAllWrite}
+	if problem.AuthorAccountID == uint64(account.ID) {
+		requiredPermissionList = append(requiredPermissionList, PermissionTestCasesSelfWrite)
+	}
+
+	hasPermission, problemErr := t.role.AccountHasPermission(ctx, string(account.Role), requiredPermissionList...)
+	if problemErr != nil {
+		return problemErr
+	}
+	if !hasPermission {
+		return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
 	}
 
 	testCaseList, err := t.getTestCaseListFromZippedData(ctx, in.ProblemID, in.ZippedTestData)
@@ -376,15 +387,10 @@ func (t testCase) CreateTestCaseList(ctx context.Context, in *rpc.CreateTestCase
 	}
 
 	return t.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := t.testCaseDataAccessor.CreateTestCaseList(ctx, testCaseList); err != nil {
-			return err
-		}
-
-		if err := t.WithDB(tx).UpsertProblemTestCaseHash(ctx, in.ProblemID); err != nil {
-			return err
-		}
-
-		return nil
+		return utils.ExecuteUntilFirstError(
+			func() error { return t.testCaseDataAccessor.CreateTestCaseList(ctx, testCaseList) },
+			func() error { return t.WithDB(tx).UpsertProblemTestCaseHash(ctx, in.ProblemID) },
+		)
 	})
 }
 
@@ -396,49 +402,39 @@ func (t testCase) DeleteTestCase(ctx context.Context, in *rpc.DeleteTestCaseRequ
 		return err
 	}
 
-	if hasPermission, err := t.role.AccountHasPermission(
-		ctx,
-		string(account.Role),
-		PermissionTestCasesSelfWrite,
-		PermissionTestCasesAllWrite,
-	); err != nil {
-		return err
-	} else if !hasPermission {
-		return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
-	}
-
 	return t.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		testCase, err := t.testCaseDataAccessor.WithDB(tx).GetTestCase(ctx, in.ID)
-		if err != nil {
-			return err
+		testCase, testCaseErr := t.testCaseDataAccessor.WithDB(tx).GetTestCase(ctx, in.ID)
+		if testCaseErr != nil {
+			return testCaseErr
 		}
 
 		if testCase == nil {
 			logger.With(zap.Uint64("id", in.ID)).Error("cannot find test case")
+			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 		}
 
-		problem, err := t.problemDataAccessor.WithDB(tx).GetProblem(ctx, testCase.OfProblemID)
-		if err != nil {
-			return err
+		problem, problemErr := t.problemDataAccessor.WithDB(tx).GetProblem(ctx, testCase.OfProblemID)
+		if problemErr != nil {
+			return problemErr
 		}
 
-		if problem.AuthorAccountID != uint64(account.ID) {
-			if hasPermission, err := t.role.AccountHasPermission(
-				ctx,
-				string(account.Role),
-				PermissionTestCasesAllWrite,
-			); err != nil {
-				return err
-			} else if !hasPermission {
-				return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
-			}
+		requiredPermissionList := []gorbac.Permission{PermissionTestCasesAllWrite}
+		if problem.AuthorAccountID == uint64(account.ID) {
+			requiredPermissionList = append(requiredPermissionList, PermissionTestCasesSelfWrite)
 		}
 
-		if err := t.WithDB(tx).UpsertProblemTestCaseHash(ctx, uint64(problem.ID)); err != nil {
-			return err
+		hasPermission, permissionErr := t.role.AccountHasPermission(ctx, string(account.Role), requiredPermissionList...)
+		if permissionErr != nil {
+			return permissionErr
+		}
+		if !hasPermission {
+			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
 		}
 
-		return t.testCaseDataAccessor.WithDB(tx).DeleteTestCase(ctx, uint64(testCase.ID))
+		return utils.ExecuteUntilFirstError(
+			func() error { return t.testCaseDataAccessor.WithDB(tx).DeleteTestCase(ctx, uint64(testCase.ID)) },
+			func() error { return t.WithDB(tx).UpsertProblemTestCaseHash(ctx, uint64(problem.ID)) },
+		)
 	})
 }
 
@@ -452,32 +448,22 @@ func (t testCase) GetProblemTestCaseSnippetList(
 		return nil, err
 	}
 
-	if hasPermission, err := t.role.AccountHasPermission(
-		ctx,
-		string(account.Role),
-		PermissionTestCasesSelfRead,
-		PermissionTestCasesAllRead,
-	); err != nil {
-		return nil, err
-	} else if !hasPermission {
-		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
-	}
-
 	problem, err := t.problemDataAccessor.GetProblem(ctx, in.ProblemID)
 	if err != nil {
 		return nil, err
 	}
 
-	if problem.AuthorAccountID != uint64(account.ID) {
-		if hasPermission, err := t.role.AccountHasPermission(
-			ctx,
-			string(account.Role),
-			PermissionTestCasesAllRead,
-		); err != nil {
-			return nil, err
-		} else if !hasPermission {
-			return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
-		}
+	requiredPermissionList := []gorbac.Permission{PermissionTestCasesAllRead}
+	if problem.AuthorAccountID == uint64(account.ID) {
+		requiredPermissionList = append(requiredPermissionList, PermissionTestCasesSelfRead)
+	}
+
+	hasPermission, err := t.role.AccountHasPermission(ctx, string(account.Role), requiredPermissionList...)
+	if err != nil {
+		return nil, err
+	}
+	if !hasPermission {
+		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
 	}
 
 	testCaseCount, err := t.testCaseDataAccessor.GetTestCaseCountOfProblem(ctx, in.ProblemID)
@@ -492,13 +478,20 @@ func (t testCase) GetProblemTestCaseSnippetList(
 
 	return &rpc.GetProblemTestCaseSnippetListResponse{
 		TotalTestCaseCount: testCaseCount,
-		TestCaseSnippetList: lo.Map[*db.TestCase, rpc.TestCaseSnippet](testCaseList, func(item *db.TestCase, _ int) rpc.TestCaseSnippet {
-			return t.dbTestCaseToRPCTestCaseSnippet(item, account.Role == db.AccountRoleContestant)
-		}),
+		TestCaseSnippetList: lo.Map[*db.TestCase, rpc.TestCaseSnippet](
+			testCaseList,
+			func(item *db.TestCase, _ int) rpc.TestCaseSnippet {
+				return t.dbTestCaseToRPCTestCaseSnippet(item, account.Role == db.AccountRoleContestant)
+			},
+		),
 	}, nil
 }
 
-func (t testCase) GetTestCase(ctx context.Context, in *rpc.GetTestCaseRequest, token string) (*rpc.GetTestCaseResponse, error) {
+func (t testCase) GetTestCase(
+	ctx context.Context,
+	in *rpc.GetTestCaseRequest,
+	token string,
+) (*rpc.GetTestCaseResponse, error) {
 	logger := utils.LoggerWithContext(ctx, t.logger)
 
 	account, err := t.token.GetAccount(ctx, token)
@@ -506,43 +499,34 @@ func (t testCase) GetTestCase(ctx context.Context, in *rpc.GetTestCaseRequest, t
 		return nil, err
 	}
 
-	if hasPermission, err := t.role.AccountHasPermission(
-		ctx,
-		string(account.Role),
-		PermissionTestCasesSelfRead,
-		PermissionTestCasesAllRead,
-	); err != nil {
-		return nil, err
-	} else if !hasPermission {
-		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
-	}
-
 	response := &rpc.GetTestCaseResponse{}
 	if txErr := t.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		testCase, err := t.testCaseDataAccessor.WithDB(tx).GetTestCase(ctx, in.ID)
-		if err != nil {
-			return err
+		testCase, testCaseErr := t.testCaseDataAccessor.WithDB(tx).GetTestCase(ctx, in.ID)
+		if testCaseErr != nil {
+			return testCaseErr
 		}
 
 		if testCase == nil {
 			logger.With(zap.Uint64("id", in.ID)).Error("cannot find test case")
+			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 		}
 
-		problem, err := t.problemDataAccessor.WithDB(tx).GetProblem(ctx, testCase.OfProblemID)
+		problem, problemErr := t.problemDataAccessor.WithDB(tx).GetProblem(ctx, testCase.OfProblemID)
 		if err != nil {
-			return err
+			return problemErr
 		}
 
-		if problem.AuthorAccountID != uint64(account.ID) {
-			if hasPermission, err := t.role.AccountHasPermission(
-				ctx,
-				string(account.Role),
-				PermissionTestCasesAllRead,
-			); err != nil {
-				return err
-			} else if !hasPermission {
-				return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
-			}
+		requiredPermissionList := []gorbac.Permission{PermissionTestCasesAllRead}
+		if problem.AuthorAccountID == uint64(account.ID) {
+			requiredPermissionList = append(requiredPermissionList, PermissionTestCasesSelfRead)
+		}
+
+		hasPermission, permissionErr := t.role.AccountHasPermission(ctx, string(account.Role), requiredPermissionList...)
+		if permissionErr != nil {
+			return permissionErr
+		}
+		if !hasPermission {
+			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
 		}
 
 		response.TestCase = t.dbTestCaseToRPCTestCase(testCase, account.Role == db.AccountRoleContestant)
@@ -555,7 +539,29 @@ func (t testCase) GetTestCase(ctx context.Context, in *rpc.GetTestCaseRequest, t
 	return response, nil
 }
 
-func (t testCase) UpdateTestCase(ctx context.Context, in *rpc.UpdateTestCaseRequest, token string) (*rpc.UpdateTestCaseResponse, error) {
+func (t testCase) applyUpdateTestCase(in *rpc.UpdateTestCaseRequest, testCase *db.TestCase) {
+	if in.Input != nil {
+		testCase.Input = utils.TrimSpaceRight(*in.Input)
+	}
+
+	if in.Output != nil {
+		testCase.Output = utils.TrimSpaceRight(*in.Output)
+	}
+
+	if in.IsHidden != nil {
+		testCase.IsHidden = *in.IsHidden
+	}
+
+	if in.Input != nil || in.Output != nil {
+		testCase.Hash = t.calculateTestCaseHash(testCase.Input, testCase.Output)
+	}
+}
+
+func (t testCase) UpdateTestCase(
+	ctx context.Context,
+	in *rpc.UpdateTestCaseRequest,
+	token string,
+) (*rpc.UpdateTestCaseResponse, error) {
 	logger := utils.LoggerWithContext(ctx, t.logger)
 
 	account, err := t.token.GetAccount(ctx, token)
@@ -563,66 +569,43 @@ func (t testCase) UpdateTestCase(ctx context.Context, in *rpc.UpdateTestCaseRequ
 		return nil, err
 	}
 
-	if hasPermission, err := t.role.AccountHasPermission(
-		ctx,
-		string(account.Role),
-		PermissionTestCasesSelfWrite,
-		PermissionTestCasesAllWrite,
-	); err != nil {
-		return nil, err
-	} else if !hasPermission {
-		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
-	}
-
 	response := &rpc.UpdateTestCaseResponse{}
 	if txErr := t.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		testCase, err := t.testCaseDataAccessor.WithDB(tx).GetTestCase(ctx, in.ID)
-		if err != nil {
-			return err
+		testCase, testCaseErr := t.testCaseDataAccessor.WithDB(tx).GetTestCase(ctx, in.ID)
+		if testCaseErr != nil {
+			return testCaseErr
 		}
 
 		if testCase == nil {
 			logger.With(zap.Uint64("id", in.ID)).Error("cannot find test case")
+			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 		}
 
-		problem, err := t.problemDataAccessor.WithDB(tx).GetProblem(ctx, testCase.OfProblemID)
+		problem, problemErr := t.problemDataAccessor.WithDB(tx).GetProblem(ctx, testCase.OfProblemID)
+		if problemErr != nil {
+			return problemErr
+		}
+
+		requiredPermissionList := []gorbac.Permission{PermissionTestCasesAllWrite}
+		if problem.AuthorAccountID == uint64(account.ID) {
+			requiredPermissionList = append(requiredPermissionList, PermissionTestCasesSelfWrite)
+		}
+
+		hasPermission, permissionErr := t.role.AccountHasPermission(ctx, string(account.Role), requiredPermissionList...)
+		if permissionErr != nil {
+			return permissionErr
+		}
+		if !hasPermission {
+			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+		}
+
+		t.applyUpdateTestCase(in, testCase)
+
+		err = utils.ExecuteUntilFirstError(
+			func() error { return t.testCaseDataAccessor.WithDB(tx).UpdateTestCase(ctx, testCase) },
+			func() error { return t.WithDB(tx).UpsertProblemTestCaseHash(ctx, uint64(problem.ID)) },
+		)
 		if err != nil {
-			return err
-		}
-
-		if problem.AuthorAccountID != uint64(account.ID) {
-			if hasPermission, err := t.role.AccountHasPermission(
-				ctx,
-				string(account.Role),
-				PermissionTestCasesAllWrite,
-			); err != nil {
-				return err
-			} else if !hasPermission {
-				return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
-			}
-		}
-
-		if in.Input != nil {
-			testCase.Input = utils.TrimSpaceRight(*in.Input)
-		}
-
-		if in.Output != nil {
-			testCase.Output = utils.TrimSpaceRight(*in.Output)
-		}
-
-		if in.IsHidden != nil {
-			testCase.IsHidden = *in.IsHidden
-		}
-
-		if in.Input != nil || in.Output != nil {
-			testCase.Hash = t.calculateTestCaseHash(testCase.Input, testCase.Output)
-		}
-
-		if err := t.testCaseDataAccessor.WithDB(tx).UpdateTestCase(ctx, testCase); err != nil {
-			return err
-		}
-
-		if err := t.WithDB(tx).UpsertProblemTestCaseHash(ctx, uint64(problem.ID)); err != nil {
 			return err
 		}
 

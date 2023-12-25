@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mikespook/gorbac"
 	"github.com/samber/lo"
 	"gitlab.com/pjrpc/pjrpc/v2"
 	"go.uber.org/zap"
@@ -18,9 +19,14 @@ import (
 	"github.com/tranHieuDev23/cato/internal/utils"
 )
 
+const (
+	accountDisplayNameMaxLength = 32
+	accountNameMinLength        = 8
+)
+
 var (
-	accountNameRegex        = regexp.MustCompile("^[a-zA-Z0-9]+$")
-	accountDisplayNameRegex = regexp.MustCompile("^[\\p{L}\\p{N}\\s]+$")
+	accountNameRegex        = regexp.MustCompile(`^[a-zA-Z0-9]+$`)
+	accountDisplayNameRegex = regexp.MustCompile(`^[\\p{L}\\p{N}\\s]+$`)
 )
 
 type Account interface {
@@ -70,7 +76,7 @@ func NewAccount(
 }
 
 func (a account) isValidAccountName(accountName string) bool {
-	return len(accountName) > -6 && len(accountName) <= 32 && accountNameRegex.Match([]byte(accountName))
+	return len(accountName) >= 6 && len(accountName) <= 32 && accountNameRegex.MatchString(accountName)
 }
 
 func (a account) cleanupDisplayName(displayName string) string {
@@ -78,11 +84,13 @@ func (a account) cleanupDisplayName(displayName string) string {
 }
 
 func (a account) isValidDisplayName(displayName string) bool {
-	return displayName != "" && len(displayName) <= 32 && accountDisplayNameRegex.Match([]byte(displayName))
+	return displayName != "" &&
+		len(displayName) <= accountDisplayNameMaxLength &&
+		accountDisplayNameRegex.MatchString(displayName)
 }
 
 func (a account) isValidPassword(password string) bool {
-	return len(password) >= 8
+	return len(password) >= accountNameMinLength
 }
 
 func (a account) canAccountBeCreatedAnonymously(role string) bool {
@@ -152,7 +160,8 @@ func (a account) CreateFirstAdminAccount(ctx context.Context) error {
 			OfAccountID: uint64(account.ID),
 			Hash:        hashedPassword,
 		}
-		if err := a.accountPasswordDataAccessor.WithDB(tx).CreateAccountPassword(ctx, accountPassword); err != nil {
+		err = a.accountPasswordDataAccessor.WithDB(tx).CreateAccountPassword(ctx, accountPassword)
+		if err != nil {
 			return err
 		}
 
@@ -160,7 +169,11 @@ func (a account) CreateFirstAdminAccount(ctx context.Context) error {
 	})
 }
 
-func (a account) CreateAccount(ctx context.Context, in *rpc.CreateAccountRequest, token string) (*rpc.CreateAccountResponse, error) {
+func (a account) CreateAccount(
+	ctx context.Context,
+	in *rpc.CreateAccountRequest,
+	token string,
+) (*rpc.CreateAccountResponse, error) {
 	logger := utils.LoggerWithContext(ctx, a.logger)
 
 	if !a.isValidAccountName(in.AccountName) {
@@ -189,9 +202,11 @@ func (a account) CreateAccount(ctx context.Context, in *rpc.CreateAccountRequest
 			return nil, err
 		}
 
-		if hasPermission, err := a.role.AccountHasPermission(ctx, string(account.Role), PermissionAccountsAllWrite); err != nil {
+		hasPermission, err := a.role.AccountHasPermission(ctx, string(account.Role), PermissionAccountsAllWrite)
+		if err != nil {
 			return nil, err
-		} else if !hasPermission {
+		}
+		if !hasPermission {
 			return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
 		}
 	}
@@ -203,9 +218,12 @@ func (a account) CreateAccount(ctx context.Context, in *rpc.CreateAccountRequest
 
 	response := &rpc.CreateAccountResponse{}
 	if txErr := a.db.Transaction(func(tx *gorm.DB) error {
-		if accountNameTaken, err := a.WithDB(tx).IsAccountNameTaken(ctx, in.AccountName); err != nil {
-			return err
-		} else if accountNameTaken {
+		accountNameTaken, isAccountNameTakenErr := a.WithDB(tx).IsAccountNameTaken(ctx, in.AccountName)
+		if isAccountNameTakenErr != nil {
+			return isAccountNameTakenErr
+		}
+
+		if accountNameTaken {
 			logger.
 				With(zap.String("account_name", in.AccountName)).
 				Error("failed to create account: invalid display name")
@@ -218,15 +236,20 @@ func (a account) CreateAccount(ctx context.Context, in *rpc.CreateAccountRequest
 			Role:        db.AccountRole(in.Role),
 		}
 
-		if err := a.accountDataAccessor.WithDB(tx).CreateAccount(ctx, account); err != nil {
-			return err
-		}
-
 		accountPassword := &db.AccountPassword{
 			OfAccountID: uint64(account.ID),
 			Hash:        hashedPassword,
 		}
-		if err := a.accountPasswordDataAccessor.WithDB(tx).CreateAccountPassword(ctx, accountPassword); err != nil {
+
+		err = utils.ExecuteUntilFirstError(
+			func() error {
+				return a.accountDataAccessor.WithDB(tx).CreateAccount(ctx, account)
+			},
+			func() error {
+				return a.accountPasswordDataAccessor.WithDB(tx).CreateAccountPassword(ctx, accountPassword)
+			},
+		)
+		if err != nil {
 			return err
 		}
 
@@ -240,7 +263,10 @@ func (a account) CreateAccount(ctx context.Context, in *rpc.CreateAccountRequest
 	return response, nil
 }
 
-func (a account) CreateSession(ctx context.Context, in *rpc.CreateSessionRequest) (*rpc.CreateSessionResponse, string, time.Time, error) {
+func (a account) CreateSession(
+	ctx context.Context,
+	in *rpc.CreateSessionRequest,
+) (*rpc.CreateSessionResponse, string, time.Time, error) {
 	logger := utils.LoggerWithContext(ctx, a.logger)
 
 	account, err := a.accountDataAccessor.GetAccountByAccountName(ctx, in.AccountName)
@@ -261,9 +287,11 @@ func (a account) CreateSession(ctx context.Context, in *rpc.CreateSessionRequest
 		return nil, "", time.Time{}, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeUnauthenticated))
 	}
 
-	if equal, err := a.hash.IsHashEqual(ctx, in.Password, accountPassword.Hash); err != nil {
+	equal, err := a.hash.IsHashEqual(ctx, in.Password, accountPassword.Hash)
+	if err != nil {
 		return nil, "", time.Time{}, err
-	} else if !equal {
+	}
+	if !equal {
 		logger.Error("incorrect password")
 		return nil, "", time.Time{}, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeUnauthenticated))
 	}
@@ -298,21 +326,14 @@ func (a account) DeleteSession(ctx context.Context, token string) error {
 	return nil
 }
 
-func (a account) GetAccount(ctx context.Context, in *rpc.GetAccountRequest, token string) (*rpc.GetAccountResponse, error) {
+func (a account) GetAccount(
+	ctx context.Context,
+	in *rpc.GetAccountRequest,
+	token string,
+) (*rpc.GetAccountResponse, error) {
 	account, err := a.token.GetAccount(ctx, token)
 	if err != nil {
 		return nil, err
-	}
-
-	if hasPermission, err := a.role.AccountHasPermission(
-		ctx,
-		string(account.Role),
-		PermissionAccountsSelfRead,
-		PermissionAccountsAllRead,
-	); err != nil {
-		return nil, err
-	} else if !hasPermission {
-		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
 	}
 
 	requestedAccount, err := a.accountDataAccessor.GetAccount(ctx, in.ID)
@@ -324,16 +345,17 @@ func (a account) GetAccount(ctx context.Context, in *rpc.GetAccountRequest, toke
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 	}
 
-	if requestedAccount.ID != account.ID {
-		if hasPermission, err := a.role.AccountHasPermission(
-			ctx,
-			string(account.Role),
-			PermissionAccountsAllRead,
-		); err != nil {
-			return nil, err
-		} else if !hasPermission {
-			return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
-		}
+	requiredPermissionList := []gorbac.Permission{PermissionAccountsAllRead}
+	if requestedAccount.ID == account.ID {
+		requiredPermissionList = append(requiredPermissionList, PermissionAccountsSelfRead)
+	}
+
+	hasPermission, err := a.role.AccountHasPermission(ctx, string(account.Role), requiredPermissionList...)
+	if err != nil {
+		return nil, err
+	}
+	if !hasPermission {
+		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
 	}
 
 	return &rpc.GetAccountResponse{
@@ -341,15 +363,21 @@ func (a account) GetAccount(ctx context.Context, in *rpc.GetAccountRequest, toke
 	}, nil
 }
 
-func (a account) GetAccountList(ctx context.Context, in *rpc.GetAccountListRequest, token string) (*rpc.GetAccountListResponse, error) {
+func (a account) GetAccountList(
+	ctx context.Context,
+	in *rpc.GetAccountListRequest,
+	token string,
+) (*rpc.GetAccountListResponse, error) {
 	account, err := a.token.GetAccount(ctx, token)
 	if err != nil {
 		return nil, err
 	}
 
-	if hasPermission, err := a.role.AccountHasPermission(ctx, string(account.Role), PermissionAccountsAllRead); err != nil {
+	hasPermission, err := a.role.AccountHasPermission(ctx, string(account.Role), PermissionAccountsAllRead)
+	if err != nil {
 		return nil, err
-	} else if !hasPermission {
+	}
+	if !hasPermission {
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
 	}
 
@@ -373,23 +401,63 @@ func (a account) GetAccountList(ctx context.Context, in *rpc.GetAccountListReque
 	}, nil
 }
 
-func (a account) UpdateAccount(ctx context.Context, in *rpc.UpdateAccountRequest, token string) (*rpc.UpdateAccountResponse, error) {
-	logger := utils.LoggerWithContext(ctx, a.logger)
+func (a account) applyUpdateAccount(in *rpc.UpdateAccountRequest, account *db.Account) error {
+	if in.DisplayName != nil {
+		cleanedDisplayName := a.cleanupDisplayName(*in.DisplayName)
+		if !a.isValidDisplayName(cleanedDisplayName) {
+			return pjrpc.JRPCErrInvalidParams()
+		}
 
+		account.DisplayName = cleanedDisplayName
+	}
+
+	if in.Role != nil {
+		account.Role = db.AccountRole(*in.Role)
+	}
+
+	return nil
+}
+
+func (a account) updateAccountPassword(
+	ctx context.Context,
+	in *rpc.UpdateAccountRequest,
+	tx *gorm.DB,
+) error {
+	if in.Password == nil {
+		return nil
+	}
+
+	logger := utils.LoggerWithContext(ctx, a.logger)
+	if !a.isValidPassword(*in.Password) {
+		logger.Error("failed to update account: invalid password")
+		return pjrpc.JRPCErrInvalidParams()
+	}
+
+	accountPassword, err := a.accountPasswordDataAccessor.
+		WithDB(tx).
+		GetAccountPasswordOfAccountID(ctx, in.ID)
+	if err != nil {
+		return err
+	}
+
+	hashedPassword, err := a.hash.Hash(ctx, *in.Password)
+	if err != nil {
+		return err
+	}
+
+	accountPassword.Hash = hashedPassword
+
+	return a.accountPasswordDataAccessor.WithDB(tx).UpdateAccountPassword(ctx, accountPassword)
+}
+
+func (a account) UpdateAccount(
+	ctx context.Context,
+	in *rpc.UpdateAccountRequest,
+	token string,
+) (*rpc.UpdateAccountResponse, error) {
 	account, err := a.token.GetAccount(ctx, token)
 	if err != nil {
 		return nil, err
-	}
-
-	if hasPermission, err := a.role.AccountHasPermission(
-		ctx,
-		string(account.Role),
-		PermissionAccountsSelfWrite,
-		PermissionAccountsAllWrite,
-	); err != nil {
-		return nil, err
-	} else if !hasPermission {
-		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
 	}
 
 	updatedAccount, err := a.accountDataAccessor.GetAccount(ctx, in.ID)
@@ -401,63 +469,29 @@ func (a account) UpdateAccount(ctx context.Context, in *rpc.UpdateAccountRequest
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 	}
 
-	if updatedAccount.ID != account.ID || in.Role != nil {
-		if hasPermission, err := a.role.AccountHasPermission(
-			ctx,
-			string(account.Role),
-			PermissionAccountsAllWrite,
-		); err != nil {
-			return nil, err
-		} else if !hasPermission {
-			return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
-		}
+	requiredPermissionList := []gorbac.Permission{PermissionAccountsAllWrite}
+	if updatedAccount.ID == account.ID && in.Role == nil {
+		requiredPermissionList = append(requiredPermissionList, PermissionAccountsSelfWrite)
 	}
 
-	if in.DisplayName != nil {
-		cleanedDisplayName := a.cleanupDisplayName(*in.DisplayName)
-		if !a.isValidDisplayName(cleanedDisplayName) {
-			logger.
-				With(zap.String("display_name", *in.DisplayName)).
-				Error("failed to update account: invalid display name")
-
-			return nil, pjrpc.JRPCErrInvalidParams()
-		}
-
-		updatedAccount.DisplayName = cleanedDisplayName
+	hasPermission, err := a.role.AccountHasPermission(ctx, string(account.Role), requiredPermissionList...)
+	if err != nil {
+		return nil, err
+	}
+	if !hasPermission {
+		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
 	}
 
-	if in.Role != nil {
-		updatedAccount.Role = db.AccountRole(*in.Role)
+	err = a.applyUpdateAccount(in, updatedAccount)
+	if err != nil {
+		return nil, err
 	}
 
 	if txErr := a.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := a.accountDataAccessor.WithDB(tx).UpdateAccount(ctx, updatedAccount); err != nil {
-			return err
-		}
-
-		if in.Password != nil {
-			if !a.isValidPassword(*in.Password) {
-				logger.Error("failed to update account: invalid password")
-				return pjrpc.JRPCErrInvalidParams()
-			}
-
-			accountPassword, err := a.accountPasswordDataAccessor.WithDB(tx).GetAccountPasswordOfAccountID(ctx, in.ID)
-			if err != nil {
-				return err
-			}
-
-			hashedPassword, err := a.hash.Hash(ctx, *in.Password)
-			if err != nil {
-				return nil
-			}
-
-			accountPassword.Hash = hashedPassword
-			if err := a.accountPasswordDataAccessor.WithDB(tx).UpdateAccountPassword(ctx, accountPassword); err != nil {
-				return err
-			}
-		}
-
-		return nil
+		return utils.ExecuteUntilFirstError(
+			func() error { return a.accountDataAccessor.WithDB(tx).UpdateAccount(ctx, updatedAccount) },
+			func() error { return a.updateAccountPassword(ctx, in, tx) },
+		)
 	}); txErr != nil {
 		return nil, txErr
 	}

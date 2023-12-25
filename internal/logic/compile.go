@@ -61,22 +61,25 @@ func NewCompile(
 	}
 
 	if compileConfig != nil {
-		if timeoutDuration, err := compileConfig.GetTimeoutDuration(); err != nil {
+		timeoutDuration, err := compileConfig.GetTimeoutDuration()
+		if err != nil {
 			c.logger.With(zap.Error(err)).Error("failed to get timeout duration")
 			return nil, err
-		} else {
-			c.timeoutDuration = timeoutDuration
 		}
 
-		if memoryInBytes, err := compileConfig.GetMemoryInBytes(); err != nil {
+		c.timeoutDuration = timeoutDuration
+
+		memoryInBytes, err := compileConfig.GetMemoryInBytes()
+		if err != nil {
 			c.logger.With(zap.Error(err)).Error("failed to get memory in bytes")
 			return nil, err
-		} else {
-			c.memoryInBytes = int64(memoryInBytes)
 		}
 
+		c.memoryInBytes = int64(memoryInBytes)
+
 		c.logger.Info("pulling compile image")
-		if _, err := dockerClient.ImagePull(context.Background(), compileConfig.Image, types.ImagePullOptions{}); err != nil {
+		_, err = dockerClient.ImagePull(context.Background(), compileConfig.Image, types.ImagePullOptions{})
+		if err != nil {
 			c.logger.With(zap.Error(err)).Error("failed to load compile image")
 			return nil, err
 		}
@@ -101,7 +104,11 @@ func (c compile) getWorkingDir() string {
 	return "/work"
 }
 
-func (c compile) getCompileCommand(commandTemplate []string, containerSourceFilePath, containerProgramFilePath string) []string {
+func (c compile) getCompileCommand(
+	commandTemplate []string,
+	containerSourceFilePath,
+	containerProgramFilePath string,
+) []string {
 	command := make([]string, len(commandTemplate))
 	for i := range command {
 		switch commandTemplate[i] {
@@ -117,7 +124,10 @@ func (c compile) getCompileCommand(commandTemplate []string, containerSourceFile
 	return command
 }
 
-func (c compile) compileSourceFile(ctx context.Context, hostWorkingDir string, sourceFile *os.File) (CompileOutput, error) {
+func (c compile) compileSourceFile(
+	ctx context.Context,
+	hostWorkingDir string,
+) (CompileOutput, error) {
 	logger := utils.LoggerWithContext(ctx, c.logger)
 
 	workingDir := c.getWorkingDir()
@@ -136,9 +146,7 @@ func (c compile) compileSourceFile(ctx context.Context, hostWorkingDir string, s
 		AttachStdout: true,
 		AttachStderr: true,
 	}, &container.HostConfig{
-		Binds: []string{
-			fmt.Sprintf("%s:%s", hostWorkingDir, workingDir),
-		},
+		Binds: []string{fmt.Sprintf("%s:%s", hostWorkingDir, workingDir)},
 		Resources: container.Resources{
 			CPUQuota: c.compileConfig.CPUQuota,
 			Memory:   c.memoryInBytes,
@@ -151,17 +159,19 @@ func (c compile) compileSourceFile(ctx context.Context, hostWorkingDir string, s
 	}
 
 	defer func() {
-		if err := c.dockerClient.ContainerRemove(ctx, containerCreateResponse.ID, types.ContainerRemoveOptions{}); err != nil {
+		err = c.dockerClient.ContainerRemove(ctx, containerCreateResponse.ID, types.ContainerRemoveOptions{})
+		if err != nil {
 			logger.With(zap.Error(err)).Error("failed to remove compile container")
 		}
 	}()
 
 	containerID := containerCreateResponse.ID
-	containerAttachResponse, err := c.dockerClient.ContainerAttach(dockerContainerCtx, containerID, types.ContainerAttachOptions{
-		Stream: true,
-		Stdout: true,
-		Stderr: true,
-	})
+	containerAttachResponse, err := c.dockerClient.
+		ContainerAttach(dockerContainerCtx, containerID, types.ContainerAttachOptions{
+			Stream: true,
+			Stdout: true,
+			Stderr: true,
+		})
 	if err != nil {
 		logger.
 			With(zap.String("container_id", containerID)).
@@ -172,7 +182,8 @@ func (c compile) compileSourceFile(ctx context.Context, hostWorkingDir string, s
 
 	defer containerAttachResponse.Close()
 
-	if err := c.dockerClient.ContainerStart(dockerContainerCtx, containerID, types.ContainerStartOptions{}); err != nil {
+	err = c.dockerClient.ContainerStart(dockerContainerCtx, containerID, types.ContainerStartOptions{})
+	if err != nil {
 		logger.
 			With(zap.String("container_id", containerID)).
 			With(zap.Error(err)).
@@ -190,7 +201,8 @@ func (c compile) compileSourceFile(ctx context.Context, hostWorkingDir string, s
 
 			stdoutBuffer := new(bytes.Buffer)
 			stderrBuffer := new(bytes.Buffer)
-			if _, err := stdcopy.StdCopy(stdoutBuffer, stderrBuffer, containerAttachResponse.Reader); err != nil {
+			_, err = stdcopy.StdCopy(stdoutBuffer, stderrBuffer, containerAttachResponse.Reader)
+			if err != nil {
 				logger.With(zap.Error(err)).Error("failed to read from stdout and stderr of container")
 				return CompileOutput{}, err
 			}
@@ -206,7 +218,7 @@ func (c compile) compileSourceFile(ctx context.Context, hostWorkingDir string, s
 			ProgramFilePath: programFilePath,
 		}, nil
 
-	case err := <-errChan:
+	case err = <-errChan:
 		logger.
 			With(zap.String("container_id", containerID)).
 			With(zap.Error(err)).
@@ -215,7 +227,12 @@ func (c compile) compileSourceFile(ctx context.Context, hostWorkingDir string, s
 	}
 }
 
-func (c compile) createSourceFile(ctx context.Context, hostWorkingDir, sourceFileName, content string) (*os.File, error) {
+func (c compile) createSourceFile(
+	ctx context.Context,
+	hostWorkingDir,
+	sourceFileName,
+	content string,
+) (*os.File, error) {
 	logger := utils.LoggerWithContext(ctx, c.logger).
 		With(zap.String("host_woking_dir", hostWorkingDir)).
 		With(zap.String("source_file_name", sourceFileName))
@@ -227,7 +244,10 @@ func (c compile) createSourceFile(ctx context.Context, hostWorkingDir, sourceFil
 		return nil, err
 	}
 
-	if _, err := sourceFile.Write([]byte(content)); err != nil {
+	defer sourceFile.Close()
+
+	_, err = sourceFile.WriteString(content)
+	if err != nil {
 		logger.With(zap.Error(err)).Error("failed to write source file")
 		return nil, err
 	}
@@ -262,11 +282,11 @@ func (c compile) Compile(ctx context.Context, content string) (CompileOutput, er
 	}
 
 	defer func() {
-		if err := os.Remove(sourceFile.Name()); err != nil {
+		if err = os.Remove(sourceFile.Name()); err != nil {
 			logger.With(zap.Error(err)).Error("failed to remove source file")
 		}
 	}()
 
 	// Compiled language, need to compile inside a container first
-	return c.compileSourceFile(ctx, hostWorkingDir, sourceFile)
+	return c.compileSourceFile(ctx, hostWorkingDir)
 }

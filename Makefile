@@ -14,10 +14,19 @@ generate:
 
 	go mod tidy
 
+.PHONY: build-web
+build-web:
+	cd web && npm run build
+	cd ..
+
 .PHONY: build
-build:
+build: build-web
 	go build -o build/cato cmd/cato/*.go
 
 .PHONY: run
 run:
 	go run cmd/cato/*.go
+
+.PHONY: lint
+lint:
+	golangci-lint run ./... 

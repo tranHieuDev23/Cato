@@ -40,6 +40,7 @@ type role struct {
 	logger *zap.Logger
 }
 
+//nolint:errcheck // If the initialization fails, the process will exit right from the get-go
 func initializeGoRBAC() *gorbac.RBAC {
 	rbac := gorbac.New()
 
@@ -104,7 +105,11 @@ func NewRole(logger *zap.Logger) Role {
 	}
 }
 
-func (r role) AccountHasPermission(ctx context.Context, accountRole string, permissions ...gorbac.Permission) (bool, error) {
+func (r role) AccountHasPermission(
+	ctx context.Context,
+	accountRole string,
+	permissions ...gorbac.Permission,
+) (bool, error) {
 	logger := utils.LoggerWithContext(ctx, r.logger)
 
 	accountRBACRole, _, err := r.rbac.Get(accountRole)

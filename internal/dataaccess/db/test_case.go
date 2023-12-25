@@ -112,12 +112,19 @@ func (a testCaseDataAccessor) DeleteTestCase(ctx context.Context, id uint64) err
 	return nil
 }
 
-func (a testCaseDataAccessor) GetTestCaseListOfProblem(ctx context.Context, problemID uint64, offset uint64, limit uint64) ([]*TestCase, error) {
+func (a testCaseDataAccessor) GetTestCaseListOfProblem(
+	ctx context.Context,
+	problemID uint64,
+	offset uint64,
+	limit uint64,
+) ([]*TestCase, error) {
 	logger := utils.LoggerWithContext(ctx, a.logger).
 		With(zap.Uint64("problem_id", problemID))
 	db := a.db.WithContext(ctx)
 	testCaseList := make([]*TestCase, 0)
 	if err := db.Model(new(TestCase)).
+		Offset(int(offset)).
+		Limit(int(limit)).
 		Where(&TestCase{
 			OfProblemID: problemID,
 		}).
@@ -141,6 +148,8 @@ func (a testCaseDataAccessor) GetTestCaseHashListOfProblem(
 	db := a.db.WithContext(ctx)
 	hashList := make([]string, 0)
 	if err := db.Model(new(TestCase)).
+		Offset(int(offset)).
+		Limit(int(limit)).
 		Where(&TestCase{
 			OfProblemID: problemID,
 		}).

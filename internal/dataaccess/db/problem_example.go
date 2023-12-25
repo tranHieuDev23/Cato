@@ -42,7 +42,10 @@ func NewProblemExampleDataAccessor(
 	}
 }
 
-func (a problemExampleDataAccessor) CreateProblemExampleList(ctx context.Context, problemExampleList []*ProblemExample) error {
+func (a problemExampleDataAccessor) CreateProblemExampleList(
+	ctx context.Context,
+	problemExampleList []*ProblemExample,
+) error {
 	logger := utils.LoggerWithContext(ctx, a.logger)
 	db := a.db.WithContext(ctx)
 	if err := db.CreateInBatches(problemExampleList, createProblemExampleListBatchSize).Error; err != nil {
@@ -69,7 +72,10 @@ func (a problemExampleDataAccessor) DeleteProblemExampleOfProblem(ctx context.Co
 	return nil
 }
 
-func (a problemExampleDataAccessor) GetProblemExampleListOfProblem(ctx context.Context, problemID uint64) ([]*ProblemExample, error) {
+func (a problemExampleDataAccessor) GetProblemExampleListOfProblem(
+	ctx context.Context,
+	problemID uint64,
+) ([]*ProblemExample, error) {
 	logger := utils.LoggerWithContext(ctx, a.logger).With(zap.Uint64("problem_id", problemID))
 	db := a.db.WithContext(ctx)
 	problemExampleList := make([]*ProblemExample, 0)

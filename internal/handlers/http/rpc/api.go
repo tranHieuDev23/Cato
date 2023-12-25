@@ -55,7 +55,9 @@ type API interface {
 
 	GetAccountSubmissionSnippetList(GetAccountSubmissionSnippetListRequest) GetAccountSubmissionSnippetListResponse
 	GetProblemSubmissionSnippetList(GetProblemSubmissionSnippetListRequest) GetProblemSubmissionSnippetListResponse
-	GetAccountProblemSubmissionSnippetList(GetAccountProblemSubmissionSnippetListRequest) GetAccountProblemSubmissionSnippetListResponse
+	GetAccountProblemSubmissionSnippetList(
+		GetAccountProblemSubmissionSnippetListRequest,
+	) GetAccountProblemSubmissionSnippetListResponse
 }
 
 type CreateAccountRequest struct {

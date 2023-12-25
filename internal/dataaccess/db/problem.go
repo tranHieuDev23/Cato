@@ -118,7 +118,12 @@ func (a problemDataAccessor) GetProblemList(ctx context.Context, offset uint64, 
 	return problemList, nil
 }
 
-func (a problemDataAccessor) GetAccountProblemList(ctx context.Context, accountID uint64, offset, limit uint64) ([]*Problem, error) {
+func (a problemDataAccessor) GetAccountProblemList(
+	ctx context.Context,
+	accountID uint64,
+	offset,
+	limit uint64,
+) ([]*Problem, error) {
 	logger := utils.LoggerWithContext(ctx, a.logger).
 		With(zap.Uint64("account_id", accountID)).
 		With(zap.Uint64("limit", limit)).

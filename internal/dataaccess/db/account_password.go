@@ -38,7 +38,10 @@ func NewAccountPasswordDataAccessor(
 	}
 }
 
-func (a accountPasswordDataAccessor) CreateAccountPassword(ctx context.Context, accountPassword *AccountPassword) error {
+func (a accountPasswordDataAccessor) CreateAccountPassword(
+	ctx context.Context,
+	accountPassword *AccountPassword,
+) error {
 	logger := utils.LoggerWithContext(ctx, a.logger)
 	db := a.db.WithContext(ctx)
 	if err := db.Create(accountPassword).Error; err != nil {
@@ -49,7 +52,10 @@ func (a accountPasswordDataAccessor) CreateAccountPassword(ctx context.Context, 
 	return nil
 }
 
-func (a accountPasswordDataAccessor) GetAccountPasswordOfAccountID(ctx context.Context, ofAccountID uint64) (*AccountPassword, error) {
+func (a accountPasswordDataAccessor) GetAccountPasswordOfAccountID(
+	ctx context.Context,
+	ofAccountID uint64,
+) (*AccountPassword, error) {
 	logger := utils.LoggerWithContext(ctx, a.logger).
 		With(zap.Uint64("of_account_id", ofAccountID))
 	db := a.db.WithContext(ctx)
@@ -71,7 +77,10 @@ func (a accountPasswordDataAccessor) GetAccountPasswordOfAccountID(ctx context.C
 	return accountPassword, nil
 }
 
-func (a accountPasswordDataAccessor) UpdateAccountPassword(ctx context.Context, accountPassword *AccountPassword) error {
+func (a accountPasswordDataAccessor) UpdateAccountPassword(
+	ctx context.Context,
+	accountPassword *AccountPassword,
+) error {
 	logger := utils.LoggerWithContext(ctx, a.logger)
 	db := a.db.WithContext(ctx)
 	if err := db.Save(accountPassword).Error; err != nil {

@@ -59,7 +59,8 @@ func NewTestCaseRun(
 	}
 
 	t.logger.Info("pulling load test case run image")
-	if _, err := dockerClient.ImagePull(context.Background(), testCaseRunConfig.Image, types.ImagePullOptions{}); err != nil {
+	_, err := dockerClient.ImagePull(context.Background(), testCaseRunConfig.Image, types.ImagePullOptions{})
+	if err != nil {
 		t.logger.With(zap.Error(err)).Error("failed to load test case run image")
 		return nil, err
 	}
@@ -101,7 +102,7 @@ func (t testCaseRun) Run(
 	ctx context.Context,
 	programFilePath string,
 	input string,
-	timeLimitInMillisecond uint64,
+	_ uint64,
 	memoryLimitInByte uint64,
 ) (RunOutput, error) {
 	logger := utils.LoggerWithContext(ctx, t.logger)
@@ -121,9 +122,7 @@ func (t testCaseRun) Run(
 		AttachStderr: true,
 		OpenStdin:    true,
 	}, &container.HostConfig{
-		Binds: []string{
-			fmt.Sprintf("%s:%s", programFileDirectory, workingDir),
-		},
+		Binds: []string{fmt.Sprintf("%s:%s", programFileDirectory, workingDir)},
 		Resources: container.Resources{
 			CPUQuota: t.testCaseRunConfig.CPUQuota,
 			Memory:   int64(memoryLimitInByte),
@@ -136,34 +135,32 @@ func (t testCaseRun) Run(
 	}
 
 	defer func() {
-		if err := t.dockerClient.ContainerRemove(ctx, containerCreateResponse.ID, types.ContainerRemoveOptions{}); err != nil {
+		err = t.dockerClient.ContainerRemove(ctx, containerCreateResponse.ID, types.ContainerRemoveOptions{})
+		if err != nil {
 			logger.With(zap.Error(err)).Error("failed to remove run test case container")
 		}
 	}()
 
 	containerID := containerCreateResponse.ID
 	containerAttachResponse, err := t.dockerClient.ContainerAttach(ctx, containerID, types.ContainerAttachOptions{
-		Stream: true,
-		Stdin:  true,
-		Stdout: true,
-		Stderr: true,
+		Stream: true, Stdin: true, Stdout: true, Stderr: true,
 	})
 	if err != nil {
-		logger.
-			With(zap.String("container_id", containerID)).
-			With(zap.Error(err)).
+		logger.With(zap.String("container_id", containerID)).With(zap.Error(err)).
 			Error("failed to attached to run test case container")
 		return RunOutput{}, err
 	}
 
 	defer containerAttachResponse.Close()
 
-	if _, err := containerAttachResponse.Conn.Write(append([]byte(input), '\n')); err != nil {
+	_, err = containerAttachResponse.Conn.Write(append([]byte(input), '\n'))
+	if err != nil {
 		logger.With(zap.Error(err)).Error("failed to write to stdin of container")
 		return RunOutput{}, err
 	}
 
-	if err := t.dockerClient.ContainerStart(ctx, containerID, types.ContainerStartOptions{}); err != nil {
+	err = t.dockerClient.ContainerStart(ctx, containerID, types.ContainerStartOptions{})
+	if err != nil {
 		logger.
 			With(zap.String("container_id", containerID)).
 			With(zap.Error(err)).
@@ -182,7 +179,8 @@ func (t testCaseRun) Run(
 
 		stdoutBuffer := new(bytes.Buffer)
 		stderrBuffer := new(bytes.Buffer)
-		if _, err := stdcopy.StdCopy(stdoutBuffer, stderrBuffer, containerAttachResponse.Reader); err != nil {
+		_, err = stdcopy.StdCopy(stdoutBuffer, stderrBuffer, containerAttachResponse.Reader)
+		if err != nil {
 			logger.With(zap.Error(err)).Error("failed to read from stdout and stderr of container")
 			return RunOutput{}, err
 		}
@@ -193,7 +191,7 @@ func (t testCaseRun) Run(
 			StdErr:     utils.TrimSpaceRight(stderrBuffer.String()),
 		}, nil
 
-	case err := <-errChan:
+	case err = <-errChan:
 		logger.
 			With(zap.String("container_id", containerID)).
 			With(zap.Error(err)).

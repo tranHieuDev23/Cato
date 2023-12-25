@@ -18,18 +18,23 @@ type Config struct {
 	Logic    Logic    `yaml:"logic"`
 }
 
-func NewConfig(filePath ConfigFilePath) (config Config, err error) {
-	configBytes := configs.DefaultConfigBytes
+func NewConfig(filePath ConfigFilePath) (Config, error) {
+	var (
+		configBytes = configs.DefaultConfigBytes
+		config      = Config{}
+		err         error
+	)
 
 	if filePath != "" {
 		configBytes, err = os.ReadFile(string(filePath))
 		if err != nil {
-			return Config{}, fmt.Errorf("failed to read YAML file: %v", err)
+			return Config{}, fmt.Errorf("failed to read YAML file: %w", err)
 		}
 	}
 
-	if err := yaml.Unmarshal(configBytes, &config); err != nil {
-		return Config{}, fmt.Errorf("failed to unmarshal YAML: %v", err)
+	err = yaml.Unmarshal(configBytes, &config)
+	if err != nil {
+		return Config{}, fmt.Errorf("failed to unmarshal YAML: %w", err)
 	}
 
 	return config, nil

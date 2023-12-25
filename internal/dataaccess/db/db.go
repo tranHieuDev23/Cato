@@ -20,7 +20,7 @@ type gormZapLogger struct {
 	logger *zap.Logger
 }
 
-func (la gormZapLogger) LogMode(level logger.LogLevel) logger.Interface {
+func (la gormZapLogger) LogMode(_ logger.LogLevel) logger.Interface {
 	return la
 }
 
