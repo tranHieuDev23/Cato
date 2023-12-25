@@ -220,7 +220,7 @@ export class ProblemComponent implements OnInit {
         this.submissionContent,
         this.submissionLanguage
       );
-      this.notificationService.success('Solution submitted successfully', '');
+      this.notificationService.success('Submission submitted successfully', '');
       if (
         this.problemTabSet &&
         this.submissionTab &&
@@ -231,7 +231,7 @@ export class ProblemComponent implements OnInit {
     } catch (e) {
       if (e instanceof UnauthenticatedError) {
         this.notificationService.error(
-          'Failed to submit solution',
+          'Failed to submit submission',
           'Not logged in'
         );
         this.router.navigateByUrl('/login');
@@ -240,7 +240,7 @@ export class ProblemComponent implements OnInit {
 
       if (e instanceof PermissionDeniedError) {
         this.notificationService.error(
-          'Failed to submit solution',
+          'Failed to submit submission',
           'Permission denied'
         );
         this.location.back();
@@ -258,14 +258,14 @@ export class ProblemComponent implements OnInit {
 
       if (e instanceof InvalidSubmissionInfo) {
         this.notificationService.error(
-          'Failed to submit solution',
+          'Failed to submit submission',
           'Invalid submission file'
         );
         return;
       }
 
       this.notificationService.error(
-        'Failed to submit solution',
+        'Failed to submit submission',
         'Unknown error'
       );
     }

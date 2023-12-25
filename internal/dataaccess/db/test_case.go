@@ -29,6 +29,7 @@ type TestCaseDataAccessor interface {
 	CreateTestCaseList(ctx context.Context, testCaseList []*TestCase) error
 	GetTestCase(ctx context.Context, id uint64) (*TestCase, error)
 	GetTestCaseListOfProblem(ctx context.Context, problemID uint64, offset uint64, limit uint64) ([]*TestCase, error)
+	GetTestCaseIDListOfProblem(ctx context.Context, problemID uint64) ([]uint64, error)
 	GetTestCaseHashListOfProblem(ctx context.Context, problemID uint64, offset uint64, limit uint64) ([]string, error)
 	GetTestCaseCountOfProblem(ctx context.Context, problemID uint64) (uint64, error)
 	UpdateTestCase(ctx context.Context, testCase *TestCase) error
@@ -152,6 +153,24 @@ func (a testCaseDataAccessor) GetTestCaseHashListOfProblem(
 	}
 
 	return hashList, nil
+}
+
+func (a testCaseDataAccessor) GetTestCaseIDListOfProblem(ctx context.Context, problemID uint64) ([]uint64, error) {
+	logger := utils.LoggerWithContext(ctx, a.logger).
+		With(zap.Uint64("problem_id", problemID))
+	db := a.db.WithContext(ctx)
+	idList := make([]uint64, 0)
+	if err := db.Model(new(TestCase)).
+		Where(&TestCase{
+			OfProblemID: problemID,
+		}).
+		Pluck("id", &idList).
+		Error; err != nil {
+		logger.With(zap.Error(err)).Error("failed to get test case id list of problem")
+		return make([]uint64, 0), err
+	}
+
+	return idList, nil
 }
 
 func (a testCaseDataAccessor) GetTestCaseCountOfProblem(ctx context.Context, problemID uint64) (uint64, error) {

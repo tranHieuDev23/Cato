@@ -10,4 +10,7 @@ var WireSet = wire.NewSet(
 	NewProblem,
 	NewTestCase,
 	NewSubmission,
+	NewCompile,
+	NewTestCaseRun,
+	NewJudge,
 )

@@ -18,12 +18,13 @@ const (
 	SubmissionStatusExecuting SubmissionStatus = 2
 	SubmissionStatusFinished  SubmissionStatus = 3
 
-	SubmissionResultOK                SubmissionResult = 1
-	SubmissionResultCompileError      SubmissionResult = 2
-	SubmissionResultRuntimeError      SubmissionResult = 3
-	SubmissionResultTimeLimitExceeded SubmissionResult = 4
-	SubmissionResultMemoryLimitExceed SubmissionResult = 5
-	SubmissionResultWrongAnswer       SubmissionResult = 6
+	SubmissionResultOK                  SubmissionResult = 1
+	SubmissionResultCompileError        SubmissionResult = 2
+	SubmissionResultRuntimeError        SubmissionResult = 3
+	SubmissionResultTimeLimitExceeded   SubmissionResult = 4
+	SubmissionResultMemoryLimitExceed   SubmissionResult = 5
+	SubmissionResultWrongAnswer         SubmissionResult = 6
+	SubmissionResultUnsupportedLanguage SubmissionResult = 7
 )
 
 type Submission struct {
