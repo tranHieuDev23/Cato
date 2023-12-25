@@ -12,5 +12,6 @@ var WireSet = wire.NewSet(
 	NewSubmission,
 	NewCompile,
 	NewTestCaseRun,
-	NewJudge,
+	NewLocalJudge,
+	NewRemoteJudge,
 )
