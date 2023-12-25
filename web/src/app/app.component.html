@@ -5,8 +5,8 @@
       <ng-container nzSpaceItem>
         <a routerLink="/">
           <img src="https://ng.ant.design/assets/img/logo.svg" alt="logo">
+          <h1 *ngIf="!collapsed">Cato</h1>
         </a>
-        <h1 *ngIf="!collapsed">Cato</h1>
       </ng-container>
     </div>
     <app-side-menu [collapsed]="collapsed"></app-side-menu>
