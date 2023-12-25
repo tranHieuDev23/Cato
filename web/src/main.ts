@@ -1,7 +1,6 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
 import { AppComponent } from './app/app.component';
-import 'codemirror/addon/display/autorefresh';
 import 'codemirror/mode/clike/clike';
 import 'codemirror/mode/python/python';
 import 'codemirror/mode/markdown/markdown';

@@ -38,7 +38,9 @@
             </nz-tab>
 
             <nz-tab nzTitle="Test cases">
-                <app-test-case-list *ngIf="problem" [problemID]="problem.iD"></app-test-case-list>
+                <ng-template nz-tab>
+                    <app-test-case-list *ngIf="problem" [problemID]="problem.iD"></app-test-case-list>
+                </ng-template>
             </nz-tab>
 
             <nz-tab nzTitle="Submissions" #submissionTab>

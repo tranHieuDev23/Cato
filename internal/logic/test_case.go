@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	testCaseDataSize       = 250
+	testCaseDataSize       = 100
 	testCaseInputFileName  = "input.txt"
 	testCaseOutputFileName = "output.txt"
 )

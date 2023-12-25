@@ -22,22 +22,24 @@
                     @if (testCase.isHidden && sessionAccount?.role === 'contestant') {
                     Hidden
                     } @else {
-                    <ngx-codemirror [ngModel]="testCase.input"
-                        [options]="{theme: 'material', readOnly: true, autoRefresh: true}">
-                    </ngx-codemirror>}
+                    <code nz-typography [nzContent]="testCase.input | ellipsis:100 " nz-tooltip="Click to copy"
+                        (click)="onTestCaseInputClicked(i, testCase)">
+                    </code>
+                    }
                 </td>
                 <td>
                     @if (testCase.isHidden && sessionAccount?.role === 'contestant') {
                     Hidden
                     } @else {
-                    <ngx-codemirror [ngModel]="testCase.output"
-                        [options]="{theme: 'material', readOnly: true, autoRefresh: true}">
-                    </ngx-codemirror>}
+                    <code nz-typography [nzContent]="testCase.output | ellipsis:100" nz-tooltip="Click to copy"
+                        (click)="onTestCaseOutputClicked(i, testCase)">
+                    </code>
+                    }
                 </td>
                 <td>
                     <nz-button-group>
-                        <button nz-button [disabled]="testCase.loading || !testCase.isSnippet" nz-tooltip="Expand"
-                            (click)="expandTestCase(i, testCase)">
+                        <button nz-button [disabled]="testCase.loading" nz-tooltip="Expand"
+                            (click)="onTestCaseExpandClicked(i, testCase)">
                             <span nz-icon nzType="expand-alt" nzTheme="outline"></span>
                         </button>
                         <button *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'problem_setter'"
@@ -55,19 +57,40 @@
             </tr>
         </tbody>
     </nz-table>
-    <ng-template #editTestCaseModal>
+    <ng-template #expandTestCaseModal>
         <div class="edit-test-case-modal">
             <p nz-typography>Input</p>
-            <ngx-codemirror class="editor" [(ngModel)]="modalTestCaseInput"
-                [options]="{theme: 'material', autoRefresh: true}">
+            <ngx-codemirror class="editor" [(ngModel)]="expandTestCaseModalInput"
+                [options]="{theme: 'material', mode: 'text/plain', autoRefresh: true, readOnly: true}">
             </ngx-codemirror>
             <br />
             <p nz-typography>Output</p>
-            <ngx-codemirror class="editor" [(ngModel)]="modalTestCaseOutput"
-                [options]="{theme: 'material', autoRefresh: true}">
+            <ngx-codemirror class="editor" [(ngModel)]="expandTestCaseModalOutput"
+                [options]="{theme: 'material', mode: 'text/plain', autoRefresh: true, readOnly: true}">
+            </ngx-codemirror>
+        </div>
+    </ng-template>
+    <ng-template #expandTestCaseModalFooter>
+        <button nz-button (click)="onExpandTestCaseModalCopyInputClicked()">
+            <span nz-icon nzType="copy" nzTheme="outline"></span> Copy input
+        </button>
+        <button nz-button (click)="onExpandTestCaseModalCopyOutputClicked()">
+            <span nz-icon nzType="copy" nzTheme="outline"></span> Copy output
+        </button>
+    </ng-template>
+    <ng-template #editTestCaseModal>
+        <div class="edit-test-case-modal">
+            <p nz-typography>Input</p>
+            <ngx-codemirror class="editor" [(ngModel)]="editTestCaseModalInput"
+                [options]="{theme: 'material', mode: 'text/plain', autoRefresh: true}">
             </ngx-codemirror>
             <br />
-            <label nz-checkbox [(ngModel)]="isModalTestCaseHidden">Is hidden</label>
+            <p nz-typography>Output</p>
+            <ngx-codemirror class="editor" [(ngModel)]="editTestCaseModalOutput"
+                [options]="{theme: 'material', mode: 'text/plain', autoRefresh: true}">
+            </ngx-codemirror>
+            <br />
+            <label nz-checkbox [(ngModel)]="editModalTestCaseIsHidden">Is hidden</label>
         </div>
     </ng-template>
 </div>

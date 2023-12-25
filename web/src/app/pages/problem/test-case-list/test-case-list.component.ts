@@ -36,6 +36,8 @@ import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import copyToClipboard from 'copy-to-clipboard';
+import { EllipsisPipe } from '../../../components/utils/ellipsis.pipe';
 
 export interface TestCaseListItem {
   id: number;
@@ -61,6 +63,7 @@ export interface TestCaseListItem {
     NzModalModule,
     NzCheckboxModule,
     NzToolTipModule,
+    EllipsisPipe,
   ],
   templateUrl: './test-case-list.component.html',
   styleUrl: './test-case-list.component.scss',
@@ -69,6 +72,12 @@ export class TestCaseListComponent implements OnInit {
   @ViewChildren(CodemirrorComponent)
   codeMirrorComponentList!: QueryList<CodemirrorComponent>;
 
+  @ViewChild('expandTestCaseModal') expandTestCaseModal:
+    | TemplateRef<any>
+    | undefined;
+  @ViewChild('expandTestCaseModalFooter') expandTestCaseModalFooter:
+    | TemplateRef<any>
+    | undefined;
   @ViewChild('editTestCaseModal') editTestCaseModal:
     | TemplateRef<any>
     | undefined;
@@ -83,9 +92,12 @@ export class TestCaseListComponent implements OnInit {
   public pageSize = 10;
   public loading = false;
 
-  public modalTestCaseInput = '';
-  public modalTestCaseOutput = '';
-  public isModalTestCaseHidden = true;
+  public expandTestCaseModalInput = '';
+  public expandTestCaseModalOutput = '';
+
+  public editTestCaseModalInput = '';
+  public editTestCaseModalOutput = '';
+  public editModalTestCaseIsHidden = true;
 
   constructor(
     private readonly accountService: AccountService,
@@ -198,64 +210,64 @@ export class TestCaseListComponent implements OnInit {
     await this.loadTestCaseSnippetList();
   }
 
-  public async expandTestCase(
+  public async onTestCaseInputClicked(
     index: number,
     testCaseListItem: TestCaseListItem
   ): Promise<void> {
-    if (testCaseListItem.loading || !testCaseListItem.isSnippet) {
+    if (testCaseListItem.loading) {
+      return;
+    }
+    if (testCaseListItem.isSnippet) {
+      await this.loadTestCaseFromSnippet(index, testCaseListItem);
+    }
+    copyToClipboard(this.testCaseList[index].input);
+    this.notificationService.success('Input copied to clipboard', '');
+  }
+
+  public async onTestCaseOutputClicked(
+    index: number,
+    testCaseListItem: TestCaseListItem
+  ): Promise<void> {
+    if (testCaseListItem.loading) {
+      return;
+    }
+    if (testCaseListItem.isSnippet) {
+      await this.loadTestCaseFromSnippet(index, testCaseListItem);
+    }
+    copyToClipboard(this.testCaseList[index].output);
+    this.notificationService.success('Output copied to clipboard', '');
+  }
+
+  public async onTestCaseExpandClicked(
+    index: number,
+    testCaseListItem: TestCaseListItem
+  ): Promise<void> {
+    if (testCaseListItem.loading) {
       return;
     }
 
-    this.testCaseList = [...this.testCaseList];
-    this.testCaseList[index].loading = true;
-
-    try {
-      const testCase = await this.testCaseService.getTestCase(
-        testCaseListItem.id
-      );
-      this.testCaseList = [...this.testCaseList];
-      this.testCaseList[index] = {
-        id: testCase.iD,
-        input: testCase.input,
-        output: testCase.output,
-        isHidden: testCase.isHidden,
-        loading: false,
-        isSnippet: false,
-      };
-    } catch (e) {
-      if (e instanceof UnauthenticatedError) {
-        this.notificationService.error(
-          'Failed to load test case',
-          'Not logged in'
-        );
-        this.router.navigateByUrl('/login');
-        return;
-      }
-
-      if (e instanceof PermissionDeniedError) {
-        this.notificationService.error(
-          'Failed to load test case',
-          'Permission denied'
-        );
-        this.location.back();
-        return;
-      }
-
-      if (e instanceof TestCaseNotFoundError) {
-        this.notificationService.error(
-          'Failed to load test case',
-          'TestCase not found'
-        );
-        await this.loadTestCaseSnippetList();
-        return;
-      }
-    } finally {
-      this.testCaseList = [...this.testCaseList];
-      this.testCaseList[index] = {
-        ...this.testCaseList[index],
-        loading: false,
-      };
+    if (testCaseListItem.isSnippet) {
+      await this.loadTestCaseFromSnippet(index, testCaseListItem);
     }
+
+    const testCase = this.testCaseList[index];
+    this.expandTestCaseModalInput = testCase.input;
+    this.expandTestCaseModalOutput = testCase.output;
+    this.modalService.create({
+      nzContent: this.expandTestCaseModal,
+      nzWidth: 'fit-content',
+      nzFooter: this.expandTestCaseModalFooter,
+    });
+  }
+
+  public onExpandTestCaseModalCopyInputClicked(): void {
+    copyToClipboard(this.expandTestCaseModalInput);
+    this.notificationService.success('Input copied to clipboard', '');
+  }
+
+  public onExpandTestCaseModalCopyOutputClicked(): void {
+    copyToClipboard(this.expandTestCaseModalInput);
+    this.notificationService.success('Output copied to clipboard', '');
   }
 
   public async onTestCaseEditClicked(
@@ -267,13 +279,13 @@ export class TestCaseListComponent implements OnInit {
     }
 
     if (testCaseListItem.isSnippet) {
-      await this.expandTestCase(index, testCaseListItem);
+      await this.loadTestCaseFromSnippet(index, testCaseListItem);
     }
 
     const testCase = this.testCaseList[index];
-    this.modalTestCaseInput = testCase.input;
-    this.modalTestCaseOutput = testCase.output;
-    this.isModalTestCaseHidden = testCase.isHidden;
+    this.editTestCaseModalInput = testCase.input;
+    this.editTestCaseModalOutput = testCase.output;
+    this.editModalTestCaseIsHidden = testCase.isHidden;
 
     this.modalService.create({
       nzContent: this.editTestCaseModal,
@@ -282,9 +294,9 @@ export class TestCaseListComponent implements OnInit {
         try {
           await this.testCaseService.updateTestCase(
             testCase.id,
-            this.modalTestCaseInput,
-            this.modalTestCaseOutput,
-            this.isModalTestCaseHidden
+            this.editTestCaseModalInput,
+            this.editTestCaseModalOutput,
+            this.editModalTestCaseIsHidden
           );
           this.notificationService.success(
             'Updated test case successfully',
@@ -376,9 +388,9 @@ export class TestCaseListComponent implements OnInit {
   }
 
   public onCreateTestCaseClicked(): void {
-    this.modalTestCaseInput = '';
-    this.modalTestCaseOutput = '';
-    this.isModalTestCaseHidden = true;
+    this.editTestCaseModalInput = '';
+    this.editTestCaseModalOutput = '';
+    this.editModalTestCaseIsHidden = true;
     this.modalService.create({
       nzContent: this.editTestCaseModal,
       nzWidth: 'fit-content',
@@ -386,9 +398,9 @@ export class TestCaseListComponent implements OnInit {
         try {
           await this.testCaseService.createTestCase(
             this.problemID,
-            this.modalTestCaseInput,
-            this.modalTestCaseOutput,
-            this.isModalTestCaseHidden
+            this.editTestCaseModalInput,
+            this.editTestCaseModalOutput,
+            this.editModalTestCaseIsHidden
           );
           this.notificationService.success(
             'Created test case successfully',
@@ -425,5 +437,65 @@ export class TestCaseListComponent implements OnInit {
         }
       },
     });
+  }
+
+  private async loadTestCaseFromSnippet(
+    index: number,
+    testCaseListItem: TestCaseListItem
+  ): Promise<void> {
+    if (testCaseListItem.loading || !testCaseListItem.isSnippet) {
+      return;
+    }
+
+    this.testCaseList = [...this.testCaseList];
+    this.testCaseList[index].loading = true;
+
+    try {
+      const testCase = await this.testCaseService.getTestCase(
+        testCaseListItem.id
+      );
+      this.testCaseList = [...this.testCaseList];
+      this.testCaseList[index] = {
+        id: testCase.iD,
+        input: testCase.input,
+        output: testCase.output,
+        isHidden: testCase.isHidden,
+        loading: false,
+        isSnippet: false,
+      };
+    } catch (e) {
+      if (e instanceof UnauthenticatedError) {
+        this.notificationService.error(
+          'Failed to load test case',
+          'Not logged in'
+        );
+        this.router.navigateByUrl('/login');
+        return;
+      }
+
+      if (e instanceof PermissionDeniedError) {
+        this.notificationService.error(
+          'Failed to load test case',
+          'Permission denied'
+        );
+        this.location.back();
+        return;
+      }
+
+      if (e instanceof TestCaseNotFoundError) {
+        this.notificationService.error(
+          'Failed to load test case',
+          'TestCase not found'
+        );
+        await this.loadTestCaseSnippetList();
+        return;
+      }
+    } finally {
+      this.testCaseList = [...this.testCaseList];
+      this.testCaseList[index] = {
+        ...this.testCaseList[index],
+        loading: false,
+      };
+    }
   }
 }

@@ -9,7 +9,7 @@ type TestCase struct {
 
 type TestCaseSnippet struct {
 	ID       uint64
-	Input    string `validate:"max=256"`
-	Output   string `validate:"max=256"`
+	Input    string `validate:"max=100"`
+	Output   string `validate:"max=100"`
 	IsHidden bool
 }
