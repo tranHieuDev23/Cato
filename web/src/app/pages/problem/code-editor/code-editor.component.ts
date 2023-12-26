@@ -40,12 +40,34 @@ export class CodeEditorComponent {
 
   public onLoadFile = (file: NzUploadFile): boolean => {
     const fileReader = new FileReader();
+    this.updateLanguageFromFileName(file.name);
+
     fileReader.onload = (event) => {
       this.content = `${event.target?.result || ''}`;
     };
+
     fileReader.readAsText(file as any);
     return false;
   };
+
+  private updateLanguageFromFileName(fileName: string): void {
+    if (fileName.endsWith('.cpp')) {
+      this.language = 'cpp';
+      this.onSubmissionLanguageChange(this.language);
+    }
+    if (fileName.endsWith('.c')) {
+      this.language = 'c';
+      this.onSubmissionLanguageChange(this.language);
+    }
+    if (fileName.endsWith('.java')) {
+      this.language = 'java';
+      this.onSubmissionLanguageChange(this.language);
+    }
+    if (fileName.endsWith('.py')) {
+      this.language = 'python';
+      this.onSubmissionLanguageChange(this.language);
+    }
+  }
 
   public onSubmissionLanguageChange(language: string): void {
     this.editorMode =
