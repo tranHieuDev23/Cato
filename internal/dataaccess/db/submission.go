@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"time"
 
 	"gitlab.com/pjrpc/pjrpc/v2"
 	"go.uber.org/zap"
@@ -46,6 +47,7 @@ type SubmissionListFilterParams struct {
 type SubmissionDataAccessor interface {
 	CreateSubmission(ctx context.Context, submission *Submission) error
 	UpdateSubmission(ctx context.Context, submission *Submission) error
+	UpdateExecutingSubmissionUpdatedBeforeThresholdToSubmitted(ctx context.Context, threshold time.Time) error
 	DeleteSubmission(ctx context.Context, id uint64) error
 	DeleteSubmissionOfProblem(ctx context.Context, problemID uint64) error
 	GetSubmission(ctx context.Context, id uint64) (*Submission, error)
@@ -104,6 +106,25 @@ func (a submissionDataAccessor) UpdateSubmission(ctx context.Context, submission
 	if err := db.Save(submission).Error; err != nil {
 		logger.With(zap.Error(err)).Error("failed to update submission")
 		return pjrpc.JRPCErrInternalError()
+	}
+
+	return nil
+}
+
+func (a submissionDataAccessor) UpdateExecutingSubmissionUpdatedBeforeThresholdToSubmitted(
+	ctx context.Context,
+	threshold time.Time,
+) error {
+	logger := utils.LoggerWithContext(ctx, a.logger).With(zap.Time("threshold", threshold))
+	db := a.db.WithContext(ctx)
+	if err := db.Model(new(Submission)).
+		Where("updated_at < ? and status = ?", threshold, SubmissionStatusExecuting).
+		UpdateColumn("status", SubmissionStatusSubmitted).
+		Error; err != nil {
+		logger.
+			With(zap.Error(err)).
+			Error("failed to update executing submission updated before threshold to submitted")
+		return err
 	}
 
 	return nil

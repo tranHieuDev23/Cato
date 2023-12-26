@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+	"time"
 
 	"gitlab.com/pjrpc/pjrpc/v2"
 	"go.uber.org/zap"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/mikespook/gorbac"
 
+	"github.com/tranHieuDev23/cato/internal/configs"
 	"github.com/tranHieuDev23/cato/internal/dataaccess/db"
 	"github.com/tranHieuDev23/cato/internal/handlers/http/rpc"
 	"github.com/tranHieuDev23/cato/internal/utils"
@@ -53,18 +55,20 @@ type Submission interface {
 		token string,
 	) (*rpc.GetAndUpdateFirstSubmittedSubmissionToExecutingResponse, error)
 	ScheduleSubmittedExecutingSubmissionToJudge(ctx context.Context) error
+	UpdateExecutingSubmissionUpdatedBeforeThresholdToSubmitted(ctx context.Context) error
 }
 
 type submission struct {
-	token                  Token
-	role                   Role
-	judge                  Judge
-	accountDataAccessor    db.AccountDataAccessor
-	problemDataAccessor    db.ProblemDataAccessor
-	submissionDataAccessor db.SubmissionDataAccessor
-	db                     *gorm.DB
-	logger                 *zap.Logger
-	appArguments           utils.Arguments
+	token                                       Token
+	role                                        Role
+	judge                                       Judge
+	accountDataAccessor                         db.AccountDataAccessor
+	problemDataAccessor                         db.ProblemDataAccessor
+	submissionDataAccessor                      db.SubmissionDataAccessor
+	db                                          *gorm.DB
+	logger                                      *zap.Logger
+	appArguments                                utils.Arguments
+	revertExecutingSubmissionsThresholdDuration time.Duration
 }
 
 func NewSubmission(
@@ -77,7 +81,17 @@ func NewSubmission(
 	db *gorm.DB,
 	logger *zap.Logger,
 	appArguments utils.Arguments,
-) Submission {
+	logicConfig configs.Logic,
+) (Submission, error) {
+	revertExecutingSubmissionsThresholdDuration, err := logicConfig.RevertExecutingSubmissions.GetThresholdDuration()
+	if err != nil {
+		logger.
+			With(zap.String("revert_executing_submission_threshold", logicConfig.RevertExecutingSubmissions.Threshold)).
+			With(zap.Error(err)).
+			Error("failed to parse revert execution submission threshold")
+		return nil, err
+	}
+
 	return &submission{
 		token:                  token,
 		role:                   role,
@@ -88,7 +102,8 @@ func NewSubmission(
 		db:                     db,
 		logger:                 logger,
 		appArguments:           appArguments,
-	}
+		revertExecutingSubmissionsThresholdDuration: revertExecutingSubmissionsThresholdDuration,
+	}, nil
 }
 
 func (s submission) dbSubmissionToRPCSubmission(
@@ -736,4 +751,15 @@ func (s submission) ScheduleSubmittedExecutingSubmissionToJudge(ctx context.Cont
 	}
 
 	return nil
+}
+
+func (s submission) UpdateExecutingSubmissionUpdatedBeforeThresholdToSubmitted(ctx context.Context) error {
+	logger := utils.LoggerWithContext(ctx, s.logger)
+
+	threshold := time.Now().Add(-s.revertExecutingSubmissionsThresholdDuration)
+	logger.
+		With(zap.Time("threshold", threshold)).
+		Info("reverting executing submissions with update time before threshold to submitted")
+
+	return s.submissionDataAccessor.UpdateExecutingSubmissionUpdatedBeforeThresholdToSubmitted(ctx, threshold)
 }

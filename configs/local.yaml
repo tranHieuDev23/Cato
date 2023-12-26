@@ -144,6 +144,9 @@ logic:
             ["timeout", "--foreground", "$TIME_LIMIT", "python", "$PROGRAM"]
           cpu_quota: 1000000
   sync_problem:
-    schedule: "* * * * *"
+    schedule: "@every 1m"
     get_problem_snippet_list_batch_size: 10
     get_test_case_snippet_list_batch_size: 10
+  revert_executing_submissions:
+    schedule: "@every 1m"
+    threshold: 10m

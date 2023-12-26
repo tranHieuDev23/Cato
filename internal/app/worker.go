@@ -15,32 +15,32 @@ import (
 )
 
 type Worker struct {
-	dbMigrator                                  db.Migrator
-	scheduleSubmittedExecutingSubmissionToJudge jobs.ScheduleSubmittedExecutingSubmissionToJudge
-	syncProblems                                jobs.SyncProblems
-	judgeDistributedFirstSubmittedSubmission    jobs.JudgeDistributedFirstSubmittedSubmission
-	logger                                      *zap.Logger
-	cron                                        *cron.Cron
-	logicConfig                                 configs.Logic
+	dbMigrator                                     db.Migrator
+	scheduleSubmittedExecutingSubmissionToJudgeJob jobs.ScheduleSubmittedExecutingSubmissionToJudge
+	syncProblemsJob                                jobs.SyncProblems
+	judgeDistributedFirstSubmittedSubmissionJob    jobs.JudgeDistributedFirstSubmittedSubmission
+	logger                                         *zap.Logger
+	cron                                           *cron.Cron
+	logicConfig                                    configs.Logic
 }
 
 func NewWorker(
 	dbMigrator db.Migrator,
-	scheduleSubmittedExecutingSubmissionToJudge jobs.ScheduleSubmittedExecutingSubmissionToJudge,
-	syncProblems jobs.SyncProblems,
-	judgeDistributedFirstSubmittedSubmission jobs.JudgeDistributedFirstSubmittedSubmission,
+	scheduleSubmittedExecutingSubmissionToJudgeJob jobs.ScheduleSubmittedExecutingSubmissionToJudge,
+	syncProblemsJob jobs.SyncProblems,
+	judgeDistributedFirstSubmittedSubmissionJob jobs.JudgeDistributedFirstSubmittedSubmission,
 	logger *zap.Logger,
 	cron *cron.Cron,
 	logicConfig configs.Logic,
 ) *Worker {
 	return &Worker{
 		dbMigrator: dbMigrator,
-		scheduleSubmittedExecutingSubmissionToJudge: scheduleSubmittedExecutingSubmissionToJudge,
-		syncProblems:                             syncProblems,
-		judgeDistributedFirstSubmittedSubmission: judgeDistributedFirstSubmittedSubmission,
-		logger:                                   logger,
-		cron:                                     cron,
-		logicConfig:                              logicConfig,
+		scheduleSubmittedExecutingSubmissionToJudgeJob: scheduleSubmittedExecutingSubmissionToJudgeJob,
+		syncProblemsJob: syncProblemsJob,
+		judgeDistributedFirstSubmittedSubmissionJob: judgeDistributedFirstSubmittedSubmissionJob,
+		logger:      logger,
+		cron:        cron,
+		logicConfig: logicConfig,
 	}
 }
 
@@ -49,12 +49,12 @@ func (c Worker) Start() error {
 		return err
 	}
 
-	if err := c.scheduleSubmittedExecutingSubmissionToJudge.Run(); err != nil {
+	if err := c.scheduleSubmittedExecutingSubmissionToJudgeJob.Run(); err != nil {
 		return err
 	}
 
 	if _, err := c.cron.AddFunc(c.logicConfig.SyncProblem.Schedule, func() {
-		if err := c.syncProblems.Run(); err != nil {
+		if err := c.syncProblemsJob.Run(); err != nil {
 			c.logger.With(zap.Error(err)).Error("failed to run sync problem cronjob")
 		}
 	}); err != nil {
@@ -62,7 +62,7 @@ func (c Worker) Start() error {
 	}
 
 	if _, err := c.cron.AddFunc(c.logicConfig.Judge.Schedule, func() {
-		if err := c.judgeDistributedFirstSubmittedSubmission.Run(); err != nil {
+		if err := c.judgeDistributedFirstSubmittedSubmissionJob.Run(); err != nil {
 			c.logger.With(zap.Error(err)).Error("failed to run judge distributed first submitted submission cronjob")
 		}
 	}); err != nil {

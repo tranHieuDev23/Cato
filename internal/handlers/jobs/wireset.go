@@ -7,4 +7,5 @@ var WireSet = wire.NewSet(
 	NewScheduleSubmittedExecutingSubmissionToJudge,
 	NewSyncProblems,
 	NewJudgeDistributedFirstSubmittedSubmission,
+	NewRevertExecutingSubmissions,
 )

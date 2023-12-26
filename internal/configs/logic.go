@@ -70,9 +70,19 @@ type SyncProblem struct {
 	GetTestCaseSnippetListBatchSize uint64 `yaml:"get_test_case_snippet_list_batch_size"`
 }
 
+type RevertExecutingSubmissions struct {
+	Schedule  string `yaml:"schedule"`
+	Threshold string `yaml:"threshold"`
+}
+
+func (u RevertExecutingSubmissions) GetThresholdDuration() (time.Duration, error) {
+	return time.ParseDuration(u.Threshold)
+}
+
 type Logic struct {
-	FirstAccounts       FirstAccounts       `yaml:"first_accounts"`
-	ProblemTestCaseHash ProblemTestCaseHash `yaml:"problem_test_case_hash"`
-	Judge               Judge               `yaml:"judge"`
-	SyncProblem         SyncProblem         `yaml:"sync_problem"`
+	FirstAccounts              FirstAccounts              `yaml:"first_accounts"`
+	ProblemTestCaseHash        ProblemTestCaseHash        `yaml:"problem_test_case_hash"`
+	Judge                      Judge                      `yaml:"judge"`
+	SyncProblem                SyncProblem                `yaml:"sync_problem"`
+	RevertExecutingSubmissions RevertExecutingSubmissions `yaml:"revert_executing_submissions"`
 }

@@ -75,8 +75,13 @@ func InitializeHost(filePath configs.ConfigFilePath, args utils.Arguments) (*app
 		cleanup()
 		return nil, nil, err
 	}
-	submission := logic.NewSubmission(logicToken, role, judge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, gormDB, logger, args)
+	submission, err := logic.NewSubmission(logicToken, role, judge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, gormDB, logger, args, configsLogic)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
 	scheduleSubmittedExecutingSubmissionToJudge := jobs.NewScheduleSubmittedExecutingSubmissionToJudge(submission)
+	revertExecutingSubmissions := jobs.NewRevertExecutingSubmissions(submission)
 	testCase := logic.NewTestCase(logicToken, role, problemDataAccessor, testCaseDataAccessor, problemTestCaseHashDataAccessor, gormDB, apiClient, logger, configsLogic)
 	problemExampleDataAccessor := db.NewProblemExampleDataAccessor(gormDB, logger)
 	problem := logic.NewProblem(logicToken, role, testCase, accountDataAccessor, problemDataAccessor, problemExampleDataAccessor, problemTestCaseHashDataAccessor, testCaseDataAccessor, submissionDataAccessor, logger, gormDB, apiClient, configsLogic)
@@ -91,8 +96,10 @@ func InitializeHost(filePath configs.ConfigFilePath, args utils.Arguments) (*app
 	spaHandler := http.NewSPAHandler()
 	configsHTTP := config.HTTP
 	server := http.NewServer(apiServer, v, v2, spaHandler, logger, configsHTTP, args)
-	host := app.NewHost(migrator, createFirstAccounts, scheduleSubmittedExecutingSubmissionToJudge, server, logger)
+	cron, cleanup2 := utils.InitializeCron()
+	host := app.NewHost(migrator, createFirstAccounts, scheduleSubmittedExecutingSubmissionToJudge, revertExecutingSubmissions, server, logger, cron, configsLogic)
 	return host, func() {
+		cleanup2()
 		cleanup()
 	}, nil
 }
@@ -144,7 +151,11 @@ func InitializeWorker(filePath configs.ConfigFilePath, args utils.Arguments) (*a
 		cleanup()
 		return nil, nil, err
 	}
-	submission := logic.NewSubmission(logicToken, role, judge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, gormDB, logger, args)
+	submission, err := logic.NewSubmission(logicToken, role, judge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, gormDB, logger, args, configsLogic)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
 	scheduleSubmittedExecutingSubmissionToJudge := jobs.NewScheduleSubmittedExecutingSubmissionToJudge(submission)
 	testCase := logic.NewTestCase(logicToken, role, problemDataAccessor, testCaseDataAccessor, problemTestCaseHashDataAccessor, gormDB, apiClient, logger, configsLogic)
 	problemExampleDataAccessor := db.NewProblemExampleDataAccessor(gormDB, logger)
