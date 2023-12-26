@@ -47,7 +47,8 @@
                 </td>
                 <td>
                     <nz-button-group>
-                        <button nz-button [disabled]="testCase.loading" nz-tooltip="Expand"
+                        <button *ngIf="!(sessionAccount?.role === 'contestant' && testCase.isHidden)" nz-button
+                            [disabled]="testCase.loading" nz-tooltip="Expand"
                             (click)="onTestCaseExpandClicked(i, testCase)">
                             <span nz-icon nzType="expand-alt" nzTheme="outline"></span>
                         </button>
