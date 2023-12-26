@@ -74,7 +74,7 @@ func InitializeLocalCato(filePath configs.ConfigFilePath) (*app.LocalCato, func(
 	testCase := logic.NewTestCase(logicToken, role, problemDataAccessor, testCaseDataAccessor, problemTestCaseHashDataAccessor, gormDB, logger, configsLogic)
 	problemExampleDataAccessor := db.NewProblemExampleDataAccessor(gormDB, logger)
 	problem := logic.NewProblem(logicToken, role, testCase, accountDataAccessor, problemDataAccessor, problemExampleDataAccessor, problemTestCaseHashDataAccessor, testCaseDataAccessor, submissionDataAccessor, logger, gormDB)
-	localAPIServerHandler := http.NewLocalAPIServerHandler(account, problem, testCase, localSubmission, logger)
+	localAPIServerHandler := http.NewLocalAPIServerHandler(account, problem, testCase, localSubmission, configsLogic, logger)
 	v := middlewares.InitializePJRPCMiddlewareList()
 	httpAuth, err := middlewares.NewHTTPAuth(logicToken, token, logger)
 	if err != nil {
@@ -141,7 +141,7 @@ func InitializeDistributedHostCato(filePath configs.ConfigFilePath) (*app.Distri
 		return nil, nil, err
 	}
 	localSubmission := logic.NewLocalSubmission(logicToken, role, localJudge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, logger)
-	localAPIServerHandler := http.NewLocalAPIServerHandler(account, problem, testCase, localSubmission, logger)
+	localAPIServerHandler := http.NewLocalAPIServerHandler(account, problem, testCase, localSubmission, configsLogic, logger)
 	v := middlewares.InitializePJRPCMiddlewareList()
 	httpAuth, err := middlewares.NewHTTPAuth(logicToken, token, logger)
 	if err != nil {

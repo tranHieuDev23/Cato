@@ -9,7 +9,9 @@ import (
 	"go.uber.org/zap"
 
 	validator "github.com/go-playground/validator/v10"
+	"github.com/samber/lo"
 
+	"github.com/tranHieuDev23/cato/internal/configs"
 	"github.com/tranHieuDev23/cato/internal/handlers/http/middlewares"
 	"github.com/tranHieuDev23/cato/internal/handlers/http/rpc"
 	"github.com/tranHieuDev23/cato/internal/handlers/http/rpc/rpcserver"
@@ -22,8 +24,10 @@ type apiServerHandler struct {
 	problemLogic    logic.Problem
 	testCaseLogic   logic.TestCase
 	submissionLogic logic.Submission
+	logicConfig     configs.Logic
 	logger          *zap.Logger
 	validate        *validator.Validate
+	isLocal         bool
 }
 
 func NewAPIServerHandler(
@@ -31,7 +35,9 @@ func NewAPIServerHandler(
 	problemLogic logic.Problem,
 	testCaseLogic logic.TestCase,
 	submissionLogic logic.Submission,
+	logicConfig configs.Logic,
 	logger *zap.Logger,
+	isLocal bool,
 ) rpcserver.APIServer {
 	validate := validator.New()
 	return &apiServerHandler{
@@ -39,8 +45,10 @@ func NewAPIServerHandler(
 		problemLogic:    problemLogic,
 		testCaseLogic:   testCaseLogic,
 		submissionLogic: submissionLogic,
+		logicConfig:     logicConfig,
 		logger:          logger,
 		validate:        validate,
+		isLocal:         isLocal,
 	}
 }
 
@@ -85,6 +93,23 @@ func (a apiServerHandler) validateRequest(
 	}
 
 	return nil
+}
+
+func (a apiServerHandler) GetServerInfo(
+	_ context.Context,
+	_ *rpc.GetServerInfoRequest,
+) (*rpc.GetServerInfoResponse, error) {
+	return &rpc.GetServerInfoResponse{
+		IsLocal: a.isLocal,
+		SupportedLanguageList: lo.Map[configs.Language, rpc.Language](
+			a.logicConfig.Judge.Languages,
+			func(item configs.Language, _ int) rpc.Language {
+				return rpc.Language{
+					Value: item.Value,
+					Name:  item.Name,
+				}
+			}),
+	}, nil
 }
 
 func (a apiServerHandler) CreateAccount(
@@ -432,9 +457,10 @@ func NewLocalAPIServerHandler(
 	problemLogic logic.Problem,
 	testCaseLogic logic.TestCase,
 	submissionLogic logic.LocalSubmission,
+	logicConfig configs.Logic,
 	logger *zap.Logger,
 ) LocalAPIServerHandler {
-	return NewAPIServerHandler(accountLogic, problemLogic, testCaseLogic, submissionLogic, logger)
+	return NewAPIServerHandler(accountLogic, problemLogic, testCaseLogic, submissionLogic, logicConfig, logger, true)
 }
 
 type DistributedAPIServerHandler rpcserver.APIServer
@@ -444,7 +470,8 @@ func NewDistributedAPIServerHandler(
 	problemLogic logic.Problem,
 	testCaseLogic logic.TestCase,
 	submissionLogic logic.DistributedSubmission,
+	logicConfig configs.Logic,
 	logger *zap.Logger,
 ) DistributedAPIServerHandler {
-	return NewAPIServerHandler(accountLogic, problemLogic, testCaseLogic, submissionLogic, logger)
+	return NewAPIServerHandler(accountLogic, problemLogic, testCaseLogic, submissionLogic, logicConfig, logger, false)
 }

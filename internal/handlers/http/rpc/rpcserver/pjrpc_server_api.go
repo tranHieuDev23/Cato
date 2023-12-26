@@ -16,6 +16,7 @@ import (
 
 // List of the server JSON-RPC methods.
 const (
+	JSONRPCMethodGetServerInfo                          = "get_server_info"
 	JSONRPCMethodCreateAccount                          = "create_account"
 	JSONRPCMethodGetAccountList                         = "get_account_list"
 	JSONRPCMethodGetAccount                             = "get_account"
@@ -46,6 +47,7 @@ const (
 
 // APIServer is an API server for API service.
 type APIServer interface {
+	GetServerInfo(ctx context.Context, in *rpc.GetServerInfoRequest) (*rpc.GetServerInfoResponse, error)
 	CreateAccount(ctx context.Context, in *rpc.CreateAccountRequest) (*rpc.CreateAccountResponse, error)
 	GetAccountList(ctx context.Context, in *rpc.GetAccountListRequest) (*rpc.GetAccountListResponse, error)
 	GetAccount(ctx context.Context, in *rpc.GetAccountRequest) (*rpc.GetAccountResponse, error)
@@ -82,6 +84,7 @@ type regAPI struct {
 func RegisterAPIServer(srv pjrpc.Registrator, svc APIServer, middlewares ...pjrpc.Middleware) {
 	r := &regAPI{svc: svc}
 
+	srv.RegisterMethod(JSONRPCMethodGetServerInfo, r.regGetServerInfo)
 	srv.RegisterMethod(JSONRPCMethodCreateAccount, r.regCreateAccount)
 	srv.RegisterMethod(JSONRPCMethodGetAccountList, r.regGetAccountList)
 	srv.RegisterMethod(JSONRPCMethodGetAccount, r.regGetAccount)
@@ -110,6 +113,22 @@ func RegisterAPIServer(srv pjrpc.Registrator, svc APIServer, middlewares ...pjrp
 	srv.RegisterMethod(JSONRPCMethodGetAccountProblemSubmissionSnippetList, r.regGetAccountProblemSubmissionSnippetList)
 
 	srv.With(middlewares...)
+}
+
+func (r *regAPI) regGetServerInfo(ctx context.Context, params json.RawMessage) (any, error) {
+	in := new(rpc.GetServerInfoRequest)
+	if len(params) != 0 {
+		if err := pjson.Unmarshal(params, in); err != nil {
+			return nil, pjrpc.JRPCErrParseError("failed to parse params")
+		}
+	}
+
+	res, err := r.svc.GetServerInfo(ctx, in)
+	if err != nil {
+		return nil, fmt.Errorf("failed GetServerInfo: %w", err)
+	}
+
+	return res, nil
 }
 
 func (r *regAPI) regCreateAccount(ctx context.Context, params json.RawMessage) (any, error) {

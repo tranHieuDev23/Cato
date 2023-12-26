@@ -34,6 +34,7 @@ import {
   RpcGetProblemSubmissionSnippetListResponse,
   RpcGetProblemTestCaseSnippetListRequest,
   RpcGetProblemTestCaseSnippetListResponse,
+  RpcGetServerInfoResponse,
   RpcGetSessionResponse,
   RpcGetSubmissionRequest,
   RpcGetSubmissionResponse,
@@ -88,6 +89,25 @@ export class ApiService {
         basePath: '/api',
       })
     );
+  }
+
+  public async getServerInfo(): Promise<RpcGetServerInfoResponse> {
+    const { error, result } = await this.api.getServerInfo({
+      requestBodyOfTheGetServerInfoMethod: {
+        jsonrpc: jsonRPCVersion,
+        id: clientID,
+        method: 'get_server_info',
+      },
+    });
+    if (error) {
+      throw error;
+    }
+
+    if (!result) {
+      throw new Error('No response received');
+    }
+
+    return result;
   }
 
   public async createAccount(

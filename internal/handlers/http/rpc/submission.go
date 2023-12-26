@@ -1,5 +1,10 @@
 package rpc
 
+type Language struct {
+	Value string
+	Name  string
+}
+
 type SubmissionStatus uint8
 type SubmissionResult uint8
 

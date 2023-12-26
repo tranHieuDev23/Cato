@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CodemirrorModule } from '@ctrl/ngx-codemirror';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -8,6 +8,12 @@ import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { CodeMirrorService } from '../../../logic/code-mirror.service';
+import { ServerService } from '../../../logic/server.service';
+
+export interface LanguageOption {
+  value: string;
+  name: string;
+}
 
 @Component({
   selector: 'app-code-editor',
@@ -25,18 +31,32 @@ import { CodeMirrorService } from '../../../logic/code-mirror.service';
   templateUrl: './code-editor.component.html',
   styleUrl: './code-editor.component.scss',
 })
-export class CodeEditorComponent {
+export class CodeEditorComponent implements OnInit {
   @Input() public content = '';
   @Output() public contentChange = new EventEmitter<string>();
 
   @Input() public language = 'cpp';
   @Output() public languageChange = new EventEmitter<string>();
 
+  public languageOptionList: LanguageOption[] = [];
+
   @Output() public submitClicked = new EventEmitter<void>();
 
   public editorMode = 'text/x-c++src';
 
-  constructor(private readonly codeMirrorService: CodeMirrorService) {}
+  constructor(
+    private readonly codeMirrorService: CodeMirrorService,
+    private readonly serverService: ServerService
+  ) {}
+
+  ngOnInit(): void {
+    (async () => {
+      const serverInfo = await this.serverService.getServiceInfo();
+      this.languageOptionList = serverInfo.supportedLanguageList.map((item) => {
+        return { value: item.value, name: item.name };
+      });
+    })().then();
+  }
 
   public onLoadFile = (file: NzUploadFile): boolean => {
     const fileReader = new FileReader();

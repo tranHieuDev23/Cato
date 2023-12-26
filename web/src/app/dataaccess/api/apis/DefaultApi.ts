@@ -34,6 +34,7 @@ import type {
   RequestBodyOfTheGetProblemSnippetListMethod,
   RequestBodyOfTheGetProblemSubmissionSnippetListMethod,
   RequestBodyOfTheGetProblemTestCaseSnippetListMethod,
+  RequestBodyOfTheGetServerInfoMethod,
   RequestBodyOfTheGetSessionMethod,
   RequestBodyOfTheGetSubmissionMethod,
   RequestBodyOfTheGetSubmissionSnippetListMethod,
@@ -60,6 +61,7 @@ import type {
   ResponseBodyOfTheGetProblemSnippetListMethod,
   ResponseBodyOfTheGetProblemSubmissionSnippetListMethod,
   ResponseBodyOfTheGetProblemTestCaseSnippetListMethod,
+  ResponseBodyOfTheGetServerInfoMethod,
   ResponseBodyOfTheGetSessionMethod,
   ResponseBodyOfTheGetSubmissionMethod,
   ResponseBodyOfTheGetSubmissionSnippetListMethod,
@@ -107,6 +109,8 @@ import {
     RequestBodyOfTheGetProblemSubmissionSnippetListMethodToJSON,
     RequestBodyOfTheGetProblemTestCaseSnippetListMethodFromJSON,
     RequestBodyOfTheGetProblemTestCaseSnippetListMethodToJSON,
+    RequestBodyOfTheGetServerInfoMethodFromJSON,
+    RequestBodyOfTheGetServerInfoMethodToJSON,
     RequestBodyOfTheGetSessionMethodFromJSON,
     RequestBodyOfTheGetSessionMethodToJSON,
     RequestBodyOfTheGetSubmissionMethodFromJSON,
@@ -159,6 +163,8 @@ import {
     ResponseBodyOfTheGetProblemSubmissionSnippetListMethodToJSON,
     ResponseBodyOfTheGetProblemTestCaseSnippetListMethodFromJSON,
     ResponseBodyOfTheGetProblemTestCaseSnippetListMethodToJSON,
+    ResponseBodyOfTheGetServerInfoMethodFromJSON,
+    ResponseBodyOfTheGetServerInfoMethodToJSON,
     ResponseBodyOfTheGetSessionMethodFromJSON,
     ResponseBodyOfTheGetSessionMethodToJSON,
     ResponseBodyOfTheGetSubmissionMethodFromJSON,
@@ -249,6 +255,10 @@ export interface GetProblemSubmissionSnippetListRequest {
 
 export interface GetProblemTestCaseSnippetListRequest {
     requestBodyOfTheGetProblemTestCaseSnippetListMethod: RequestBodyOfTheGetProblemTestCaseSnippetListMethod;
+}
+
+export interface GetServerInfoRequest {
+    requestBodyOfTheGetServerInfoMethod: RequestBodyOfTheGetServerInfoMethod;
 }
 
 export interface GetSessionRequest {
@@ -870,6 +880,37 @@ export class DefaultApi extends runtime.BaseAPI {
      */
     async getProblemTestCaseSnippetList(requestParameters: GetProblemTestCaseSnippetListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheGetProblemTestCaseSnippetListMethod> {
         const response = await this.getProblemTestCaseSnippetListRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async getServerInfoRaw(requestParameters: GetServerInfoRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ResponseBodyOfTheGetServerInfoMethod>> {
+        if (requestParameters.requestBodyOfTheGetServerInfoMethod === null || requestParameters.requestBodyOfTheGetServerInfoMethod === undefined) {
+            throw new runtime.RequiredError('requestBodyOfTheGetServerInfoMethod','Required parameter requestParameters.requestBodyOfTheGetServerInfoMethod was null or undefined when calling getServerInfo.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/#get_server_info`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: RequestBodyOfTheGetServerInfoMethodToJSON(requestParameters.requestBodyOfTheGetServerInfoMethod),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ResponseBodyOfTheGetServerInfoMethodFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async getServerInfo(requestParameters: GetServerInfoRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheGetServerInfoMethod> {
+        const response = await this.getServerInfoRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

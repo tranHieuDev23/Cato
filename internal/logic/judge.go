@@ -65,20 +65,20 @@ func NewJudge(
 		submissionRetryDelayDuration: submissionRetryDelayDuration,
 	}
 
-	for language, config := range logicConfig.Judge.Languages {
-		compile, compileErr := NewCompile(dockerClient, logger, language, config.Compile)
+	for _, languageConfig := range logicConfig.Judge.Languages {
+		compile, compileErr := NewCompile(dockerClient, logger, languageConfig.Value, languageConfig.Compile)
 		if compileErr != nil {
 			return nil, compileErr
 		}
 
-		j.languageToCompileLogic[language] = compile
+		j.languageToCompileLogic[languageConfig.Value] = compile
 
-		testCaseRun, testCaseRunErr := NewTestCaseRun(dockerClient, logger, language, config.TestCaseRun)
+		testCaseRun, testCaseRunErr := NewTestCaseRun(dockerClient, logger, languageConfig.Value, languageConfig.TestCaseRun)
 		if testCaseRunErr != nil {
 			return nil, testCaseRunErr
 		}
 
-		j.languageToTestCaseRunLogic[language] = testCaseRun
+		j.languageToTestCaseRunLogic[languageConfig.Value] = testCaseRun
 	}
 
 	return j, nil

@@ -8,7 +8,7 @@
         {{ submission?.author?.displayName }}
     </nz-descriptions-item>
     <nz-descriptions-item nzTitle="Language">
-        {{ submission?.language | language }}
+        {{ submission?.language | language | async }}
     </nz-descriptions-item>
     <nz-descriptions-item nzTitle="Created time">
         {{ submission?.createdTime| date:'d/M/yyyy, h:mm a' }}

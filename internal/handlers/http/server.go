@@ -10,6 +10,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pkg/browser"
+
 	"github.com/tranHieuDev23/cato/internal/configs"
 	"github.com/tranHieuDev23/cato/internal/handlers/http/rpc/rpcserver"
 	"github.com/tranHieuDev23/cato/internal/utils"

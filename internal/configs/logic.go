@@ -43,13 +43,15 @@ type TestCaseRun struct {
 }
 
 type Language struct {
+	Value       string      `yaml:"value"`
+	Name        string      `yaml:"name"`
 	Compile     *Compile    `yaml:"compile"`
 	TestCaseRun TestCaseRun `yaml:"test_case_run"`
 }
 
 type Judge struct {
-	Languages            map[string]Language `yaml:"languages"`
-	SubmissionRetryDelay string              `yaml:"submission_retry_delay"`
+	Languages            []Language `yaml:"languages"`
+	SubmissionRetryDelay string     `yaml:"submission_retry_delay"`
 }
 
 func (j Judge) GetSubmissionRetryDelayDuration() (time.Duration, error) {

@@ -15,6 +15,7 @@ import (
 
 // List of the client JSON-RPC methods.
 const (
+	JSONRPCMethodGetServerInfo_Client                          = "get_server_info"
 	JSONRPCMethodCreateAccount_Client                          = "create_account"
 	JSONRPCMethodGetAccountList_Client                         = "get_account_list"
 	JSONRPCMethodGetAccount_Client                             = "get_account"
@@ -45,6 +46,7 @@ const (
 
 // APIClient is an API client for API service.
 type APIClient interface {
+	GetServerInfo(ctx context.Context, in *rpc.GetServerInfoRequest, mods ...client.Mod) (*rpc.GetServerInfoResponse, error)
 	CreateAccount(ctx context.Context, in *rpc.CreateAccountRequest, mods ...client.Mod) (*rpc.CreateAccountResponse, error)
 	GetAccountList(ctx context.Context, in *rpc.GetAccountListRequest, mods ...client.Mod) (*rpc.GetAccountListResponse, error)
 	GetAccount(ctx context.Context, in *rpc.GetAccountRequest, mods ...client.Mod) (*rpc.GetAccountResponse, error)
@@ -80,6 +82,22 @@ type implAPIClient struct {
 // NewAPIClient returns new client implementation of the API service.
 func NewAPIClient(cl client.Invoker) APIClient {
 	return &implAPIClient{cl: cl}
+}
+
+func (c *implAPIClient) GetServerInfo(ctx context.Context, in *rpc.GetServerInfoRequest, mods ...client.Mod) (result *rpc.GetServerInfoResponse, err error) {
+	gen, err := uuid.NewUUID()
+	if err != nil {
+		return result, fmt.Errorf("failed to create uuid generator: %w", err)
+	}
+
+	result = new(rpc.GetServerInfoResponse)
+
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodGetServerInfo_Client, in, result, mods...)
+	if err != nil {
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodGetServerInfo_Client, err)
+	}
+
+	return result, nil
 }
 
 func (c *implAPIClient) CreateAccount(ctx context.Context, in *rpc.CreateAccountRequest, mods ...client.Mod) (result *rpc.CreateAccountResponse, err error) {

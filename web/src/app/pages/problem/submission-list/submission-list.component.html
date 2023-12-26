@@ -22,7 +22,7 @@
         <tr *ngFor="let submissionSnippet of table.data" (click)="onSubmissionSnippetClicked(submissionSnippet)">
             <td>{{ submissionSnippet.iD }}</td>
             <td>{{ submissionSnippet.author.displayName }}</td>
-            <td>{{ submissionSnippet.language | language }}</td>
+            <td>{{ submissionSnippet.language | language | async}}</td>
             <td>{{ submissionSnippet.createdTime | date:'d/M/yyyy, h:mm a':'d/M/yyyy, h:mm a' }}</td>
             <td>
                 <nz-tag [nzColor]="submissionSnippet | submissionStatusColor">

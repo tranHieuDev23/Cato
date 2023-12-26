@@ -24,6 +24,8 @@ const (
 
 //go:generate genpjrpc -search.name=API -print.place.path_swagger_file=../../../../api/swagger.json
 type API interface {
+	GetServerInfo(GetServerInfoRequest) GetServerInfoResponse
+
 	CreateAccount(CreateAccountRequest) CreateAccountResponse
 	GetAccountList(GetAccountListRequest) GetAccountListResponse
 	GetAccount(GetAccountRequest) GetAccountResponse
@@ -58,6 +60,13 @@ type API interface {
 	GetAccountProblemSubmissionSnippetList(
 		GetAccountProblemSubmissionSnippetListRequest,
 	) GetAccountProblemSubmissionSnippetListResponse
+}
+
+type GetServerInfoRequest struct{}
+
+type GetServerInfoResponse struct {
+	IsLocal               bool
+	SupportedLanguageList []Language
 }
 
 type CreateAccountRequest struct {

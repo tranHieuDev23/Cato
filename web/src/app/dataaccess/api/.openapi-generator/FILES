@@ -21,6 +21,7 @@ models/RequestBodyOfTheGetProblemMethod.ts
 models/RequestBodyOfTheGetProblemSnippetListMethod.ts
 models/RequestBodyOfTheGetProblemSubmissionSnippetListMethod.ts
 models/RequestBodyOfTheGetProblemTestCaseSnippetListMethod.ts
+models/RequestBodyOfTheGetServerInfoMethod.ts
 models/RequestBodyOfTheGetSessionMethod.ts
 models/RequestBodyOfTheGetSubmissionMethod.ts
 models/RequestBodyOfTheGetSubmissionSnippetListMethod.ts
@@ -47,6 +48,7 @@ models/ResponseBodyOfTheGetProblemMethod.ts
 models/ResponseBodyOfTheGetProblemSnippetListMethod.ts
 models/ResponseBodyOfTheGetProblemSubmissionSnippetListMethod.ts
 models/ResponseBodyOfTheGetProblemTestCaseSnippetListMethod.ts
+models/ResponseBodyOfTheGetServerInfoMethod.ts
 models/ResponseBodyOfTheGetSessionMethod.ts
 models/ResponseBodyOfTheGetSubmissionMethod.ts
 models/ResponseBodyOfTheGetSubmissionSnippetListMethod.ts
@@ -92,6 +94,7 @@ models/RpcGetProblemSubmissionSnippetListRequest.ts
 models/RpcGetProblemSubmissionSnippetListResponse.ts
 models/RpcGetProblemTestCaseSnippetListRequest.ts
 models/RpcGetProblemTestCaseSnippetListResponse.ts
+models/RpcGetServerInfoResponse.ts
 models/RpcGetSessionResponse.ts
 models/RpcGetSubmissionRequest.ts
 models/RpcGetSubmissionResponse.ts
@@ -101,6 +104,7 @@ models/RpcGetSubmissionSnippetListResponse.ts
 models/RpcGetTestCaseRequest.ts
 models/RpcGetTestCaseResponse.ts
 models/RpcGetTestCaseResponseTestCase.ts
+models/RpcLanguage.ts
 models/RpcProblem.ts
 models/RpcProblemExample.ts
 models/RpcProblemSnippet.ts

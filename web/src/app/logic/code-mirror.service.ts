@@ -17,6 +17,6 @@ export class CodeMirrorService {
     if (language === 'python') {
       return 'text/x-python';
     }
-    return 'text';
+    return 'text/plain';
   }
 }
