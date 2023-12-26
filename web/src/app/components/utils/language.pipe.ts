@@ -5,7 +5,7 @@ import { Pipe, PipeTransform } from '@angular/core';
   standalone: true,
 })
 export class LanguagePipe implements PipeTransform {
-  public transform(language: unknown): string {
+  public transform(language: string | undefined): string {
     if (language === 'c') {
       return 'C';
     }
@@ -18,6 +18,6 @@ export class LanguagePipe implements PipeTransform {
     if (language === 'python') {
       return 'Python';
     }
-    return 'Unknown';
+    return language || 'Unknown';
   }
 }
