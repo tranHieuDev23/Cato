@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/mikespook/gorbac"
 	"github.com/samber/lo"
 	"gitlab.com/pjrpc/pjrpc/v2"
@@ -26,7 +27,7 @@ const (
 
 var (
 	accountNameRegex        = regexp.MustCompile(`^[a-zA-Z0-9]+$`)
-	accountDisplayNameRegex = regexp.MustCompile(`^[\\p{L}\\p{N}\\s]+$`)
+	accountDisplayNameRegex = regexp.MustCompile(`^[\p{L}\p{N}\s]+$`)
 )
 
 type Account interface {
@@ -52,6 +53,7 @@ type account struct {
 	logger                      *zap.Logger
 	logicConfig                 configs.Logic
 	isLocal                     bool
+	displayNameSanitizePolicy   *bluemonday.Policy
 }
 
 func NewAccount(
@@ -75,6 +77,7 @@ func NewAccount(
 		logger:                      logger,
 		logicConfig:                 logicConfig,
 		isLocal:                     isLocal,
+		displayNameSanitizePolicy:   bluemonday.StrictPolicy(),
 	}
 }
 
@@ -83,7 +86,9 @@ func (a account) isValidAccountName(accountName string) bool {
 }
 
 func (a account) cleanupDisplayName(displayName string) string {
-	return strings.Trim(displayName, " ")
+	displayName = strings.Trim(displayName, " ")
+	displayName = a.displayNameSanitizePolicy.Sanitize(displayName)
+	return displayName
 }
 
 func (a account) isValidDisplayName(displayName string) bool {
@@ -244,16 +249,15 @@ func (a account) CreateAccount(
 			Role:        db.AccountRole(in.Role),
 		}
 
-		accountPassword := &db.AccountPassword{
-			OfAccountID: uint64(account.ID),
-			Hash:        hashedPassword,
-		}
-
 		err = utils.ExecuteUntilFirstError(
 			func() error {
 				return a.accountDataAccessor.WithDB(tx).CreateAccount(ctx, account)
 			},
 			func() error {
+				accountPassword := &db.AccountPassword{
+					OfAccountID: uint64(account.ID),
+					Hash:        hashedPassword,
+				}
 				return a.accountPasswordDataAccessor.WithDB(tx).CreateAccountPassword(ctx, accountPassword)
 			},
 		)
@@ -528,6 +532,8 @@ func (a account) WithDB(db *gorm.DB) Account {
 		db:                          db,
 		logger:                      a.logger,
 		isLocal:                     a.isLocal,
+		logicConfig:                 a.logicConfig,
+		displayNameSanitizePolicy:   a.displayNameSanitizePolicy,
 	}
 }
 

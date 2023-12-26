@@ -29,7 +29,7 @@ import {
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
-import { RpcAccount } from '../../../dataaccess/api';
+import { RpcAccount, RpcProblem } from '../../../dataaccess/api';
 import { CodemirrorComponent, CodemirrorModule } from '@ctrl/ngx-codemirror';
 import { FormsModule } from '@angular/forms';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
@@ -87,7 +87,7 @@ export class TestCaseListComponent implements OnInit {
     | TemplateRef<any>
     | undefined;
 
-  @Input() public problemID = 0;
+  @Input() public problem: RpcProblem | undefined;
 
   public sessionAccount: RpcAccount | undefined;
 
@@ -121,6 +121,10 @@ export class TestCaseListComponent implements OnInit {
   }
 
   private async loadTestCaseSnippetList(): Promise<void> {
+    if (!this.problem) {
+      return;
+    }
+
     try {
       this.loading = true;
 
@@ -137,7 +141,7 @@ export class TestCaseListComponent implements OnInit {
 
       const { totalTestCaseCount, testCaseSnippetList } =
         await this.testCaseService.getProblemTestCaseSnippetList(
-          this.problemID,
+          this.problem.iD,
           this.paginationService.getPageOffset(this.pageIndex, this.pageSize),
           this.pageSize
         );
@@ -405,16 +409,22 @@ export class TestCaseListComponent implements OnInit {
   }
 
   public onCreateTestCaseClicked(): void {
+    if (!this.problem) {
+      return;
+    }
+
     this.editTestCaseModalInput = '';
     this.editTestCaseModalOutput = '';
     this.editModalTestCaseIsHidden = true;
+
+    const problemID = this.problem.iD;
     this.modalService.create({
       nzContent: this.editTestCaseModal,
       nzWidth: 'fit-content',
       nzOnOk: async () => {
         try {
           await this.testCaseService.createTestCase(
-            this.problemID,
+            problemID,
             this.editTestCaseModalInput,
             this.editTestCaseModalOutput,
             this.editModalTestCaseIsHidden
@@ -467,12 +477,17 @@ export class TestCaseListComponent implements OnInit {
   }
 
   public onLoadFile = (file: NzUploadFile): boolean => {
+    if (!this.problem) {
+      return false;
+    }
+
+    const problemID = this.problem.iD;
     const fileReader = new FileReader();
     fileReader.onload = async (event) => {
       this.uploadTestCaseModalRef?.close();
       try {
         const content = event.target?.result as ArrayBuffer;
-        await this.testCaseService.createTestCaseList(this.problemID, content);
+        await this.testCaseService.createTestCaseList(problemID, content);
         this.notificationService.success(
           'Uploaded zipped test cases successfully',
           ''

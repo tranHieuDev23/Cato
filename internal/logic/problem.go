@@ -187,19 +187,21 @@ func (p problem) CreateProblem(
 			TimeLimitInMillisecond: in.TimeLimitInMillisecond,
 			MemoryLimitInByte:      in.MemoryLimitInByte,
 		}
-		problemExampleList := lo.Map(in.ExampleList, func(item rpc.ProblemExample, _ int) *db.ProblemExample {
-			return &db.ProblemExample{
-				OfProblemID: uint64(problem.ID),
-				Input:       utils.TrimSpaceRight(item.Input),
-				Output:      utils.TrimSpaceRight(item.Output),
-			}
-		})
+
+		var problemExampleList []*db.ProblemExample
 
 		err = utils.ExecuteUntilFirstError(
 			func() error {
 				return p.problemDataAccessor.WithDB(tx).CreateProblem(ctx, problem)
 			},
 			func() error {
+				problemExampleList = lo.Map(in.ExampleList, func(item rpc.ProblemExample, _ int) *db.ProblemExample {
+					return &db.ProblemExample{
+						OfProblemID: uint64(problem.ID),
+						Input:       utils.TrimSpaceRight(item.Input),
+						Output:      utils.TrimSpaceRight(item.Output),
+					}
+				})
 				return p.problemExampleDataAccessor.WithDB(tx).CreateProblemExampleList(ctx, problemExampleList)
 			},
 			func() error {

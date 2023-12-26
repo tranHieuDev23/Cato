@@ -21,7 +21,8 @@
                             {{ problem.memoryLimitInByte | memory}}
                         </nz-descriptions-item>
                     </nz-descriptions><br />
-                    <p *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'problem_setter'">
+                    <p *ngIf="sessionAccount?.role === 'admin' ||
+                         (sessionAccount?.role === 'problem_setter' && sessionAccount?.iD === problem.author.iD)">
                         <nz-button-group>
                             <button nz-button routerLink="/problem-editor/{{problem.iD}}">
                                 <span nz-icon nzType="edit" nzTheme="outline"></span>
@@ -39,7 +40,7 @@
 
             <nz-tab nzTitle="Test cases">
                 <ng-template nz-tab>
-                    <app-test-case-list *ngIf="problem" [problemID]="problem.iD"></app-test-case-list>
+                    <app-test-case-list *ngIf="problem" [problem]="problem"></app-test-case-list>
                 </ng-template>
             </nz-tab>
 
