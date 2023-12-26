@@ -10,11 +10,7 @@ import (
 	"github.com/tranHieuDev23/cato/internal/handlers/jobs"
 )
 
-type App interface {
-	Start() error
-}
-
-type LocalCato struct {
+type Local struct {
 	dbMigrator                                  db.Migrator
 	createFirstAccountsJob                      jobs.CreateFirstAccounts
 	scheduleSubmittedExecutingSubmissionToJudge jobs.ScheduleSubmittedExecutingSubmissionToJudge
@@ -28,8 +24,8 @@ func NewLocalCato(
 	scheduleSubmittedExecutingSubmissionToJudge jobs.ScheduleSubmittedExecutingSubmissionToJudge,
 	httpServer http.Server,
 	logger *zap.Logger,
-) *LocalCato {
-	return &LocalCato{
+) *Local {
+	return &Local{
 		dbMigrator:             dbMigrator,
 		createFirstAccountsJob: createFirstAccountsJob,
 		scheduleSubmittedExecutingSubmissionToJudge: scheduleSubmittedExecutingSubmissionToJudge,
@@ -38,7 +34,7 @@ func NewLocalCato(
 	}
 }
 
-func (c LocalCato) Start() error {
+func (c Local) Start() error {
 	if err := c.dbMigrator.Migrate(context.Background()); err != nil {
 		return err
 	}

@@ -64,6 +64,7 @@ func (j Judge) GetSubmissionRetryDelayDuration() (time.Duration, error) {
 }
 
 type SyncProblem struct {
+	Schedule                        string `yaml:"schedule"`
 	GetProblemSnippetListBatchSize  uint64 `yaml:"get_problem_snippet_list_batch_size"`
 	GetTestCaseSnippetListBatchSize uint64 `yaml:"get_test_case_snippet_list_batch_size"`
 }

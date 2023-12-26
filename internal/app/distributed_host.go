@@ -10,20 +10,20 @@ import (
 	"github.com/tranHieuDev23/cato/internal/handlers/jobs"
 )
 
-type DistributedHostCato struct {
+type DistributedHost struct {
 	dbMigrator             db.Migrator
 	createFirstAccountsJob jobs.CreateFirstAccounts
 	httpServer             http.Server
 	logger                 *zap.Logger
 }
 
-func NewDistributedHostCato(
+func NewDistributedHost(
 	dbMigrator db.Migrator,
 	createFirstAccountsJob jobs.CreateFirstAccounts,
 	httpServer http.Server,
 	logger *zap.Logger,
-) *DistributedHostCato {
-	return &DistributedHostCato{
+) *DistributedHost {
+	return &DistributedHost{
 		dbMigrator:             dbMigrator,
 		createFirstAccountsJob: createFirstAccountsJob,
 		httpServer:             httpServer,
@@ -31,7 +31,7 @@ func NewDistributedHostCato(
 	}
 }
 
-func (c DistributedHostCato) Start() error {
+func (c DistributedHost) Start() error {
 	if err := c.dbMigrator.Migrate(context.Background()); err != nil {
 		return err
 	}

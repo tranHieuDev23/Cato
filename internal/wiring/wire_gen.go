@@ -23,7 +23,7 @@ import (
 
 // Injectors from wire.go:
 
-func InitializeLocalCato(filePath configs.ConfigFilePath, args utils.Arguments) (*app.LocalCato, func(), error) {
+func InitializeLocal(filePath configs.ConfigFilePath, args utils.Arguments) (*app.Local, func(), error) {
 	logger, cleanup, err := utils.InitializeLogger()
 	if err != nil {
 		return nil, nil, err
@@ -91,13 +91,13 @@ func InitializeLocalCato(filePath configs.ConfigFilePath, args utils.Arguments) 
 	spaHandler := http.NewSPAHandler()
 	configsHTTP := config.HTTP
 	server := http.NewServer(apiServer, v, v2, spaHandler, logger, configsHTTP, args)
-	localCato := app.NewLocalCato(migrator, createFirstAccounts, scheduleSubmittedExecutingSubmissionToJudge, server, logger)
-	return localCato, func() {
+	local := app.NewLocalCato(migrator, createFirstAccounts, scheduleSubmittedExecutingSubmissionToJudge, server, logger)
+	return local, func() {
 		cleanup()
 	}, nil
 }
 
-func InitializeDistributedHostCato(filePath configs.ConfigFilePath, args utils.Arguments) (*app.DistributedHostCato, func(), error) {
+func InitializeDistributedHost(filePath configs.ConfigFilePath, args utils.Arguments) (*app.DistributedHost, func(), error) {
 	logger, cleanup, err := utils.InitializeLogger()
 	if err != nil {
 		return nil, nil, err
@@ -164,13 +164,13 @@ func InitializeDistributedHostCato(filePath configs.ConfigFilePath, args utils.A
 	spaHandler := http.NewSPAHandler()
 	configsHTTP := config.HTTP
 	server := http.NewServer(apiServer, v, v2, spaHandler, logger, configsHTTP, args)
-	distributedHostCato := app.NewDistributedHostCato(migrator, createFirstAccounts, server, logger)
-	return distributedHostCato, func() {
+	distributedHost := app.NewDistributedHost(migrator, createFirstAccounts, server, logger)
+	return distributedHost, func() {
 		cleanup()
 	}, nil
 }
 
-func InitializeDistributedWorkerCato(filePath configs.ConfigFilePath, args utils.Arguments) (*app.DistributedWorkerCato, func(), error) {
+func InitializeDistributedWorker(filePath configs.ConfigFilePath, args utils.Arguments) (*app.DistributedWorker, func(), error) {
 	logger, cleanup, err := utils.InitializeLogger()
 	if err != nil {
 		return nil, nil, err
@@ -218,8 +218,19 @@ func InitializeDistributedWorkerCato(filePath configs.ConfigFilePath, args utils
 	}
 	submission := logic.NewSubmission(logicToken, role, judge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, gormDB, logger, args)
 	scheduleSubmittedExecutingSubmissionToJudge := jobs.NewScheduleSubmittedExecutingSubmissionToJudge(submission)
-	distributedWorkerCato := app.NewDistributedWorkerCato(migrator, scheduleSubmittedExecutingSubmissionToJudge, logger)
-	return distributedWorkerCato, func() {
+	problemTestCaseHashDataAccessor := db.NewProblemTestCaseHashDataAccessor(gormDB, logger)
+	testCase := logic.NewTestCase(logicToken, role, problemDataAccessor, testCaseDataAccessor, problemTestCaseHashDataAccessor, gormDB, apiClient, logger, configsLogic)
+	problemExampleDataAccessor := db.NewProblemExampleDataAccessor(gormDB, logger)
+	problem := logic.NewProblem(logicToken, role, testCase, accountDataAccessor, problemDataAccessor, problemExampleDataAccessor, problemTestCaseHashDataAccessor, testCaseDataAccessor, submissionDataAccessor, logger, gormDB, apiClient, configsLogic)
+	syncProblems := jobs.NewSyncProblems(problem)
+	scheduler, cleanup2, err := utils.InitializeGoCronScheduler(logger)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	distributedWorker := app.NewDistributedWorker(migrator, scheduleSubmittedExecutingSubmissionToJudge, syncProblems, logger, scheduler, configsLogic)
+	return distributedWorker, func() {
+		cleanup2()
 		cleanup()
 	}, nil
 }

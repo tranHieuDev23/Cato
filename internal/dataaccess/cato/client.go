@@ -16,7 +16,7 @@ import (
 )
 
 func getHostEndpoint(address string) string {
-	return fmt.Sprintf("%s/api", address)
+	return fmt.Sprintf("%s/api/", address)
 }
 
 func InitializeBaseClient(appArguments utils.Arguments) (rpcclient.APIClient, error) {
@@ -43,7 +43,7 @@ func NewHTTPClientWithAuthToken(
 	appArguments utils.Arguments,
 	logger *zap.Logger,
 ) (HTTPClientWithAuthToken, error) {
-	baseClient, err := InitializeBaseClient(appArguments)
+	baseAPIClient, err := InitializeBaseClient(appArguments)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func NewHTTPClientWithAuthToken(
 		appArguments:  appArguments,
 		logger:        logger,
 		authCookie:    new(atomic.Pointer[string]),
-		baseAPIClient: baseClient,
+		baseAPIClient: baseAPIClient,
 		httpClient:    http.DefaultClient,
 	}, nil
 }
@@ -63,6 +63,7 @@ func (h httpClientWithAuthToken) getAuthToken(ctx context.Context) (string, erro
 		Password:    h.appArguments.WorkerAccountPassword,
 	})
 	if err != nil {
+		h.logger.With(zap.Error(err)).Error("failed to get auth token")
 		return "", err
 	}
 

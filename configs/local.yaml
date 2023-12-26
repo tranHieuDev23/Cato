@@ -142,3 +142,7 @@ logic:
           command_template:
             ["timeout", "--foreground", "$TIME_LIMIT", "python", "$PROGRAM"]
           cpu_quota: 1000000
+  sync_problem:
+    schedule: "* * * * *"
+    get_problem_snippet_list_batch_size: 10
+    get_test_case_snippet_list_batch_size: 10
