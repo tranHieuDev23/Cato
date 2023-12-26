@@ -1,4 +1,4 @@
-<ul nz-menu nzTheme="dark" nzMode="inline" [nzInlineCollapsed]="collapsed">
+<ul class="menu" nzTheme="dark" nz-menu nzMode="inline" [nzInlineCollapsed]="collapsed">
     <li *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'problem_setter'" nz-menu-item nzMatchRouter
         [nz-tooltip]="collapsed? 'New problem': ''" nzTooltipPlacement="right">
         <a routerLink="/problem-editor">

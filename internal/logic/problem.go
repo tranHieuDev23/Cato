@@ -463,7 +463,7 @@ func (p problem) updateProblemExampleList(
 		return p.problemExampleDataAccessor.WithDB(tx).GetProblemExampleListOfProblem(ctx, in.ID)
 	}
 
-	if err := p.problemExampleDataAccessor.DeleteProblemExampleOfProblem(ctx, in.ID); err != nil {
+	if err := p.problemExampleDataAccessor.WithDB(tx).DeleteProblemExampleOfProblem(ctx, in.ID); err != nil {
 		return make([]*db.ProblemExample, 0), err
 	}
 
