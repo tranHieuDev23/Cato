@@ -26,7 +26,7 @@
         </thead>
         <tbody>
             <tr *ngFor="let testCase of table.data; index as i">
-                <td>{{ testCase.id }}</td>
+                <td>{{ paginationService.getPageOffset(pageIndex, pageSize) + i + 1 }}</td>
                 <td>
                     @if (testCase.isHidden && sessionAccount?.role === 'contestant') {
                     Hidden

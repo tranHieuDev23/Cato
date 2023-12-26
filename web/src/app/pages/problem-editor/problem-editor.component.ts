@@ -59,7 +59,7 @@ export class ProblemEditorComponent implements OnInit, OnDestroy {
   public sessionAccount: RpcAccount | undefined;
   public exampleList: RpcProblemExample[] = [];
 
-  private problemID: number | undefined;
+  private problemUUID: string | undefined;
   public formGroup: FormGroup;
   public saving = false;
 
@@ -126,7 +126,7 @@ export class ProblemEditorComponent implements OnInit, OnDestroy {
   }
 
   private async onParamsChanged(params: Params): Promise<void> {
-    if (!params['id']) {
+    if (!params['uuid']) {
       this.formGroup.reset({
         displayName: '',
         description: '',
@@ -138,9 +138,9 @@ export class ProblemEditorComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.problemID = +params['id'];
+    this.problemUUID = `${params['uuid']}`;
     try {
-      const problem = await this.problemService.getProblem(this.problemID);
+      const problem = await this.problemService.getProblem(this.problemUUID);
       const { value: timeLimit, unit: timeUnit } =
         this.unitService.timeLimitToValueAndUnit(
           problem.timeLimitInMillisecond
@@ -234,7 +234,7 @@ export class ProblemEditorComponent implements OnInit, OnDestroy {
     } = this.formGroup.value;
     try {
       this.saving = true;
-      if (this.problemID === undefined) {
+      if (this.problemUUID === undefined) {
         const problem = await this.problemService.createProblem(
           displayName,
           description,
@@ -243,17 +243,17 @@ export class ProblemEditorComponent implements OnInit, OnDestroy {
         );
 
         this.notificationService.success('Problem saved successfully', '');
-        this.router.navigateByUrl(`/problem/${problem.iD}`);
+        this.router.navigateByUrl(`/problem/${problem.uUID}`);
       } else {
         await this.problemService.updateProblem(
-          this.problemID,
+          this.problemUUID,
           displayName,
           description,
           this.unitService.timeValueAndUnitToLimit(timeLimit, timeUnit),
           this.unitService.memoryValueAndUnitToLimit(memoryLimit, memoryUnit)
         );
         this.notificationService.success('Problem updated successfully', '');
-        this.router.navigateByUrl(`/problem/${this.problemID}`);
+        this.router.navigateByUrl(`/problem/${this.problemUUID}`);
       }
     } catch (e) {
       if (e instanceof UnauthenticatedError) {

@@ -21,10 +21,10 @@ import { exists, mapValues } from '../runtime';
 export interface RpcCreateTestCaseRequest {
     /**
      * 
-     * @type {number}
+     * @type {string}
      * @memberof RpcCreateTestCaseRequest
      */
-    problemID: number;
+    problemUUID: string;
     /**
      * 
      * @type {string}
@@ -50,7 +50,7 @@ export interface RpcCreateTestCaseRequest {
  */
 export function instanceOfRpcCreateTestCaseRequest(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "problemID" in value;
+    isInstance = isInstance && "problemUUID" in value;
     isInstance = isInstance && "input" in value;
     isInstance = isInstance && "output" in value;
     isInstance = isInstance && "isHidden" in value;
@@ -68,7 +68,7 @@ export function RpcCreateTestCaseRequestFromJSONTyped(json: any, ignoreDiscrimin
     }
     return {
         
-        'problemID': json['ProblemID'],
+        'problemUUID': json['ProblemUUID'],
         'input': json['Input'],
         'output': json['Output'],
         'isHidden': json['IsHidden'],
@@ -84,7 +84,7 @@ export function RpcCreateTestCaseRequestToJSON(value?: RpcCreateTestCaseRequest 
     }
     return {
         
-        'ProblemID': value.problemID,
+        'ProblemUUID': value.problemUUID,
         'Input': value.input,
         'Output': value.output,
         'IsHidden': value.isHidden,

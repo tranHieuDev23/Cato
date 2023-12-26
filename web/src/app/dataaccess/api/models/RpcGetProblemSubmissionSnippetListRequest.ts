@@ -21,10 +21,10 @@ import { exists, mapValues } from '../runtime';
 export interface RpcGetProblemSubmissionSnippetListRequest {
     /**
      * 
-     * @type {number}
+     * @type {string}
      * @memberof RpcGetProblemSubmissionSnippetListRequest
      */
-    problemID: number;
+    problemUUID: string;
     /**
      * 
      * @type {number}
@@ -44,7 +44,7 @@ export interface RpcGetProblemSubmissionSnippetListRequest {
  */
 export function instanceOfRpcGetProblemSubmissionSnippetListRequest(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "problemID" in value;
+    isInstance = isInstance && "problemUUID" in value;
     isInstance = isInstance && "offset" in value;
     isInstance = isInstance && "limit" in value;
 
@@ -61,7 +61,7 @@ export function RpcGetProblemSubmissionSnippetListRequestFromJSONTyped(json: any
     }
     return {
         
-        'problemID': json['ProblemID'],
+        'problemUUID': json['ProblemUUID'],
         'offset': json['Offset'],
         'limit': json['Limit'],
     };
@@ -76,7 +76,7 @@ export function RpcGetProblemSubmissionSnippetListRequestToJSON(value?: RpcGetPr
     }
     return {
         
-        'ProblemID': value.problemID,
+        'ProblemUUID': value.problemUUID,
         'Offset': value.offset,
         'Limit': value.limit,
     };

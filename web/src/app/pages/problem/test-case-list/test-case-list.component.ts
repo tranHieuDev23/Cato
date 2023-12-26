@@ -41,7 +41,7 @@ import { EllipsisPipe } from '../../../components/utils/ellipsis.pipe';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 
 export interface TestCaseListItem {
-  id: number;
+  uuid: string;
   input: string;
   output: string;
   isHidden: boolean;
@@ -109,7 +109,7 @@ export class TestCaseListComponent implements OnInit {
   constructor(
     private readonly accountService: AccountService,
     private readonly testCaseService: TestCaseService,
-    private readonly paginationService: PaginationService,
+    public readonly paginationService: PaginationService,
     private readonly router: Router,
     private readonly notificationService: NzNotificationService,
     private readonly modalService: NzModalService,
@@ -141,14 +141,14 @@ export class TestCaseListComponent implements OnInit {
 
       const { totalTestCaseCount, testCaseSnippetList } =
         await this.testCaseService.getProblemTestCaseSnippetList(
-          this.problem.iD,
+          this.problem.uUID,
           this.paginationService.getPageOffset(this.pageIndex, this.pageSize),
           this.pageSize
         );
       this.totalTestCaseCount = totalTestCaseCount;
       this.testCaseList = testCaseSnippetList.map((item) => {
         return {
-          id: item.iD,
+          uuid: item.uUID,
           input: item.input,
           output: item.output,
           isHidden: item.isHidden,
@@ -304,7 +304,7 @@ export class TestCaseListComponent implements OnInit {
       nzOnOk: async () => {
         try {
           await this.testCaseService.updateTestCase(
-            testCase.id,
+            testCase.uuid,
             this.editTestCaseModalInput,
             this.editTestCaseModalOutput,
             this.editModalTestCaseIsHidden
@@ -358,7 +358,7 @@ export class TestCaseListComponent implements OnInit {
       return;
     }
 
-    const testCaseID = testCaseListItem.id;
+    const testCaseID = testCaseListItem.uuid;
     this.modalService.create({
       nzContent: 'Are you sure? This action is <b>irreversible</b>',
       nzOkDanger: true,
@@ -417,7 +417,7 @@ export class TestCaseListComponent implements OnInit {
     this.editTestCaseModalOutput = '';
     this.editModalTestCaseIsHidden = true;
 
-    const problemID = this.problem.iD;
+    const problemID = this.problem.uUID;
     this.modalService.create({
       nzContent: this.editTestCaseModal,
       nzWidth: 'fit-content',
@@ -481,7 +481,7 @@ export class TestCaseListComponent implements OnInit {
       return false;
     }
 
-    const problemID = this.problem.iD;
+    const problemID = this.problem.uUID;
     const fileReader = new FileReader();
     fileReader.onload = async (event) => {
       this.uploadTestCaseModalRef?.close();
@@ -544,11 +544,11 @@ export class TestCaseListComponent implements OnInit {
 
     try {
       const testCase = await this.testCaseService.getTestCase(
-        testCaseListItem.id
+        testCaseListItem.uuid
       );
       this.testCaseList = [...this.testCaseList];
       this.testCaseList[index] = {
-        id: testCase.iD,
+        uuid: testCase.uUID,
         input: testCase.input,
         output: testCase.output,
         isHidden: testCase.isHidden,

@@ -21,10 +21,10 @@ import { exists, mapValues } from '../runtime';
 export interface RpcUpdateTestCaseRequest {
     /**
      * 
-     * @type {number}
+     * @type {string}
      * @memberof RpcUpdateTestCaseRequest
      */
-    iD: number;
+    uUID: string;
     /**
      * 
      * @type {string}
@@ -50,7 +50,7 @@ export interface RpcUpdateTestCaseRequest {
  */
 export function instanceOfRpcUpdateTestCaseRequest(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "iD" in value;
+    isInstance = isInstance && "uUID" in value;
     isInstance = isInstance && "input" in value;
     isInstance = isInstance && "output" in value;
     isInstance = isInstance && "isHidden" in value;
@@ -68,7 +68,7 @@ export function RpcUpdateTestCaseRequestFromJSONTyped(json: any, ignoreDiscrimin
     }
     return {
         
-        'iD': json['ID'],
+        'uUID': json['UUID'],
         'input': json['Input'],
         'output': json['Output'],
         'isHidden': json['IsHidden'],
@@ -84,7 +84,7 @@ export function RpcUpdateTestCaseRequestToJSON(value?: RpcUpdateTestCaseRequest 
     }
     return {
         
-        'ID': value.iD,
+        'UUID': value.uUID,
         'Input': value.input,
         'Output': value.output,
         'IsHidden': value.isHidden,

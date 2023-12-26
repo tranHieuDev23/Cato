@@ -14,6 +14,7 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
+	"github.com/google/uuid"
 	"github.com/mikespook/gorbac"
 	"github.com/samber/lo"
 
@@ -89,13 +90,13 @@ func (t testCase) getTextSnippet(text string) string {
 func (t testCase) dbTestCaseToRPCTestCase(testCase *db.TestCase, shouldHideInputOutput bool) rpc.TestCase {
 	if shouldHideInputOutput && testCase.IsHidden {
 		return rpc.TestCase{
-			ID:       uint64(testCase.ID),
+			UUID:     testCase.UUID,
 			IsHidden: testCase.IsHidden,
 		}
 	}
 
 	return rpc.TestCase{
-		ID:       uint64(testCase.ID),
+		UUID:     testCase.UUID,
 		Input:    testCase.Input,
 		Output:   testCase.Output,
 		IsHidden: testCase.IsHidden,
@@ -108,13 +109,13 @@ func (t testCase) dbTestCaseToRPCTestCaseSnippet(
 ) rpc.TestCaseSnippet {
 	if shouldHideInputOutput && testCase.IsHidden {
 		return rpc.TestCaseSnippet{
-			ID:       uint64(testCase.ID),
+			UUID:     testCase.UUID,
 			IsHidden: testCase.IsHidden,
 		}
 	}
 
 	return rpc.TestCaseSnippet{
-		ID:       uint64(testCase.ID),
+		UUID:     testCase.UUID,
 		Input:    t.getTextSnippet(testCase.Input),
 		Output:   t.getTextSnippet(testCase.Output),
 		IsHidden: testCase.IsHidden,
@@ -204,13 +205,13 @@ func (t testCase) CreateTestCase(
 
 	response := &rpc.CreateTestCaseResponse{}
 	if txErr := t.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		problem, problemErr := t.problemDataAccessor.WithDB(tx).GetProblem(ctx, in.ProblemID)
+		problem, problemErr := t.problemDataAccessor.WithDB(tx).GetProblemByUUID(ctx, in.ProblemUUID)
 		if problemErr != nil {
 			return problemErr
 		}
 
 		if problem == nil {
-			logger.With(zap.Uint64("problem_id", in.ProblemID)).Error("cannot find problem")
+			logger.With(zap.String("problem_uuid", in.ProblemUUID)).Error("cannot find problem")
 			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 		}
 
@@ -228,7 +229,8 @@ func (t testCase) CreateTestCase(
 		}
 
 		testCase := &db.TestCase{
-			OfProblemID: in.ProblemID,
+			UUID:        uuid.NewString(),
+			OfProblemID: uint64(problem.ID),
 			Input:       utils.TrimSpaceRight(in.Input),
 			Output:      utils.TrimSpaceRight(in.Output),
 			IsHidden:    in.IsHidden,
@@ -237,7 +239,7 @@ func (t testCase) CreateTestCase(
 
 		problemErr = utils.ExecuteUntilFirstError(
 			func() error { return t.testCaseDataAccessor.WithDB(tx).CreateTestCase(ctx, testCase) },
-			func() error { return t.WithDB(tx).UpsertProblemTestCaseHash(ctx, in.ProblemID) },
+			func() error { return t.WithDB(tx).UpsertProblemTestCaseHash(ctx, uint64(problem.ID)) },
 		)
 		if problemErr != nil {
 			return problemErr
@@ -339,6 +341,7 @@ func (t testCase) getTestCaseListFromZippedData(
 		}
 
 		testCaseList = append(testCaseList, &db.TestCase{
+			UUID:        uuid.NewString(),
 			OfProblemID: problemID,
 			Input:       utils.TrimSpaceRight(*unzippedTestCase.Input),
 			Output:      utils.TrimSpaceRight(*unzippedTestCase.Output),
@@ -358,13 +361,13 @@ func (t testCase) CreateTestCaseList(ctx context.Context, in *rpc.CreateTestCase
 		return err
 	}
 
-	problem, err := t.problemDataAccessor.GetProblem(ctx, in.ProblemID)
+	problem, err := t.problemDataAccessor.GetProblemByUUID(ctx, in.ProblemUUID)
 	if err != nil {
 		return err
 	}
 
 	if problem == nil {
-		logger.With(zap.Uint64("problem_id", in.ProblemID)).Error("cannot find problem")
+		logger.With(zap.String("problem_uuid", in.ProblemUUID)).Error("cannot find problem")
 		return pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 	}
 
@@ -381,7 +384,7 @@ func (t testCase) CreateTestCaseList(ctx context.Context, in *rpc.CreateTestCase
 		return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
 	}
 
-	testCaseList, err := t.getTestCaseListFromZippedData(ctx, in.ProblemID, in.ZippedTestData)
+	testCaseList, err := t.getTestCaseListFromZippedData(ctx, uint64(problem.ID), in.ZippedTestData)
 	if err != nil {
 		return err
 	}
@@ -389,7 +392,7 @@ func (t testCase) CreateTestCaseList(ctx context.Context, in *rpc.CreateTestCase
 	return t.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		return utils.ExecuteUntilFirstError(
 			func() error { return t.testCaseDataAccessor.CreateTestCaseList(ctx, testCaseList) },
-			func() error { return t.WithDB(tx).UpsertProblemTestCaseHash(ctx, in.ProblemID) },
+			func() error { return t.WithDB(tx).UpsertProblemTestCaseHash(ctx, uint64(problem.ID)) },
 		)
 	})
 }
@@ -403,13 +406,13 @@ func (t testCase) DeleteTestCase(ctx context.Context, in *rpc.DeleteTestCaseRequ
 	}
 
 	return t.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		testCase, testCaseErr := t.testCaseDataAccessor.WithDB(tx).GetTestCase(ctx, in.ID)
+		testCase, testCaseErr := t.testCaseDataAccessor.WithDB(tx).GetTestCaseByUUID(ctx, in.UUID)
 		if testCaseErr != nil {
 			return testCaseErr
 		}
 
 		if testCase == nil {
-			logger.With(zap.Uint64("id", in.ID)).Error("cannot find test case")
+			logger.With(zap.String("uuid", in.UUID)).Error("cannot find test case")
 			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 		}
 
@@ -448,9 +451,13 @@ func (t testCase) GetProblemTestCaseSnippetList(
 		return nil, err
 	}
 
-	problem, err := t.problemDataAccessor.GetProblem(ctx, in.ProblemID)
+	problem, err := t.problemDataAccessor.GetProblemByUUID(ctx, in.ProblemUUID)
 	if err != nil {
 		return nil, err
+	}
+
+	if problem == nil {
+		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 	}
 
 	requiredPermissionList := []gorbac.Permission{PermissionTestCasesAllRead}
@@ -466,12 +473,12 @@ func (t testCase) GetProblemTestCaseSnippetList(
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
 	}
 
-	testCaseCount, err := t.testCaseDataAccessor.GetTestCaseCountOfProblem(ctx, in.ProblemID)
+	testCaseCount, err := t.testCaseDataAccessor.GetTestCaseCountOfProblem(ctx, uint64(problem.ID))
 	if err != nil {
 		return nil, err
 	}
 
-	testCaseList, err := t.testCaseDataAccessor.GetTestCaseListOfProblem(ctx, in.ProblemID, in.Offset, in.Limit)
+	testCaseList, err := t.testCaseDataAccessor.GetTestCaseListOfProblem(ctx, uint64(problem.ID), in.Offset, in.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -501,13 +508,13 @@ func (t testCase) GetTestCase(
 
 	response := &rpc.GetTestCaseResponse{}
 	if txErr := t.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		testCase, testCaseErr := t.testCaseDataAccessor.WithDB(tx).GetTestCase(ctx, in.ID)
+		testCase, testCaseErr := t.testCaseDataAccessor.WithDB(tx).GetTestCaseByUUID(ctx, in.UUID)
 		if testCaseErr != nil {
 			return testCaseErr
 		}
 
 		if testCase == nil {
-			logger.With(zap.Uint64("id", in.ID)).Error("cannot find test case")
+			logger.With(zap.String("uuid", in.UUID)).Error("cannot find test case")
 			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 		}
 
@@ -571,13 +578,13 @@ func (t testCase) UpdateTestCase(
 
 	response := &rpc.UpdateTestCaseResponse{}
 	if txErr := t.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		testCase, testCaseErr := t.testCaseDataAccessor.WithDB(tx).GetTestCase(ctx, in.ID)
+		testCase, testCaseErr := t.testCaseDataAccessor.WithDB(tx).GetTestCaseByUUID(ctx, in.UUID)
 		if testCaseErr != nil {
 			return testCaseErr
 		}
 
 		if testCase == nil {
-			logger.With(zap.Uint64("id", in.ID)).Error("cannot find test case")
+			logger.With(zap.String("uuid", in.UUID)).Error("cannot find test case")
 			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 		}
 

@@ -125,14 +125,14 @@ export class ProblemComponent implements OnInit, OnDestroy {
   }
 
   private async onParamsChanged(params: Params): Promise<void> {
-    if (!params['id']) {
+    if (!params['uuid']) {
       this.location.back();
       return;
     }
 
-    const problemID = +params['id'];
+    const problemUUID = `${params['uuid']}`;
     try {
-      this.problem = await this.problemService.getProblem(problemID);
+      this.problem = await this.problemService.getProblem(problemUUID);
       this.pageTitleService.setTitle(this.problem.displayName);
     } catch (e) {
       if (e instanceof UnauthenticatedError) {
@@ -172,13 +172,13 @@ export class ProblemComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const problemID = this.problem.iD;
+    const problemUUID = this.problem.uUID;
     this.modalService.create({
       nzContent: 'Are you sure? This action is <b>irreversible</b>',
       nzOkDanger: true,
       nzOnOk: async () => {
         try {
-          await this.problemService.deleteProblem(problemID);
+          await this.problemService.deleteProblem(problemUUID);
           this.notificationService.success('Problem deleted successfully', '');
           this.location.back();
         } catch (e) {
@@ -225,7 +225,7 @@ export class ProblemComponent implements OnInit, OnDestroy {
 
     try {
       await this.submissionService.createSubmission(
-        this.problem?.iD,
+        this.problem.uUID,
         this.submissionContent,
         this.submissionLanguage
       );

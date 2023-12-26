@@ -5,6 +5,7 @@ import (
 
 	"gitlab.com/pjrpc/pjrpc/v2"
 	"go.uber.org/zap"
+	"google.golang.org/protobuf/proto"
 	"gorm.io/gorm"
 
 	"github.com/mikespook/gorbac"
@@ -164,18 +165,18 @@ func (s submission) CreateSubmission(
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
 	}
 
-	problem, err := s.problemDataAccessor.GetProblem(ctx, in.ProblemID)
+	problem, err := s.problemDataAccessor.GetProblemByUUID(ctx, in.ProblemUUID)
 	if err != nil {
 		return nil, err
 	}
 
 	if problem == nil {
-		logger.With(zap.Uint64("problem_id", in.ProblemID)).Error("problem not found")
+		logger.With(zap.String("problem_uuid", in.ProblemUUID)).Error("problem not found")
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 	}
 
 	submission := &db.Submission{
-		OfProblemID:     in.ProblemID,
+		OfProblemID:     uint64(problem.ID),
 		AuthorAccountID: uint64(account.ID),
 		Content:         in.Content,
 		Language:        in.Language,
@@ -412,13 +413,13 @@ func (s submission) GetProblemSubmissionSnippetList(
 		return nil, err
 	}
 
-	problem, err := s.problemDataAccessor.GetProblem(ctx, in.ProblemID)
+	problem, err := s.problemDataAccessor.GetProblemByUUID(ctx, in.ProblemUUID)
 	if err != nil {
 		return nil, err
 	}
 
 	if problem == nil {
-		logger.With(zap.Uint64("problem_id", in.ProblemID)).Error("problem not found")
+		logger.With(zap.String("problem_uuid", in.ProblemUUID)).Error("problem not found")
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 	}
 
@@ -436,14 +437,14 @@ func (s submission) GetProblemSubmissionSnippetList(
 	}
 
 	totalSubmissionCount, err := s.submissionDataAccessor.GetSubmissionCount(ctx, db.SubmissionListFilterParams{
-		OfProblemID: &in.ProblemID,
+		OfProblemID: proto.Uint64(uint64(problem.ID)),
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	submissionList, err := s.submissionDataAccessor.GetSubmissionList(ctx, db.SubmissionListFilterParams{
-		OfProblemID: &in.ProblemID,
+		OfProblemID: proto.Uint64(uint64(problem.ID)),
 	}, in.Offset, in.Limit)
 	if err != nil {
 		return nil, err
@@ -490,13 +491,13 @@ func (s submission) GetAccountProblemSubmissionSnippetList(
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 	}
 
-	problem, err := s.problemDataAccessor.GetProblem(ctx, in.ProblemID)
+	problem, err := s.problemDataAccessor.GetProblemByUUID(ctx, in.ProblemUUID)
 	if err != nil {
 		return nil, err
 	}
 
 	if problem == nil {
-		logger.With(zap.Uint64("problem_id", in.ProblemID)).Error("problem not found")
+		logger.With(zap.String("problem_uuid", in.ProblemUUID)).Error("problem not found")
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 	}
 
@@ -514,7 +515,7 @@ func (s submission) GetAccountProblemSubmissionSnippetList(
 	}
 
 	totalSubmissionCount, err := s.submissionDataAccessor.GetSubmissionCount(ctx, db.SubmissionListFilterParams{
-		OfProblemID:     &in.ProblemID,
+		OfProblemID:     proto.Uint64(uint64(problem.ID)),
 		AuthorAccountID: &in.AccountID,
 	})
 	if err != nil {
@@ -522,7 +523,7 @@ func (s submission) GetAccountProblemSubmissionSnippetList(
 	}
 
 	submissionList, err := s.submissionDataAccessor.GetSubmissionList(ctx, db.SubmissionListFilterParams{
-		OfProblemID:     &in.ProblemID,
+		OfProblemID:     proto.Uint64(uint64(problem.ID)),
 		AuthorAccountID: &in.AccountID,
 	}, in.Offset, in.Limit)
 	if err != nil {

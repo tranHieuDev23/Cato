@@ -21,10 +21,10 @@ import { exists, mapValues } from '../runtime';
 export interface RpcCreateTestCaseListRequest {
     /**
      * 
-     * @type {number}
+     * @type {string}
      * @memberof RpcCreateTestCaseListRequest
      */
-    problemID: number;
+    problemUUID: string;
     /**
      * 
      * @type {string}
@@ -38,7 +38,7 @@ export interface RpcCreateTestCaseListRequest {
  */
 export function instanceOfRpcCreateTestCaseListRequest(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "problemID" in value;
+    isInstance = isInstance && "problemUUID" in value;
     isInstance = isInstance && "zippedTestData" in value;
 
     return isInstance;
@@ -54,7 +54,7 @@ export function RpcCreateTestCaseListRequestFromJSONTyped(json: any, ignoreDiscr
     }
     return {
         
-        'problemID': json['ProblemID'],
+        'problemUUID': json['ProblemUUID'],
         'zippedTestData': json['ZippedTestData'],
     };
 }
@@ -68,7 +68,7 @@ export function RpcCreateTestCaseListRequestToJSON(value?: RpcCreateTestCaseList
     }
     return {
         
-        'ProblemID': value.problemID,
+        'ProblemUUID': value.problemUUID,
         'ZippedTestData': value.zippedTestData,
     };
 }

@@ -21,10 +21,10 @@ import { exists, mapValues } from '../runtime';
 export interface RpcDeleteProblemRequest {
     /**
      * 
-     * @type {number}
+     * @type {string}
      * @memberof RpcDeleteProblemRequest
      */
-    iD: number;
+    uUID: string;
 }
 
 /**
@@ -32,7 +32,7 @@ export interface RpcDeleteProblemRequest {
  */
 export function instanceOfRpcDeleteProblemRequest(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "iD" in value;
+    isInstance = isInstance && "uUID" in value;
 
     return isInstance;
 }
@@ -47,7 +47,7 @@ export function RpcDeleteProblemRequestFromJSONTyped(json: any, ignoreDiscrimina
     }
     return {
         
-        'iD': json['ID'],
+        'uUID': json['UUID'],
     };
 }
 
@@ -60,7 +60,7 @@ export function RpcDeleteProblemRequestToJSON(value?: RpcDeleteProblemRequest | 
     }
     return {
         
-        'ID': value.iD,
+        'UUID': value.uUID,
     };
 }
 

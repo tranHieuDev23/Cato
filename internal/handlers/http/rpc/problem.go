@@ -6,7 +6,7 @@ type ProblemExample struct {
 }
 
 type Problem struct {
-	ID                     uint64
+	UUID                   string
 	DisplayName            string `validate:"min=1,max=256"`
 	Author                 Account
 	Description            string           `validate:"max=5000"`
@@ -18,7 +18,7 @@ type Problem struct {
 }
 
 type ProblemSnippet struct {
-	ID                     uint64
+	UUID                   string
 	DisplayName            string `validate:"min=1,max=256"`
 	Author                 Account
 	TimeLimitInMillisecond uint64 `validate:"max=10000"`

@@ -157,7 +157,7 @@ type GetProblemSnippetListResponse struct {
 }
 
 type GetProblemRequest struct {
-	ID uint64
+	UUID string
 }
 
 type GetProblemResponse struct {
@@ -165,7 +165,7 @@ type GetProblemResponse struct {
 }
 
 type UpdateProblemRequest struct {
-	ID                     uint64
+	UUID                   string
 	DisplayName            *string           `omitnil,validate:"min=1,max=256"`
 	Description            *string           `omitnil,validate:"max=5000"`
 	TimeLimitInMillisecond *uint64           `omitnil,validate:"max=10000"`
@@ -178,16 +178,16 @@ type UpdateProblemResponse struct {
 }
 
 type DeleteProblemRequest struct {
-	ID uint64
+	UUID string
 }
 
 type DeleteProblemResponse struct{}
 
 type CreateTestCaseRequest struct {
-	ProblemID uint64
-	Input     string `validate:"max=5242880"`
-	Output    string `validate:"max=5242880"`
-	IsHidden  bool
+	ProblemUUID string
+	Input       string `validate:"max=5242880"`
+	Output      string `validate:"max=5242880"`
+	IsHidden    bool
 }
 
 type CreateTestCaseResponse struct {
@@ -195,16 +195,16 @@ type CreateTestCaseResponse struct {
 }
 
 type CreateTestCaseListRequest struct {
-	ProblemID      uint64
+	ProblemUUID    string
 	ZippedTestData string `validate:"max=5242880"`
 }
 
 type CreateTestCaseListResponse struct{}
 
 type GetProblemTestCaseSnippetListRequest struct {
-	ProblemID uint64
-	Offset    uint64
-	Limit     uint64 `validate:"max=100"`
+	ProblemUUID string
+	Offset      uint64
+	Limit       uint64 `validate:"max=100"`
 }
 
 type GetProblemTestCaseSnippetListResponse struct {
@@ -213,7 +213,7 @@ type GetProblemTestCaseSnippetListResponse struct {
 }
 
 type GetTestCaseRequest struct {
-	ID uint64
+	UUID string
 }
 
 type GetTestCaseResponse struct {
@@ -221,7 +221,7 @@ type GetTestCaseResponse struct {
 }
 
 type UpdateTestCaseRequest struct {
-	ID       uint64
+	UUID     string
 	Input    *string `validate:"omitnil,max=5242880"`
 	Output   *string `validate:"omitnil,max=5242880"`
 	IsHidden *bool
@@ -232,7 +232,7 @@ type UpdateTestCaseResponse struct {
 }
 
 type DeleteTestCaseRequest struct {
-	ID uint64
+	UUID string
 }
 
 type DeleteTestCaseResponse struct{}
@@ -249,9 +249,9 @@ type GetAccountProblemSnippetListResponse struct {
 }
 
 type CreateSubmissionRequest struct {
-	ProblemID uint64
-	Content   string `validate:"min=1,max=64000"`
-	Language  string `validate:"max=32"`
+	ProblemUUID string
+	Content     string `validate:"min=1,max=64000"`
+	Language    string `validate:"max=32"`
 }
 
 type CreateSubmissionResponse struct {
@@ -304,9 +304,9 @@ type GetAccountSubmissionSnippetListResponse struct {
 }
 
 type GetProblemSubmissionSnippetListRequest struct {
-	ProblemID uint64
-	Offset    uint64
-	Limit     uint64 `validate:"max=100"`
+	ProblemUUID string
+	Offset      uint64
+	Limit       uint64 `validate:"max=100"`
 }
 
 type GetProblemSubmissionSnippetListResponse struct {
@@ -315,10 +315,10 @@ type GetProblemSubmissionSnippetListResponse struct {
 }
 
 type GetAccountProblemSubmissionSnippetListRequest struct {
-	AccountID uint64
-	ProblemID uint64
-	Offset    uint64
-	Limit     uint64 `validate:"max=100"`
+	AccountID   uint64
+	ProblemUUID string
+	Offset      uint64
+	Limit       uint64 `validate:"max=100"`
 }
 
 type GetAccountProblemSubmissionSnippetListResponse struct {

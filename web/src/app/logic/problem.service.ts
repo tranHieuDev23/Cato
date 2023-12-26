@@ -72,9 +72,9 @@ export class ProblemService {
     }
   }
 
-  public async getProblem(id: number): Promise<RpcProblem> {
+  public async getProblem(uuid: string): Promise<RpcProblem> {
     try {
-      const response = await this.api.getProblem({ iD: id });
+      const response = await this.api.getProblem({ uUID: uuid });
       return response.problem;
     } catch (e) {
       if (!this.api.isRpcError(e)) {
@@ -132,7 +132,7 @@ export class ProblemService {
   }
 
   public async updateProblem(
-    id: number,
+    uuid: string,
     displayName: string,
     description: string,
     timeLimitInMillisecond: number,
@@ -140,7 +140,7 @@ export class ProblemService {
   ): Promise<RpcProblem> {
     try {
       const response = await this.api.updateProblem({
-        iD: id,
+        uUID: uuid,
         displayName,
         description,
         timeLimitInMillisecond,
@@ -174,9 +174,9 @@ export class ProblemService {
     }
   }
 
-  public async deleteProblem(id: number): Promise<void> {
+  public async deleteProblem(uuid: string): Promise<void> {
     try {
-      await this.api.deleteProblem({ iD: id });
+      await this.api.deleteProblem({ uUID: uuid });
     } catch (e) {
       if (!this.api.isRpcError(e)) {
         throw e;

@@ -34,10 +34,10 @@ import {
 export interface RpcProblem {
     /**
      * 
-     * @type {number}
+     * @type {string}
      * @memberof RpcProblem
      */
-    iD: number;
+    uUID: string;
     /**
      * 
      * @type {string}
@@ -93,7 +93,7 @@ export interface RpcProblem {
  */
 export function instanceOfRpcProblem(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "iD" in value;
+    isInstance = isInstance && "uUID" in value;
     isInstance = isInstance && "displayName" in value;
     isInstance = isInstance && "author" in value;
     isInstance = isInstance && "description" in value;
@@ -116,7 +116,7 @@ export function RpcProblemFromJSONTyped(json: any, ignoreDiscriminator: boolean)
     }
     return {
         
-        'iD': json['ID'],
+        'uUID': json['UUID'],
         'displayName': json['DisplayName'],
         'author': RpcCreateAccountResponseAccountFromJSON(json['Author']),
         'description': json['Description'],
@@ -137,7 +137,7 @@ export function RpcProblemToJSON(value?: RpcProblem | null): any {
     }
     return {
         
-        'ID': value.iD,
+        'UUID': value.uUID,
         'DisplayName': value.displayName,
         'Author': RpcCreateAccountResponseAccountToJSON(value.author),
         'Description': value.description,

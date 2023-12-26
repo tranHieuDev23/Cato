@@ -21,10 +21,10 @@ import { exists, mapValues } from '../runtime';
 export interface RpcGetTestCaseRequest {
     /**
      * 
-     * @type {number}
+     * @type {string}
      * @memberof RpcGetTestCaseRequest
      */
-    iD: number;
+    uUID: string;
 }
 
 /**
@@ -32,7 +32,7 @@ export interface RpcGetTestCaseRequest {
  */
 export function instanceOfRpcGetTestCaseRequest(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "iD" in value;
+    isInstance = isInstance && "uUID" in value;
 
     return isInstance;
 }
@@ -47,7 +47,7 @@ export function RpcGetTestCaseRequestFromJSONTyped(json: any, ignoreDiscriminato
     }
     return {
         
-        'iD': json['ID'],
+        'uUID': json['UUID'],
     };
 }
 
@@ -60,7 +60,7 @@ export function RpcGetTestCaseRequestToJSON(value?: RpcGetTestCaseRequest | null
     }
     return {
         
-        'ID': value.iD,
+        'UUID': value.uUID,
     };
 }
 

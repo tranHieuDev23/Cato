@@ -51,7 +51,7 @@ const SUBMISSION_LIST_RELOAD_INTERVAL = 10000;
   ],
 })
 export class SubmissionListComponent implements OnInit, OnDestroy {
-  @Input() public problemID = 0;
+  @Input() public problemUUID = '';
 
   public totalSubmissionCount = 0;
   public submissionSnippetList: RpcSubmissionSnippet[] = [];
@@ -107,7 +107,7 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
       ) {
         const { totalSubmissionCount, submissionSnippetList } =
           await this.submissionService.getProblemSubmissionSnippetList(
-            this.problemID,
+            this.problemUUID,
             this.paginationService.getPageOffset(this.pageIndex, this.pageSize),
             this.pageSize
           );
@@ -117,7 +117,7 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
         const { totalSubmissionCount, submissionSnippetList } =
           await this.submissionService.getAccountProblemSubmissionSnippetList(
             sessionAccount.iD,
-            this.problemID,
+            this.problemUUID,
             this.paginationService.getPageOffset(this.pageIndex, this.pageSize),
             this.pageSize
           );

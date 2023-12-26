@@ -29,9 +29,9 @@ export class TestCaseNotFoundError extends Error {
 export class TestCaseService {
   constructor(private readonly api: ApiService) {}
 
-  public async getTestCase(id: number): Promise<RpcTestCase> {
+  public async getTestCase(uuid: string): Promise<RpcTestCase> {
     try {
-      const response = await this.api.getTestCase({ iD: id });
+      const response = await this.api.getTestCase({ uUID: uuid });
       return response.testCase;
     } catch (e) {
       if (!this.api.isRpcError(e)) {
@@ -56,7 +56,7 @@ export class TestCaseService {
   }
 
   public async getProblemTestCaseSnippetList(
-    problemID: number,
+    problemUUID: string,
     offset: number,
     limit: number
   ): Promise<{
@@ -65,7 +65,7 @@ export class TestCaseService {
   }> {
     try {
       const response = await this.api.getProblemTestCaseSnippetList({
-        problemID: problemID,
+        problemUUID,
         offset,
         limit,
       });
@@ -100,14 +100,14 @@ export class TestCaseService {
   }
 
   public async createTestCase(
-    problemID: number,
+    problemUUID: string,
     input: string,
     output: string,
     isHidden: boolean
   ): Promise<RpcTestCaseSnippet> {
     try {
       const response = await this.api.createTestCase({
-        problemID,
+        problemUUID,
         input,
         output,
         isHidden,
@@ -140,12 +140,12 @@ export class TestCaseService {
   }
 
   public async createTestCaseList(
-    problemID: number,
+    problemUUID: string,
     zippedTestData: ArrayBuffer
   ): Promise<void> {
     try {
       await this.api.createTestCaseList({
-        problemID,
+        problemUUID,
         zippedTestData: Encoder.toBase64(zippedTestData).asString,
       });
     } catch (e) {
@@ -175,14 +175,14 @@ export class TestCaseService {
   }
 
   public async updateTestCase(
-    id: number,
+    uuid: string,
     input: string,
     output: string,
     isHidden: boolean
   ): Promise<RpcTestCaseSnippet> {
     try {
       const response = await this.api.updateTestCase({
-        iD: id,
+        uUID: uuid,
         input,
         output,
         isHidden,
@@ -214,9 +214,9 @@ export class TestCaseService {
     }
   }
 
-  public async deleteTestCase(id: number): Promise<void> {
+  public async deleteTestCase(uuid: string): Promise<void> {
     try {
-      await this.api.deleteTestCase({ iD: id });
+      await this.api.deleteTestCase({ uUID: uuid });
     } catch (e) {
       if (!this.api.isRpcError(e)) {
         throw e;

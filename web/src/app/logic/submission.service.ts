@@ -185,7 +185,7 @@ export class SubmissionService {
   }
 
   public async getProblemSubmissionSnippetList(
-    problemID: number,
+    problemUUID: string,
     offset: number,
     limit: number
   ): Promise<{
@@ -194,7 +194,7 @@ export class SubmissionService {
   }> {
     try {
       const response = await this.api.getProblemSubmissionSnippetList({
-        problemID: problemID,
+        problemUUID: problemUUID,
         offset,
         limit,
       });
@@ -230,7 +230,7 @@ export class SubmissionService {
 
   public async getAccountProblemSubmissionSnippetList(
     accountID: number,
-    problemID: number,
+    problemUUID: string,
     offset: number,
     limit: number
   ): Promise<{
@@ -240,7 +240,7 @@ export class SubmissionService {
     try {
       const response = await this.api.getAccountProblemSubmissionSnippetList({
         accountID,
-        problemID,
+        problemUUID,
         offset,
         limit,
       });
@@ -271,13 +271,13 @@ export class SubmissionService {
   }
 
   public async createSubmission(
-    problemID: number,
+    problemUUID: string,
     content: string,
     language: string
   ): Promise<RpcSubmissionSnippet> {
     try {
       const response = await this.api.createSubmission({
-        problemID,
+        problemUUID,
         content,
         language,
       });

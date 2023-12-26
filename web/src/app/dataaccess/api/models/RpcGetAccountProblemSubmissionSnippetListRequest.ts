@@ -27,10 +27,10 @@ export interface RpcGetAccountProblemSubmissionSnippetListRequest {
     accountID: number;
     /**
      * 
-     * @type {number}
+     * @type {string}
      * @memberof RpcGetAccountProblemSubmissionSnippetListRequest
      */
-    problemID: number;
+    problemUUID: string;
     /**
      * 
      * @type {number}
@@ -51,7 +51,7 @@ export interface RpcGetAccountProblemSubmissionSnippetListRequest {
 export function instanceOfRpcGetAccountProblemSubmissionSnippetListRequest(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "accountID" in value;
-    isInstance = isInstance && "problemID" in value;
+    isInstance = isInstance && "problemUUID" in value;
     isInstance = isInstance && "offset" in value;
     isInstance = isInstance && "limit" in value;
 
@@ -69,7 +69,7 @@ export function RpcGetAccountProblemSubmissionSnippetListRequestFromJSONTyped(js
     return {
         
         'accountID': json['AccountID'],
-        'problemID': json['ProblemID'],
+        'problemUUID': json['ProblemUUID'],
         'offset': json['Offset'],
         'limit': json['Limit'],
     };
@@ -85,7 +85,7 @@ export function RpcGetAccountProblemSubmissionSnippetListRequestToJSON(value?: R
     return {
         
         'AccountID': value.accountID,
-        'ProblemID': value.problemID,
+        'ProblemUUID': value.problemUUID,
         'Offset': value.offset,
         'Limit': value.limit,
     };

@@ -12,6 +12,7 @@ import (
 
 type Problem struct {
 	gorm.Model
+	UUID                   string
 	DisplayName            string
 	AuthorAccountID        uint64
 	Description            string `gorm:"type:text"`
@@ -24,6 +25,7 @@ type ProblemDataAccessor interface {
 	UpdateProblem(ctx context.Context, problem *Problem) error
 	DeleteProblem(ctx context.Context, id uint64) error
 	GetProblem(ctx context.Context, id uint64) (*Problem, error)
+	GetProblemByUUID(ctx context.Context, uuid string) (*Problem, error)
 	GetProblemList(ctx context.Context, offset, limit uint64) ([]*Problem, error)
 	GetAccountProblemList(ctx context.Context, accountID uint64, offset, limit uint64) ([]*Problem, error)
 	GetProblemCount(ctx context.Context) (uint64, error)
@@ -63,6 +65,24 @@ func (a problemDataAccessor) GetProblem(ctx context.Context, id uint64) (*Proble
 	db := a.db.WithContext(ctx)
 	problem := new(Problem)
 	if err := db.First(problem, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		logger.With(zap.Error(err)).Error("failed to get problem")
+		return nil, err
+	}
+
+	return problem, nil
+}
+
+func (a problemDataAccessor) GetProblemByUUID(ctx context.Context, uuid string) (*Problem, error) {
+	logger := utils.LoggerWithContext(ctx, a.logger).With(zap.String("uuid", uuid))
+	db := a.db.WithContext(ctx)
+	problem := new(Problem)
+	if err := db.First(problem, &Problem{
+		UUID: uuid,
+	}).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}

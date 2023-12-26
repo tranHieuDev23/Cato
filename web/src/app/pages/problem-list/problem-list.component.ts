@@ -59,7 +59,7 @@ export class ProblemListComponent implements OnInit, OnDestroy {
   constructor(
     private readonly accountService: AccountService,
     private readonly problemService: ProblemService,
-    private readonly paginationService: PaginationService,
+    public readonly paginationService: PaginationService,
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
     private readonly notificationService: NzNotificationService,
@@ -187,7 +187,7 @@ export class ProblemListComponent implements OnInit, OnDestroy {
       nzOkDanger: true,
       nzOnOk: async () => {
         try {
-          await this.problemService.deleteProblem(problemSnippet.iD);
+          await this.problemService.deleteProblem(problemSnippet.uUID);
           this.notificationService.success('Problem deleted successfully', '');
           await this.loadProblemSnippetList();
         } catch (e) {

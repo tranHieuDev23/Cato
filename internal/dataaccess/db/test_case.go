@@ -16,6 +16,7 @@ const (
 
 type TestCase struct {
 	gorm.Model
+	UUID        string
 	OfProblemID uint64
 	Input       string `gorm:"type:text"`
 	Output      string `gorm:"type:text"`
@@ -27,6 +28,7 @@ type TestCaseDataAccessor interface {
 	CreateTestCase(ctx context.Context, testCase *TestCase) error
 	CreateTestCaseList(ctx context.Context, testCaseList []*TestCase) error
 	GetTestCase(ctx context.Context, id uint64) (*TestCase, error)
+	GetTestCaseByUUID(ctx context.Context, uuid string) (*TestCase, error)
 	GetTestCaseListOfProblem(ctx context.Context, problemID uint64, offset uint64, limit uint64) ([]*TestCase, error)
 	GetTestCaseIDListOfProblem(ctx context.Context, problemID uint64) ([]uint64, error)
 	GetTestCaseHashListOfProblem(ctx context.Context, problemID uint64, offset uint64, limit uint64) ([]string, error)
@@ -80,6 +82,24 @@ func (a testCaseDataAccessor) GetTestCase(ctx context.Context, id uint64) (*Test
 	db := a.db.WithContext(ctx)
 	testCase := new(TestCase)
 	if err := db.First(testCase, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		logger.With(zap.Error(err)).Error("failed to get test case")
+		return nil, err
+	}
+
+	return testCase, nil
+}
+
+func (a testCaseDataAccessor) GetTestCaseByUUID(ctx context.Context, uuid string) (*TestCase, error) {
+	logger := utils.LoggerWithContext(ctx, a.logger).With(zap.String("uuid", uuid))
+	db := a.db.WithContext(ctx)
+	testCase := new(TestCase)
+	if err := db.First(testCase, &TestCase{
+		UUID: uuid,
+	}).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}

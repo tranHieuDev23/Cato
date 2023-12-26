@@ -21,10 +21,10 @@ import { exists, mapValues } from '../runtime';
 export interface RpcCreateSubmissionRequest {
     /**
      * 
-     * @type {number}
+     * @type {string}
      * @memberof RpcCreateSubmissionRequest
      */
-    problemID: number;
+    problemUUID: string;
     /**
      * 
      * @type {string}
@@ -44,7 +44,7 @@ export interface RpcCreateSubmissionRequest {
  */
 export function instanceOfRpcCreateSubmissionRequest(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "problemID" in value;
+    isInstance = isInstance && "problemUUID" in value;
     isInstance = isInstance && "content" in value;
     isInstance = isInstance && "language" in value;
 
@@ -61,7 +61,7 @@ export function RpcCreateSubmissionRequestFromJSONTyped(json: any, ignoreDiscrim
     }
     return {
         
-        'problemID': json['ProblemID'],
+        'problemUUID': json['ProblemUUID'],
         'content': json['Content'],
         'language': json['Language'],
     };
@@ -76,7 +76,7 @@ export function RpcCreateSubmissionRequestToJSON(value?: RpcCreateSubmissionRequ
     }
     return {
         
-        'ProblemID': value.problemID,
+        'ProblemUUID': value.problemUUID,
         'Content': value.content,
         'Language': value.language,
     };

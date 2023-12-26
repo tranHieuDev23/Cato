@@ -24,7 +24,7 @@
                     <p *ngIf="sessionAccount?.role === 'admin' ||
                          (sessionAccount?.role === 'problem_setter' && sessionAccount?.iD === problem.author.iD)">
                         <nz-button-group>
-                            <button nz-button routerLink="/problem-editor/{{problem.iD}}">
+                            <button nz-button routerLink="/problem-editor/{{problem.uUID}}">
                                 <span nz-icon nzType="edit" nzTheme="outline"></span>
                                 Edit
                             </button>
@@ -46,7 +46,7 @@
 
             <nz-tab nzTitle="Submissions" #submissionTab>
                 <ng-template nz-tab>
-                    <app-submission-list *ngIf="problem" [problemID]="problem.iD"></app-submission-list>
+                    <app-submission-list *ngIf="problem" [problemUUID]="problem.uUID"></app-submission-list>
                 </ng-template>
             </nz-tab>
         </nz-tabset>

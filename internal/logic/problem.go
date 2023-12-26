@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
+	"github.com/google/uuid"
 	"github.com/mikespook/gorbac"
 	"github.com/samber/lo"
 
@@ -111,7 +112,7 @@ func (p problem) dbProblemToRPCProblem(
 	problemExampleList []*db.ProblemExample,
 ) rpc.Problem {
 	return rpc.Problem{
-		ID:          uint64(problem.ID),
+		UUID:        problem.UUID,
 		DisplayName: problem.DisplayName,
 		Author: rpc.Account{
 			ID:          uint64(author.ID),
@@ -134,7 +135,7 @@ func (p problem) dbProblemToRPCProblem(
 
 func (p problem) dbProblemToRPCProblemSnippet(problem *db.Problem, author *db.Account) rpc.ProblemSnippet {
 	return rpc.ProblemSnippet{
-		ID:          uint64(problem.ID),
+		UUID:        problem.UUID,
 		DisplayName: problem.DisplayName,
 		Author: rpc.Account{
 			ID:          uint64(author.ID),
@@ -181,6 +182,7 @@ func (p problem) CreateProblem(
 	response := &rpc.CreateProblemResponse{}
 	if txErr := p.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		problem := &db.Problem{
+			UUID:                   uuid.NewString(),
 			DisplayName:            cleanedDisplayName,
 			AuthorAccountID:        uint64(account.ID),
 			Description:            cleanedDescription,
@@ -231,13 +233,13 @@ func (p problem) DeleteProblem(ctx context.Context, in *rpc.DeleteProblemRequest
 	}
 
 	return p.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		problem, problemErr := p.problemDataAccessor.WithDB(tx).GetProblem(ctx, in.ID)
+		problem, problemErr := p.problemDataAccessor.WithDB(tx).GetProblemByUUID(ctx, in.UUID)
 		if problemErr != nil {
 			return problemErr
 		}
 
 		if problem == nil {
-			logger.With(zap.Uint64("id", in.ID)).Error("cannot find problem")
+			logger.With(zap.String("uuid", in.UUID)).Error("cannot find problem")
 			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 		}
 
@@ -339,13 +341,13 @@ func (p problem) GetProblem(
 		return nil, err
 	}
 
-	problem, err := p.problemDataAccessor.GetProblem(ctx, in.ID)
+	problem, err := p.problemDataAccessor.GetProblemByUUID(ctx, in.UUID)
 	if err != nil {
 		return nil, err
 	}
 
 	if problem == nil {
-		logger.With(zap.Uint64("id", in.ID)).Error("cannot find problem")
+		logger.With(zap.String("uuid", in.UUID)).Error("cannot find problem")
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 	}
 
@@ -456,19 +458,20 @@ func (p problem) applyUpdateProblem(in *rpc.UpdateProblemRequest, problem *db.Pr
 
 func (p problem) updateProblemExampleList(
 	ctx context.Context,
+	problemID uint64,
 	in *rpc.UpdateProblemRequest,
 	tx *gorm.DB,
 ) ([]*db.ProblemExample, error) {
 	if in.ExampleList == nil {
-		return p.problemExampleDataAccessor.WithDB(tx).GetProblemExampleListOfProblem(ctx, in.ID)
+		return p.problemExampleDataAccessor.WithDB(tx).GetProblemExampleListOfProblem(ctx, problemID)
 	}
 
-	if err := p.problemExampleDataAccessor.WithDB(tx).DeleteProblemExampleOfProblem(ctx, in.ID); err != nil {
+	if err := p.problemExampleDataAccessor.WithDB(tx).DeleteProblemExampleOfProblem(ctx, problemID); err != nil {
 		return make([]*db.ProblemExample, 0), err
 	}
 
 	problemExampleList := lo.Map(*in.ExampleList, func(item rpc.ProblemExample, _ int) *db.ProblemExample {
-		return &db.ProblemExample{OfProblemID: in.ID, Input: item.Input, Output: item.Output}
+		return &db.ProblemExample{OfProblemID: problemID, Input: item.Input, Output: item.Output}
 	})
 	if err := p.problemExampleDataAccessor.WithDB(tx).CreateProblemExampleList(ctx, problemExampleList); err != nil {
 		return make([]*db.ProblemExample, 0), err
@@ -491,13 +494,13 @@ func (p problem) UpdateProblem(
 
 	response := &rpc.UpdateProblemResponse{}
 	if txErr := p.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		problem, problemErr := p.problemDataAccessor.WithDB(tx).GetProblem(ctx, in.ID)
+		problem, problemErr := p.problemDataAccessor.WithDB(tx).GetProblemByUUID(ctx, in.UUID)
 		if problemErr != nil {
 			return problemErr
 		}
 
 		if problem == nil {
-			logger.With(zap.Uint64("id", in.ID)).Error("cannot find problem")
+			logger.With(zap.String("uuid", in.UUID)).Error("cannot find problem")
 			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
 		}
 
@@ -527,7 +530,7 @@ func (p problem) UpdateProblem(
 			return problemErr
 		}
 
-		problemExampleList, problemErr := p.updateProblemExampleList(ctx, in, tx)
+		problemExampleList, problemErr := p.updateProblemExampleList(ctx, uint64(problem.ID), in, tx)
 		if problemErr != nil {
 			return problemErr
 		}

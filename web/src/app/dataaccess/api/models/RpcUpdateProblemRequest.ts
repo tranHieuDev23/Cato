@@ -28,10 +28,10 @@ import {
 export interface RpcUpdateProblemRequest {
     /**
      * 
-     * @type {number}
+     * @type {string}
      * @memberof RpcUpdateProblemRequest
      */
-    iD: number;
+    uUID: string;
     /**
      * 
      * @type {string}
@@ -69,7 +69,7 @@ export interface RpcUpdateProblemRequest {
  */
 export function instanceOfRpcUpdateProblemRequest(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "iD" in value;
+    isInstance = isInstance && "uUID" in value;
     isInstance = isInstance && "displayName" in value;
     isInstance = isInstance && "description" in value;
     isInstance = isInstance && "timeLimitInMillisecond" in value;
@@ -89,7 +89,7 @@ export function RpcUpdateProblemRequestFromJSONTyped(json: any, ignoreDiscrimina
     }
     return {
         
-        'iD': json['ID'],
+        'uUID': json['UUID'],
         'displayName': json['DisplayName'],
         'description': json['Description'],
         'timeLimitInMillisecond': json['TimeLimitInMillisecond'],
@@ -107,7 +107,7 @@ export function RpcUpdateProblemRequestToJSON(value?: RpcUpdateProblemRequest | 
     }
     return {
         
-        'ID': value.iD,
+        'UUID': value.uUID,
         'DisplayName': value.displayName,
         'Description': value.description,
         'TimeLimitInMillisecond': value.timeLimitInMillisecond,

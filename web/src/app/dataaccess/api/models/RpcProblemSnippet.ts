@@ -28,10 +28,10 @@ import {
 export interface RpcProblemSnippet {
     /**
      * 
-     * @type {number}
+     * @type {string}
      * @memberof RpcProblemSnippet
      */
-    iD: number;
+    uUID: string;
     /**
      * 
      * @type {string}
@@ -75,7 +75,7 @@ export interface RpcProblemSnippet {
  */
 export function instanceOfRpcProblemSnippet(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "iD" in value;
+    isInstance = isInstance && "uUID" in value;
     isInstance = isInstance && "displayName" in value;
     isInstance = isInstance && "author" in value;
     isInstance = isInstance && "timeLimitInMillisecond" in value;
@@ -96,7 +96,7 @@ export function RpcProblemSnippetFromJSONTyped(json: any, ignoreDiscriminator: b
     }
     return {
         
-        'iD': json['ID'],
+        'uUID': json['UUID'],
         'displayName': json['DisplayName'],
         'author': RpcCreateAccountResponseAccountFromJSON(json['Author']),
         'timeLimitInMillisecond': json['TimeLimitInMillisecond'],
@@ -115,7 +115,7 @@ export function RpcProblemSnippetToJSON(value?: RpcProblemSnippet | null): any {
     }
     return {
         
-        'ID': value.iD,
+        'UUID': value.uUID,
         'DisplayName': value.displayName,
         'Author': RpcCreateAccountResponseAccountToJSON(value.author),
         'TimeLimitInMillisecond': value.timeLimitInMillisecond,
