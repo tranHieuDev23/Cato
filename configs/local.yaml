@@ -83,6 +83,7 @@ logic:
   problem_test_case_hash:
     batch_size: 10
   judge:
+    submission_retry_delay: 5s
     languages:
       cpp:
         compile:
@@ -95,9 +96,10 @@ logic:
           program_file_name: a.out
         test_case_run:
           image: "debian:bullseye-slim"
-          command_template: ["$PROGRAM"]
+          command_template:
+            ["timeout", "--foreground", "$TIME_LIMIT", "$PROGRAM"]
           cpu_quota: 1000000
-      py:
+      python:
         test_case_run:
           image: "python:alpine3.19"
           command_template: ["python", "$PROGRAM"]

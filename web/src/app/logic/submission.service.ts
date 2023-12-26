@@ -25,7 +25,7 @@ export enum SubmissionResult {
   CompileError = 2,
   RuntimeError = 3,
   TimeLimitExceeded = 4,
-  MemoryLimitExceed = 5,
+  MemoryLimitExceeded = 5,
   WrongAnswer = 6,
   UnsupportedLanguage = 7,
 }

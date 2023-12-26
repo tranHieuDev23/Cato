@@ -30,7 +30,7 @@ export class SubmissionStatusPipe implements PipeTransform {
       if (value.result === SubmissionResult.TimeLimitExceeded) {
         return 'Time Limit Exceeded';
       }
-      if (value.result === SubmissionResult.MemoryLimitExceed) {
+      if (value.result === SubmissionResult.MemoryLimitExceeded) {
         return 'Memory Limit Exceeded';
       }
       if (value.result === SubmissionResult.WrongAnswer) {

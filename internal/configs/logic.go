@@ -40,7 +40,6 @@ type TestCaseRun struct {
 	CommandTemplate []string `yaml:"command_template"`
 	CPUQuota        int64    `yaml:"cpu_quota"`
 	WorkingDir      string   `yaml:"working_dir"`
-	ProgramFileName string   `yaml:"program_file_name"`
 }
 
 type Language struct {
@@ -49,7 +48,12 @@ type Language struct {
 }
 
 type Judge struct {
-	Languages map[string]Language `yaml:"languages"`
+	Languages            map[string]Language `yaml:"languages"`
+	SubmissionRetryDelay string              `yaml:"submission_retry_delay"`
+}
+
+func (j Judge) GetSubmissionRetryDelayDuration() (time.Duration, error) {
+	return time.ParseDuration(j.SubmissionRetryDelay)
 }
 
 type Logic struct {

@@ -3,8 +3,10 @@ package logic
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"path/filepath"
+	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -17,13 +19,20 @@ import (
 )
 
 const (
-	testCaseRunProgramFilePathPlaceHolder = "$PROGRAM"
+	testCaseRunProgramFilePathPlaceHolder    = "$PROGRAM"
+	testCaseRunTimeLimitInSecondsPlaceHolder = "$TIME_LIMIT"
+
+	millisecondPerSecond   = 1000
+	timeoutErrorReturnCode = 124
+	oomErrorReturnCode     = 137
 )
 
 type RunOutput struct {
-	ReturnCode int64
-	StdOut     string
-	StdErr     string
+	ReturnCode          int64
+	TimeLimitExceeded   bool
+	MemoryLimitExceeded bool
+	StdOut              string
+	StdErr              string
 }
 
 type TestCaseRun interface {
@@ -68,14 +77,6 @@ func NewTestCaseRun(
 	return t, nil
 }
 
-func (t testCaseRun) getContainerProgramFileName(programFileName string) string {
-	if t.testCaseRunConfig.ProgramFileName != "" {
-		return t.testCaseRunConfig.ProgramFileName
-	}
-
-	return programFileName
-}
-
 func (t testCaseRun) getWorkingDir() string {
 	if t.testCaseRunConfig.WorkingDir != "" {
 		return t.testCaseRunConfig.WorkingDir
@@ -84,12 +85,20 @@ func (t testCaseRun) getWorkingDir() string {
 	return "/work"
 }
 
-func (t testCaseRun) getContainerCommand(commandTemplate []string, containerProgramFilePath string) []string {
+func (t testCaseRun) getContainerCommand(
+	commandTemplate []string,
+	containerProgramFilePath string,
+	timeLimitInMillisecond uint64,
+) []string {
+	timeLimitInSecondString := fmt.Sprintf("%.3fs", float64(timeLimitInMillisecond)/millisecondPerSecond)
+
 	command := make([]string, len(commandTemplate))
 	for i := range command {
 		switch commandTemplate[i] {
 		case testCaseRunProgramFilePathPlaceHolder:
 			command[i] = containerProgramFilePath
+		case testCaseRunTimeLimitInSecondsPlaceHolder:
+			command[i] = timeLimitInSecondString
 		default:
 			command[i] = commandTemplate[i]
 		}
@@ -98,24 +107,89 @@ func (t testCaseRun) getContainerCommand(commandTemplate []string, containerProg
 	return command
 }
 
+func (t testCaseRun) onContainerWaitData(
+	ctx context.Context,
+	data container.WaitResponse,
+	containerAttachResponse types.HijackedResponse,
+) (RunOutput, error) {
+	logger := utils.LoggerWithContext(ctx, t.logger)
+
+	stdoutBuffer := new(bytes.Buffer)
+	stderrBuffer := new(bytes.Buffer)
+	if _, err := stdcopy.StdCopy(stdoutBuffer, stderrBuffer, containerAttachResponse.Reader); err != nil {
+		logger.With(zap.Error(err)).Error("failed to read from stdout and stderr of container")
+		return RunOutput{}, err
+	}
+
+	stdOut := utils.TrimSpaceRight(stdoutBuffer.String())
+	stdErr := utils.TrimSpaceRight(stderrBuffer.String())
+
+	switch data.StatusCode {
+	case 0:
+		logger.Info("running submission successfully")
+		return RunOutput{
+			StdOut: stdOut,
+			StdErr: stdErr,
+		}, nil
+	case timeoutErrorReturnCode:
+		logger.Info("running submission failed: time limit exceeded")
+		return RunOutput{
+			ReturnCode:        data.StatusCode,
+			TimeLimitExceeded: true,
+			StdOut:            stdOut,
+			StdErr:            stdErr,
+		}, nil
+	case oomErrorReturnCode:
+		logger.Info("running submission failed: memory limit exceeded")
+		return RunOutput{
+			ReturnCode:          data.StatusCode,
+			MemoryLimitExceeded: true,
+			StdOut:              stdOut,
+			StdErr:              stdErr,
+		}, nil
+	default:
+		logger.With(zap.Int64("status_code", data.StatusCode)).
+			Info("running submission failed: program exited with non-zero code")
+		return RunOutput{
+			ReturnCode: data.StatusCode,
+			StdOut:     stdOut,
+			StdErr:     stdErr,
+		}, nil
+	}
+}
+
+func (t testCaseRun) onContainerWaitError(ctx context.Context, containerID string, err error) (RunOutput, error) {
+	logger := utils.LoggerWithContext(ctx, t.logger)
+
+	if errors.Is(err, context.DeadlineExceeded) {
+		logger.Info("running submission failed: time limit exceeded")
+		return RunOutput{TimeLimitExceeded: true}, nil
+	}
+
+	logger.
+		With(zap.String("container_id", containerID)).
+		With(zap.Error(err)).
+		Error("failure happened while waiting for container")
+	return RunOutput{}, err
+}
+
 func (t testCaseRun) Run(
 	ctx context.Context,
 	programFilePath string,
 	input string,
-	_ uint64,
+	timeLimitInMillisecond uint64,
 	memoryLimitInByte uint64,
 ) (RunOutput, error) {
 	logger := utils.LoggerWithContext(ctx, t.logger)
 
 	workingDir := t.getWorkingDir()
-	programFileName := filepath.Base(programFilePath)
-	programFileDirectory := filepath.Dir(programFilePath)
-	containerProgramFileName := t.getContainerProgramFileName(programFileName)
-	containerProgramFilePath := filepath.Join(workingDir, containerProgramFileName)
+	programFileDirectory, programFileName := filepath.Split(programFilePath)
+	containerProgramFilePath := filepath.Join(workingDir, programFileName)
 
 	containerCreateResponse, err := t.dockerClient.ContainerCreate(ctx, &container.Config{
-		Image:        t.testCaseRunConfig.Image,
-		Cmd:          t.getContainerCommand(t.testCaseRunConfig.CommandTemplate, containerProgramFilePath),
+		Image: t.testCaseRunConfig.Image,
+		Cmd: t.getContainerCommand(
+			t.testCaseRunConfig.CommandTemplate, containerProgramFilePath, timeLimitInMillisecond),
 		WorkingDir:   workingDir,
 		AttachStdin:  true,
 		AttachStdout: true,
@@ -161,41 +235,24 @@ func (t testCaseRun) Run(
 
 	err = t.dockerClient.ContainerStart(ctx, containerID, types.ContainerStartOptions{})
 	if err != nil {
-		logger.
-			With(zap.String("container_id", containerID)).
-			With(zap.Error(err)).
+		logger.With(zap.String("container_id", containerID)).With(zap.Error(err)).
 			Error("failed to start run test case container")
 		return RunOutput{}, err
 	}
 
-	dataChan, errChan := t.dockerClient.ContainerWait(ctx, containerID, container.WaitConditionNotRunning)
+	containerWaitCtx, containerWaitCancelFunc := context.WithTimeout(
+		ctx, time.Duration(timeLimitInMillisecond)*time.Millisecond)
+	defer containerWaitCancelFunc()
+
+	dataChan, errChan := t.dockerClient.ContainerWait(containerWaitCtx, containerID, container.WaitConditionNotRunning)
 	select {
 	case data := <-dataChan:
-		if data.StatusCode != 0 {
-			logger.
-				With(zap.Int64("status_code", data.StatusCode)).
-				Info("running submission failed: program exited with non-zero code")
-		}
-
-		stdoutBuffer := new(bytes.Buffer)
-		stderrBuffer := new(bytes.Buffer)
-		_, err = stdcopy.StdCopy(stdoutBuffer, stderrBuffer, containerAttachResponse.Reader)
-		if err != nil {
-			logger.With(zap.Error(err)).Error("failed to read from stdout and stderr of container")
-			return RunOutput{}, err
-		}
-
-		return RunOutput{
-			ReturnCode: data.StatusCode,
-			StdOut:     utils.TrimSpaceRight(stdoutBuffer.String()),
-			StdErr:     utils.TrimSpaceRight(stderrBuffer.String()),
-		}, nil
+		return t.onContainerWaitData(ctx, data, containerAttachResponse)
 
 	case err = <-errChan:
-		logger.
-			With(zap.String("container_id", containerID)).
-			With(zap.Error(err)).
-			Error("failure happened while waiting for container")
-		return RunOutput{}, err
+		return t.onContainerWaitError(ctx, containerID, err)
+
+	case <-containerWaitCtx.Done():
+		return t.onContainerWaitError(ctx, containerID, containerWaitCtx.Err())
 	}
 }

@@ -22,7 +22,7 @@ const (
 	SubmissionResultCompileError        SubmissionResult = 2
 	SubmissionResultRuntimeError        SubmissionResult = 3
 	SubmissionResultTimeLimitExceeded   SubmissionResult = 4
-	SubmissionResultMemoryLimitExceed   SubmissionResult = 5
+	SubmissionResultMemoryLimitExceeded SubmissionResult = 5
 	SubmissionResultWrongAnswer         SubmissionResult = 6
 	SubmissionResultUnsupportedLanguage SubmissionResult = 7
 )
