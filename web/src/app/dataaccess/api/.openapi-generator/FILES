@@ -17,6 +17,7 @@ models/RequestBodyOfTheGetAccountMethod.ts
 models/RequestBodyOfTheGetAccountProblemSnippetListMethod.ts
 models/RequestBodyOfTheGetAccountProblemSubmissionSnippetListMethod.ts
 models/RequestBodyOfTheGetAccountSubmissionSnippetListMethod.ts
+models/RequestBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethod.ts
 models/RequestBodyOfTheGetProblemMethod.ts
 models/RequestBodyOfTheGetProblemSnippetListMethod.ts
 models/RequestBodyOfTheGetProblemSubmissionSnippetListMethod.ts
@@ -28,6 +29,7 @@ models/RequestBodyOfTheGetSubmissionSnippetListMethod.ts
 models/RequestBodyOfTheGetTestCaseMethod.ts
 models/RequestBodyOfTheUpdateAccountMethod.ts
 models/RequestBodyOfTheUpdateProblemMethod.ts
+models/RequestBodyOfTheUpdateSubmissionMethod.ts
 models/RequestBodyOfTheUpdateTestCaseMethod.ts
 models/ResponseBodyOfTheCreateAccountMethod.ts
 models/ResponseBodyOfTheCreateProblemMethod.ts
@@ -44,6 +46,7 @@ models/ResponseBodyOfTheGetAccountMethod.ts
 models/ResponseBodyOfTheGetAccountProblemSnippetListMethod.ts
 models/ResponseBodyOfTheGetAccountProblemSubmissionSnippetListMethod.ts
 models/ResponseBodyOfTheGetAccountSubmissionSnippetListMethod.ts
+models/ResponseBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethod.ts
 models/ResponseBodyOfTheGetProblemMethod.ts
 models/ResponseBodyOfTheGetProblemSnippetListMethod.ts
 models/ResponseBodyOfTheGetProblemSubmissionSnippetListMethod.ts
@@ -55,6 +58,7 @@ models/ResponseBodyOfTheGetSubmissionSnippetListMethod.ts
 models/ResponseBodyOfTheGetTestCaseMethod.ts
 models/ResponseBodyOfTheUpdateAccountMethod.ts
 models/ResponseBodyOfTheUpdateProblemMethod.ts
+models/ResponseBodyOfTheUpdateSubmissionMethod.ts
 models/ResponseBodyOfTheUpdateTestCaseMethod.ts
 models/RpcAccount.ts
 models/RpcCreateAccountRequest.ts
@@ -86,6 +90,8 @@ models/RpcGetAccountRequest.ts
 models/RpcGetAccountResponse.ts
 models/RpcGetAccountSubmissionSnippetListRequest.ts
 models/RpcGetAccountSubmissionSnippetListResponse.ts
+models/RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponse.ts
+models/RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponseSubmission.ts
 models/RpcGetProblemRequest.ts
 models/RpcGetProblemResponse.ts
 models/RpcGetProblemSnippetListRequest.ts
@@ -98,7 +104,6 @@ models/RpcGetServerInfoResponse.ts
 models/RpcGetSessionResponse.ts
 models/RpcGetSubmissionRequest.ts
 models/RpcGetSubmissionResponse.ts
-models/RpcGetSubmissionResponseSubmission.ts
 models/RpcGetSubmissionSnippetListRequest.ts
 models/RpcGetSubmissionSnippetListResponse.ts
 models/RpcGetTestCaseRequest.ts
@@ -118,6 +123,8 @@ models/RpcUpdateAccountRequest.ts
 models/RpcUpdateAccountResponse.ts
 models/RpcUpdateProblemRequest.ts
 models/RpcUpdateProblemResponse.ts
+models/RpcUpdateSubmissionRequest.ts
+models/RpcUpdateSubmissionResponse.ts
 models/RpcUpdateTestCaseRequest.ts
 models/RpcUpdateTestCaseResponse.ts
 models/index.ts

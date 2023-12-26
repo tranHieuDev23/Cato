@@ -30,6 +30,7 @@ import type {
   RequestBodyOfTheGetAccountProblemSnippetListMethod,
   RequestBodyOfTheGetAccountProblemSubmissionSnippetListMethod,
   RequestBodyOfTheGetAccountSubmissionSnippetListMethod,
+  RequestBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethod,
   RequestBodyOfTheGetProblemMethod,
   RequestBodyOfTheGetProblemSnippetListMethod,
   RequestBodyOfTheGetProblemSubmissionSnippetListMethod,
@@ -41,6 +42,7 @@ import type {
   RequestBodyOfTheGetTestCaseMethod,
   RequestBodyOfTheUpdateAccountMethod,
   RequestBodyOfTheUpdateProblemMethod,
+  RequestBodyOfTheUpdateSubmissionMethod,
   RequestBodyOfTheUpdateTestCaseMethod,
   ResponseBodyOfTheCreateAccountMethod,
   ResponseBodyOfTheCreateProblemMethod,
@@ -57,6 +59,7 @@ import type {
   ResponseBodyOfTheGetAccountProblemSnippetListMethod,
   ResponseBodyOfTheGetAccountProblemSubmissionSnippetListMethod,
   ResponseBodyOfTheGetAccountSubmissionSnippetListMethod,
+  ResponseBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethod,
   ResponseBodyOfTheGetProblemMethod,
   ResponseBodyOfTheGetProblemSnippetListMethod,
   ResponseBodyOfTheGetProblemSubmissionSnippetListMethod,
@@ -68,6 +71,7 @@ import type {
   ResponseBodyOfTheGetTestCaseMethod,
   ResponseBodyOfTheUpdateAccountMethod,
   ResponseBodyOfTheUpdateProblemMethod,
+  ResponseBodyOfTheUpdateSubmissionMethod,
   ResponseBodyOfTheUpdateTestCaseMethod,
 } from '../models/index';
 import {
@@ -101,6 +105,8 @@ import {
     RequestBodyOfTheGetAccountProblemSubmissionSnippetListMethodToJSON,
     RequestBodyOfTheGetAccountSubmissionSnippetListMethodFromJSON,
     RequestBodyOfTheGetAccountSubmissionSnippetListMethodToJSON,
+    RequestBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethodFromJSON,
+    RequestBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethodToJSON,
     RequestBodyOfTheGetProblemMethodFromJSON,
     RequestBodyOfTheGetProblemMethodToJSON,
     RequestBodyOfTheGetProblemSnippetListMethodFromJSON,
@@ -123,6 +129,8 @@ import {
     RequestBodyOfTheUpdateAccountMethodToJSON,
     RequestBodyOfTheUpdateProblemMethodFromJSON,
     RequestBodyOfTheUpdateProblemMethodToJSON,
+    RequestBodyOfTheUpdateSubmissionMethodFromJSON,
+    RequestBodyOfTheUpdateSubmissionMethodToJSON,
     RequestBodyOfTheUpdateTestCaseMethodFromJSON,
     RequestBodyOfTheUpdateTestCaseMethodToJSON,
     ResponseBodyOfTheCreateAccountMethodFromJSON,
@@ -155,6 +163,8 @@ import {
     ResponseBodyOfTheGetAccountProblemSubmissionSnippetListMethodToJSON,
     ResponseBodyOfTheGetAccountSubmissionSnippetListMethodFromJSON,
     ResponseBodyOfTheGetAccountSubmissionSnippetListMethodToJSON,
+    ResponseBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethodFromJSON,
+    ResponseBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethodToJSON,
     ResponseBodyOfTheGetProblemMethodFromJSON,
     ResponseBodyOfTheGetProblemMethodToJSON,
     ResponseBodyOfTheGetProblemSnippetListMethodFromJSON,
@@ -177,6 +187,8 @@ import {
     ResponseBodyOfTheUpdateAccountMethodToJSON,
     ResponseBodyOfTheUpdateProblemMethodFromJSON,
     ResponseBodyOfTheUpdateProblemMethodToJSON,
+    ResponseBodyOfTheUpdateSubmissionMethodFromJSON,
+    ResponseBodyOfTheUpdateSubmissionMethodToJSON,
     ResponseBodyOfTheUpdateTestCaseMethodFromJSON,
     ResponseBodyOfTheUpdateTestCaseMethodToJSON,
 } from '../models/index';
@@ -241,6 +253,10 @@ export interface GetAccountSubmissionSnippetListRequest {
     requestBodyOfTheGetAccountSubmissionSnippetListMethod: RequestBodyOfTheGetAccountSubmissionSnippetListMethod;
 }
 
+export interface GetAndUpdateFirstSubmittedSubmissionAsExecutingRequest {
+    requestBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethod: RequestBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethod;
+}
+
 export interface GetProblemRequest {
     requestBodyOfTheGetProblemMethod: RequestBodyOfTheGetProblemMethod;
 }
@@ -283,6 +299,10 @@ export interface UpdateAccountRequest {
 
 export interface UpdateProblemRequest {
     requestBodyOfTheUpdateProblemMethod: RequestBodyOfTheUpdateProblemMethod;
+}
+
+export interface UpdateSubmissionRequest {
+    requestBodyOfTheUpdateSubmissionMethod: RequestBodyOfTheUpdateSubmissionMethod;
 }
 
 export interface UpdateTestCaseRequest {
@@ -761,6 +781,37 @@ export class DefaultApi extends runtime.BaseAPI {
 
     /**
      */
+    async getAndUpdateFirstSubmittedSubmissionAsExecutingRaw(requestParameters: GetAndUpdateFirstSubmittedSubmissionAsExecutingRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ResponseBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethod>> {
+        if (requestParameters.requestBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethod === null || requestParameters.requestBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethod === undefined) {
+            throw new runtime.RequiredError('requestBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethod','Required parameter requestParameters.requestBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethod was null or undefined when calling getAndUpdateFirstSubmittedSubmissionAsExecuting.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/#get_and_update_first_submitted_submission_as_executing`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: RequestBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethodToJSON(requestParameters.requestBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethod),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ResponseBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethodFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async getAndUpdateFirstSubmittedSubmissionAsExecuting(requestParameters: GetAndUpdateFirstSubmittedSubmissionAsExecutingRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethod> {
+        const response = await this.getAndUpdateFirstSubmittedSubmissionAsExecutingRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
     async getProblemRaw(requestParameters: GetProblemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ResponseBodyOfTheGetProblemMethod>> {
         if (requestParameters.requestBodyOfTheGetProblemMethod === null || requestParameters.requestBodyOfTheGetProblemMethod === undefined) {
             throw new runtime.RequiredError('requestBodyOfTheGetProblemMethod','Required parameter requestParameters.requestBodyOfTheGetProblemMethod was null or undefined when calling getProblem.');
@@ -1097,6 +1148,37 @@ export class DefaultApi extends runtime.BaseAPI {
      */
     async updateProblem(requestParameters: UpdateProblemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheUpdateProblemMethod> {
         const response = await this.updateProblemRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async updateSubmissionRaw(requestParameters: UpdateSubmissionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ResponseBodyOfTheUpdateSubmissionMethod>> {
+        if (requestParameters.requestBodyOfTheUpdateSubmissionMethod === null || requestParameters.requestBodyOfTheUpdateSubmissionMethod === undefined) {
+            throw new runtime.RequiredError('requestBodyOfTheUpdateSubmissionMethod','Required parameter requestParameters.requestBodyOfTheUpdateSubmissionMethod was null or undefined when calling updateSubmission.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/#update_submission`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: RequestBodyOfTheUpdateSubmissionMethodToJSON(requestParameters.requestBodyOfTheUpdateSubmissionMethod),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ResponseBodyOfTheUpdateSubmissionMethodFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async updateSubmission(requestParameters: UpdateSubmissionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheUpdateSubmissionMethod> {
+        const response = await this.updateSubmissionRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

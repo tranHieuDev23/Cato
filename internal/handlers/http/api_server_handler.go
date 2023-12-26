@@ -438,6 +438,18 @@ func (a apiServerHandler) UpdateProblem(
 	return a.problemLogic.UpdateProblem(ctx, in, token)
 }
 
+func (a apiServerHandler) UpdateSubmission(
+	ctx context.Context,
+	in *rpc.UpdateSubmissionRequest,
+) (*rpc.UpdateSubmissionResponse, error) {
+	if err := a.validateRequest(ctx, in); err != nil {
+		return nil, err
+	}
+
+	token := a.getAuthorizationBearerToken(ctx)
+	return a.submissionLogic.UpdateSubmission(ctx, in, token)
+}
+
 func (a apiServerHandler) UpdateTestCase(
 	ctx context.Context,
 	in *rpc.UpdateTestCaseRequest,
@@ -448,6 +460,18 @@ func (a apiServerHandler) UpdateTestCase(
 
 	token := a.getAuthorizationBearerToken(ctx)
 	return a.testCaseLogic.UpdateTestCase(ctx, in, token)
+}
+
+func (a apiServerHandler) GetAndUpdateFirstSubmittedSubmissionToExecuting(
+	ctx context.Context,
+	in *rpc.GetAndUpdateFirstSubmittedSubmissionToExecutingRequest,
+) (*rpc.GetAndUpdateFirstSubmittedSubmissionToExecutingResponse, error) {
+	if err := a.validateRequest(ctx, in); err != nil {
+		return nil, err
+	}
+
+	token := a.getAuthorizationBearerToken(ctx)
+	return a.submissionLogic.GetAndUpdateFirstSubmittedSubmissionToExecuting(ctx, token)
 }
 
 type LocalAPIServerHandler rpcserver.APIServer

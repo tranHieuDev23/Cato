@@ -34,7 +34,7 @@ type Submission struct {
 	Content     string `validate:"min=1,max=64000"`
 	Language    string `validate:"max=32"`
 	Status      uint8  `validate:"oneof=1 2 3"`
-	Result      uint8
+	Result      uint8  `validate:"oneof=1 2 3 4 5 6 7"`
 	CreatedTime uint64
 }
 
@@ -44,6 +44,6 @@ type SubmissionSnippet struct {
 	Author      Account
 	Language    string `validate:"max=32"`
 	Status      uint8  `validate:"oneof=1 2 3"`
-	Result      uint8  `validate:"oneof=1 2 3 4 5 6"`
+	Result      uint8  `validate:"oneof=1 2 3 4 5 6 7"`
 	CreatedTime uint64
 }

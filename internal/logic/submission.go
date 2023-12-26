@@ -5,6 +5,7 @@ import (
 
 	"gitlab.com/pjrpc/pjrpc/v2"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 
 	"github.com/mikespook/gorbac"
 
@@ -19,6 +20,11 @@ type Submission interface {
 		in *rpc.CreateSubmissionRequest,
 		token string,
 	) (*rpc.CreateSubmissionResponse, error)
+	UpdateSubmission(
+		ctx context.Context,
+		in *rpc.UpdateSubmissionRequest,
+		token string,
+	) (*rpc.UpdateSubmissionResponse, error)
 	GetSubmissionSnippetList(
 		ctx context.Context,
 		in *rpc.GetSubmissionSnippetListRequest,
@@ -41,6 +47,10 @@ type Submission interface {
 		in *rpc.GetAccountProblemSubmissionSnippetListRequest,
 		token string,
 	) (*rpc.GetAccountProblemSubmissionSnippetListResponse, error)
+	GetAndUpdateFirstSubmittedSubmissionToExecuting(
+		ctx context.Context,
+		token string,
+	) (*rpc.GetAndUpdateFirstSubmittedSubmissionToExecutingResponse, error)
 	ScheduleSubmittedExecutingSubmissionToJudge(ctx context.Context) error
 }
 
@@ -51,6 +61,7 @@ type submission struct {
 	accountDataAccessor    db.AccountDataAccessor
 	problemDataAccessor    db.ProblemDataAccessor
 	submissionDataAccessor db.SubmissionDataAccessor
+	db                     *gorm.DB
 	logger                 *zap.Logger
 	isLocal                bool
 }
@@ -62,6 +73,7 @@ func NewSubmission(
 	accountDataAccessor db.AccountDataAccessor,
 	problemDataAccessor db.ProblemDataAccessor,
 	submissionDataAccessor db.SubmissionDataAccessor,
+	db *gorm.DB,
 	logger *zap.Logger,
 	isLocal bool,
 ) Submission {
@@ -72,6 +84,7 @@ func NewSubmission(
 		accountDataAccessor:    accountDataAccessor,
 		problemDataAccessor:    problemDataAccessor,
 		submissionDataAccessor: submissionDataAccessor,
+		db:                     db,
 		logger:                 logger,
 		isLocal:                isLocal,
 	}
@@ -180,6 +193,112 @@ func (s submission) CreateSubmission(
 	return &rpc.CreateSubmissionResponse{
 		SubmissionSnippet: s.dbSubmissionToRPCSubmissionSnippet(submission, problem, account),
 	}, nil
+}
+
+func (s submission) isValidSubmissionStatusTransition(
+	oldStatus db.SubmissionStatus,
+	newStatus rpc.SubmissionStatus,
+) bool {
+	if newStatus == rpc.SubmissionStatusSubmitted {
+		return oldStatus == db.SubmissionStatus(rpc.SubmissionStatusExecuting)
+	}
+
+	if newStatus == rpc.SubmissionStatusExecuting {
+		return oldStatus == db.SubmissionStatus(rpc.SubmissionStatusSubmitted)
+	}
+
+	if newStatus == rpc.SubmissionStatusExecuting {
+		return oldStatus == db.SubmissionStatus(rpc.SubmissionStatusExecuting)
+	}
+
+	return false
+}
+
+func (s submission) applyUpdateSubmission(
+	ctx context.Context,
+	in *rpc.UpdateSubmissionRequest,
+	submission *db.Submission,
+) error {
+	logger := utils.LoggerWithContext(ctx, s.logger)
+
+	if in.Status != 0 {
+		if !s.isValidSubmissionStatusTransition(submission.Status, rpc.SubmissionStatus(in.Status)) {
+			logger.
+				With(zap.Uint8("old_status", uint8(submission.Status))).
+				With(zap.Uint8("new_status", in.Status)).
+				Error("invalid submission status transition")
+			return pjrpc.JRPCErrInvalidParams()
+		}
+
+		submission.Status = db.SubmissionStatus(in.Status)
+
+		if in.Status == uint8(rpc.SubmissionStatusFinished) {
+			if in.Result == 0 {
+				return pjrpc.JRPCErrInvalidParams()
+			}
+
+			submission.Result = db.SubmissionResult(in.Result)
+		}
+	}
+
+	return nil
+}
+
+func (s submission) UpdateSubmission(
+	ctx context.Context,
+	in *rpc.UpdateSubmissionRequest,
+	token string,
+) (*rpc.UpdateSubmissionResponse, error) {
+	account, err := s.token.GetAccount(ctx, token)
+	if err != nil {
+		return nil, err
+	}
+
+	hasPermission, err := s.role.AccountHasPermission(ctx, string(account.Role), PermissionSubmissionsAllWrite)
+	if err != nil {
+		return nil, err
+	}
+	if !hasPermission {
+		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+	}
+
+	response := &rpc.UpdateSubmissionResponse{}
+	if txErr := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		submission, submissionErr := s.submissionDataAccessor.WithDB(tx).GetSubmission(ctx, in.ID)
+		if submissionErr != nil {
+			return submissionErr
+		}
+
+		if submission == nil {
+			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
+		}
+
+		submissionErr = utils.ExecuteUntilFirstError(
+			func() error { return s.applyUpdateSubmission(ctx, in, submission) },
+			func() error { return s.submissionDataAccessor.WithDB(tx).UpdateSubmission(ctx, submission) },
+		)
+		if submissionErr != nil {
+			return submissionErr
+		}
+
+		problem, submissionErr := s.problemDataAccessor.WithDB(tx).GetProblem(ctx, submission.OfProblemID)
+		if err != nil {
+			return submissionErr
+		}
+
+		author, submissionErr := s.accountDataAccessor.WithDB(tx).GetAccount(ctx, submission.AuthorAccountID)
+		if err != nil {
+			return submissionErr
+		}
+
+		response.SubmissionSnippet = s.dbSubmissionToRPCSubmissionSnippet(submission, problem, author)
+
+		return nil
+	}); txErr != nil {
+		return nil, txErr
+	}
+
+	return response, nil
 }
 
 func (s submission) DeleteSubmission(ctx context.Context, in *rpc.DeleteSubmissionRequest, token string) error {
@@ -524,6 +643,63 @@ func (s submission) GetSubmissionSnippetList(
 	}, nil
 }
 
+func (s submission) GetAndUpdateFirstSubmittedSubmissionToExecuting(
+	ctx context.Context,
+	token string,
+) (*rpc.GetAndUpdateFirstSubmittedSubmissionToExecutingResponse, error) {
+	account, err := s.token.GetAccount(ctx, token)
+	if err != nil {
+		return nil, err
+	}
+
+	hasPermission, err := s.role.AccountHasPermission(ctx, string(account.Role), PermissionSubmissionsAllWrite)
+	if err != nil {
+		return nil, err
+	}
+	if !hasPermission {
+		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
+	}
+
+	response := &rpc.GetAndUpdateFirstSubmittedSubmissionToExecutingResponse{}
+	if txErr := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		submissionList, submissionErr := s.submissionDataAccessor.
+			WithDB(tx).GetSubmissionList(ctx, db.SubmissionListFilterParams{Status: db.SubmissionStatusSubmitted}, 0, 1)
+		if submissionErr != nil {
+			return submissionErr
+		}
+
+		if len(submissionList) == 0 {
+			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
+		}
+
+		submission := submissionList[0]
+		submission.Status = db.SubmissionStatusExecuting
+
+		submissionErr = s.submissionDataAccessor.WithDB(tx).UpdateSubmission(ctx, submission)
+		if submissionErr != nil {
+			return submissionErr
+		}
+
+		problem, submissionErr := s.problemDataAccessor.WithDB(tx).GetProblem(ctx, submission.OfProblemID)
+		if err != nil {
+			return submissionErr
+		}
+
+		author, submissionErr := s.accountDataAccessor.WithDB(tx).GetAccount(ctx, submission.AuthorAccountID)
+		if err != nil {
+			return submissionErr
+		}
+
+		response.Submission = s.dbSubmissionToRPCSubmission(submission, problem, author)
+
+		return nil
+	}); txErr != nil {
+		return nil, txErr
+	}
+
+	return response, nil
+}
+
 func (s submission) ScheduleSubmittedExecutingSubmissionToJudge(ctx context.Context) error {
 	submittedSubmissionIDList, err := s.submissionDataAccessor.GetSubmissionIDList(ctx, db.SubmissionListFilterParams{
 		Status: db.SubmissionStatusSubmitted,
@@ -570,10 +746,11 @@ func NewLocalSubmission(
 	accountDataAccessor db.AccountDataAccessor,
 	problemDataAccessor db.ProblemDataAccessor,
 	submissionDataAccessor db.SubmissionDataAccessor,
+	db *gorm.DB,
 	logger *zap.Logger,
 ) LocalSubmission {
 	return NewSubmission(
-		token, role, judge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, logger, true)
+		token, role, judge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, db, logger, true)
 }
 
 type DistributedSubmission Submission
@@ -585,8 +762,9 @@ func NewDistributedSubmission(
 	accountDataAccessor db.AccountDataAccessor,
 	problemDataAccessor db.ProblemDataAccessor,
 	submissionDataAccessor db.SubmissionDataAccessor,
+	db *gorm.DB,
 	logger *zap.Logger,
 ) DistributedSubmission {
 	return NewSubmission(
-		token, role, judge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, logger, false)
+		token, role, judge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, db, logger, false)
 }

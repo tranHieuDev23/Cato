@@ -67,7 +67,7 @@ func InitializeLocalCato(filePath configs.ConfigFilePath) (*app.LocalCato, func(
 		cleanup()
 		return nil, nil, err
 	}
-	localSubmission := logic.NewLocalSubmission(logicToken, role, localJudge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, logger)
+	localSubmission := logic.NewLocalSubmission(logicToken, role, localJudge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, gormDB, logger)
 	localScheduleSubmittedExecutingSubmissionToJudge := jobs.NewLocalScheduleSubmittedExecutingSubmissionToJudge(localSubmission)
 	localAccount := logic.NewLocalAccount(logicHash, logicToken, role, accountDataAccessor, accountPasswordDataAccessor, gormDB, logger, configsLogic)
 	problemTestCaseHashDataAccessor := db.NewProblemTestCaseHashDataAccessor(gormDB, logger)
@@ -141,7 +141,7 @@ func InitializeDistributedHostCato(filePath configs.ConfigFilePath) (*app.Distri
 		cleanup()
 		return nil, nil, err
 	}
-	localSubmission := logic.NewLocalSubmission(logicToken, role, localJudge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, logger)
+	localSubmission := logic.NewLocalSubmission(logicToken, role, localJudge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, gormDB, logger)
 	localAPIServerHandler := http.NewLocalAPIServerHandler(localAccount, problem, testCase, localSubmission, configsLogic, logger)
 	v := middlewares.InitializePJRPCMiddlewareList()
 	httpAuth, err := middlewares.NewHTTPAuth(logicToken, token, logger)
@@ -199,7 +199,7 @@ func InitializeDistributedWorkerCato(filePath configs.ConfigFilePath) (*app.Dist
 		cleanup()
 		return nil, nil, err
 	}
-	distributedSubmission := logic.NewDistributedSubmission(logicToken, role, distributedJudge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, logger)
+	distributedSubmission := logic.NewDistributedSubmission(logicToken, role, distributedJudge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, gormDB, logger)
 	distributedScheduleSubmittedExecutingSubmissionToJudge := jobs.NewDistributedScheduleSubmittedExecutingSubmissionToJudge(distributedSubmission)
 	distributedWorkerCato := app.NewDistributedWorkerCato(migrator, distributedScheduleSubmittedExecutingSubmissionToJudge, logger)
 	return distributedWorkerCato, func() {

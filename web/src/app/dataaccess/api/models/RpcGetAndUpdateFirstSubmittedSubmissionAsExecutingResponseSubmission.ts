@@ -21,24 +21,24 @@ import {
 } from './RpcSubmission';
 
 /**
- * @type RpcGetSubmissionResponseSubmission
+ * @type RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponseSubmission
  * 
  * @export
  */
-export type RpcGetSubmissionResponseSubmission = RpcSubmission;
+export type RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponseSubmission = RpcSubmission;
 
-export function RpcGetSubmissionResponseSubmissionFromJSON(json: any): RpcGetSubmissionResponseSubmission {
-    return RpcGetSubmissionResponseSubmissionFromJSONTyped(json, false);
+export function RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponseSubmissionFromJSON(json: any): RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponseSubmission {
+    return RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponseSubmissionFromJSONTyped(json, false);
 }
 
-export function RpcGetSubmissionResponseSubmissionFromJSONTyped(json: any, ignoreDiscriminator: boolean): RpcGetSubmissionResponseSubmission {
+export function RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponseSubmissionFromJSONTyped(json: any, ignoreDiscriminator: boolean): RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponseSubmission {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return { ...RpcSubmissionFromJSONTyped(json, true) };
 }
 
-export function RpcGetSubmissionResponseSubmissionToJSON(value?: RpcGetSubmissionResponseSubmission | null): any {
+export function RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponseSubmissionToJSON(value?: RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponseSubmission | null): any {
     if (value === undefined) {
         return undefined;
     }

@@ -23,32 +23,32 @@ import {
 /**
  * 
  * @export
- * @interface RpcGetSubmissionResponse
+ * @interface RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponse
  */
-export interface RpcGetSubmissionResponse {
+export interface RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponse {
     /**
      * 
      * @type {RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponseSubmission}
-     * @memberof RpcGetSubmissionResponse
+     * @memberof RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponse
      */
     submission: RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponseSubmission;
 }
 
 /**
- * Check if a given object implements the RpcGetSubmissionResponse interface.
+ * Check if a given object implements the RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponse interface.
  */
-export function instanceOfRpcGetSubmissionResponse(value: object): boolean {
+export function instanceOfRpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponse(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "submission" in value;
 
     return isInstance;
 }
 
-export function RpcGetSubmissionResponseFromJSON(json: any): RpcGetSubmissionResponse {
-    return RpcGetSubmissionResponseFromJSONTyped(json, false);
+export function RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponseFromJSON(json: any): RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponse {
+    return RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponseFromJSONTyped(json, false);
 }
 
-export function RpcGetSubmissionResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): RpcGetSubmissionResponse {
+export function RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponse {
     if ((json === undefined) || (json === null)) {
         return json;
     }
@@ -58,7 +58,7 @@ export function RpcGetSubmissionResponseFromJSONTyped(json: any, ignoreDiscrimin
     };
 }
 
-export function RpcGetSubmissionResponseToJSON(value?: RpcGetSubmissionResponse | null): any {
+export function RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponseToJSON(value?: RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponse | null): any {
     if (value === undefined) {
         return undefined;
     }

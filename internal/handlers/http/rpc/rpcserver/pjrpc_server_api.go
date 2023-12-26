@@ -16,33 +16,35 @@ import (
 
 // List of the server JSON-RPC methods.
 const (
-	JSONRPCMethodGetServerInfo                          = "get_server_info"
-	JSONRPCMethodCreateAccount                          = "create_account"
-	JSONRPCMethodGetAccountList                         = "get_account_list"
-	JSONRPCMethodGetAccount                             = "get_account"
-	JSONRPCMethodUpdateAccount                          = "update_account"
-	JSONRPCMethodCreateSession                          = "create_session"
-	JSONRPCMethodGetSession                             = "get_session"
-	JSONRPCMethodDeleteSession                          = "delete_session"
-	JSONRPCMethodCreateProblem                          = "create_problem"
-	JSONRPCMethodGetProblemSnippetList                  = "get_problem_snippet_list"
-	JSONRPCMethodGetProblem                             = "get_problem"
-	JSONRPCMethodUpdateProblem                          = "update_problem"
-	JSONRPCMethodDeleteProblem                          = "delete_problem"
-	JSONRPCMethodCreateTestCase                         = "create_test_case"
-	JSONRPCMethodCreateTestCaseList                     = "create_test_case_list"
-	JSONRPCMethodGetProblemTestCaseSnippetList          = "get_problem_test_case_snippet_list"
-	JSONRPCMethodGetTestCase                            = "get_test_case"
-	JSONRPCMethodUpdateTestCase                         = "update_test_case"
-	JSONRPCMethodDeleteTestCase                         = "delete_test_case"
-	JSONRPCMethodGetAccountProblemSnippetList           = "get_account_problem_snippet_list"
-	JSONRPCMethodCreateSubmission                       = "create_submission"
-	JSONRPCMethodGetSubmissionSnippetList               = "get_submission_snippet_list"
-	JSONRPCMethodGetSubmission                          = "get_submission"
-	JSONRPCMethodDeleteSubmission                       = "delete_submission"
-	JSONRPCMethodGetAccountSubmissionSnippetList        = "get_account_submission_snippet_list"
-	JSONRPCMethodGetProblemSubmissionSnippetList        = "get_problem_submission_snippet_list"
-	JSONRPCMethodGetAccountProblemSubmissionSnippetList = "get_account_problem_submission_snippet_list"
+	JSONRPCMethodGetServerInfo                                   = "get_server_info"
+	JSONRPCMethodCreateAccount                                   = "create_account"
+	JSONRPCMethodGetAccountList                                  = "get_account_list"
+	JSONRPCMethodGetAccount                                      = "get_account"
+	JSONRPCMethodUpdateAccount                                   = "update_account"
+	JSONRPCMethodCreateSession                                   = "create_session"
+	JSONRPCMethodGetSession                                      = "get_session"
+	JSONRPCMethodDeleteSession                                   = "delete_session"
+	JSONRPCMethodCreateProblem                                   = "create_problem"
+	JSONRPCMethodGetProblemSnippetList                           = "get_problem_snippet_list"
+	JSONRPCMethodGetProblem                                      = "get_problem"
+	JSONRPCMethodUpdateProblem                                   = "update_problem"
+	JSONRPCMethodDeleteProblem                                   = "delete_problem"
+	JSONRPCMethodCreateTestCase                                  = "create_test_case"
+	JSONRPCMethodCreateTestCaseList                              = "create_test_case_list"
+	JSONRPCMethodGetProblemTestCaseSnippetList                   = "get_problem_test_case_snippet_list"
+	JSONRPCMethodGetTestCase                                     = "get_test_case"
+	JSONRPCMethodUpdateTestCase                                  = "update_test_case"
+	JSONRPCMethodDeleteTestCase                                  = "delete_test_case"
+	JSONRPCMethodGetAccountProblemSnippetList                    = "get_account_problem_snippet_list"
+	JSONRPCMethodCreateSubmission                                = "create_submission"
+	JSONRPCMethodGetSubmissionSnippetList                        = "get_submission_snippet_list"
+	JSONRPCMethodGetSubmission                                   = "get_submission"
+	JSONRPCMethodUpdateSubmission                                = "update_submission"
+	JSONRPCMethodDeleteSubmission                                = "delete_submission"
+	JSONRPCMethodGetAccountSubmissionSnippetList                 = "get_account_submission_snippet_list"
+	JSONRPCMethodGetProblemSubmissionSnippetList                 = "get_problem_submission_snippet_list"
+	JSONRPCMethodGetAccountProblemSubmissionSnippetList          = "get_account_problem_submission_snippet_list"
+	JSONRPCMethodGetAndUpdateFirstSubmittedSubmissionToExecuting = "get_and_update_first_submitted_submission_as_executing"
 )
 
 // APIServer is an API server for API service.
@@ -70,10 +72,12 @@ type APIServer interface {
 	CreateSubmission(ctx context.Context, in *rpc.CreateSubmissionRequest) (*rpc.CreateSubmissionResponse, error)
 	GetSubmissionSnippetList(ctx context.Context, in *rpc.GetSubmissionSnippetListRequest) (*rpc.GetSubmissionSnippetListResponse, error)
 	GetSubmission(ctx context.Context, in *rpc.GetSubmissionRequest) (*rpc.GetSubmissionResponse, error)
+	UpdateSubmission(ctx context.Context, in *rpc.UpdateSubmissionRequest) (*rpc.UpdateSubmissionResponse, error)
 	DeleteSubmission(ctx context.Context, in *rpc.DeleteSubmissionRequest) (*rpc.DeleteSubmissionResponse, error)
 	GetAccountSubmissionSnippetList(ctx context.Context, in *rpc.GetAccountSubmissionSnippetListRequest) (*rpc.GetAccountSubmissionSnippetListResponse, error)
 	GetProblemSubmissionSnippetList(ctx context.Context, in *rpc.GetProblemSubmissionSnippetListRequest) (*rpc.GetProblemSubmissionSnippetListResponse, error)
 	GetAccountProblemSubmissionSnippetList(ctx context.Context, in *rpc.GetAccountProblemSubmissionSnippetListRequest) (*rpc.GetAccountProblemSubmissionSnippetListResponse, error)
+	GetAndUpdateFirstSubmittedSubmissionToExecuting(ctx context.Context, in *rpc.GetAndUpdateFirstSubmittedSubmissionToExecutingRequest) (*rpc.GetAndUpdateFirstSubmittedSubmissionToExecutingResponse, error)
 }
 
 type regAPI struct {
@@ -107,10 +111,12 @@ func RegisterAPIServer(srv pjrpc.Registrator, svc APIServer, middlewares ...pjrp
 	srv.RegisterMethod(JSONRPCMethodCreateSubmission, r.regCreateSubmission)
 	srv.RegisterMethod(JSONRPCMethodGetSubmissionSnippetList, r.regGetSubmissionSnippetList)
 	srv.RegisterMethod(JSONRPCMethodGetSubmission, r.regGetSubmission)
+	srv.RegisterMethod(JSONRPCMethodUpdateSubmission, r.regUpdateSubmission)
 	srv.RegisterMethod(JSONRPCMethodDeleteSubmission, r.regDeleteSubmission)
 	srv.RegisterMethod(JSONRPCMethodGetAccountSubmissionSnippetList, r.regGetAccountSubmissionSnippetList)
 	srv.RegisterMethod(JSONRPCMethodGetProblemSubmissionSnippetList, r.regGetProblemSubmissionSnippetList)
 	srv.RegisterMethod(JSONRPCMethodGetAccountProblemSubmissionSnippetList, r.regGetAccountProblemSubmissionSnippetList)
+	srv.RegisterMethod(JSONRPCMethodGetAndUpdateFirstSubmittedSubmissionToExecuting, r.regGetAndUpdateFirstSubmittedSubmissionToExecuting)
 
 	srv.With(middlewares...)
 }
@@ -483,6 +489,22 @@ func (r *regAPI) regGetSubmission(ctx context.Context, params json.RawMessage) (
 	return res, nil
 }
 
+func (r *regAPI) regUpdateSubmission(ctx context.Context, params json.RawMessage) (any, error) {
+	in := new(rpc.UpdateSubmissionRequest)
+	if len(params) != 0 {
+		if err := pjson.Unmarshal(params, in); err != nil {
+			return nil, pjrpc.JRPCErrParseError("failed to parse params")
+		}
+	}
+
+	res, err := r.svc.UpdateSubmission(ctx, in)
+	if err != nil {
+		return nil, fmt.Errorf("failed UpdateSubmission: %w", err)
+	}
+
+	return res, nil
+}
+
 func (r *regAPI) regDeleteSubmission(ctx context.Context, params json.RawMessage) (any, error) {
 	in := new(rpc.DeleteSubmissionRequest)
 	if len(params) != 0 {
@@ -542,6 +564,22 @@ func (r *regAPI) regGetAccountProblemSubmissionSnippetList(ctx context.Context, 
 	res, err := r.svc.GetAccountProblemSubmissionSnippetList(ctx, in)
 	if err != nil {
 		return nil, fmt.Errorf("failed GetAccountProblemSubmissionSnippetList: %w", err)
+	}
+
+	return res, nil
+}
+
+func (r *regAPI) regGetAndUpdateFirstSubmittedSubmissionToExecuting(ctx context.Context, params json.RawMessage) (any, error) {
+	in := new(rpc.GetAndUpdateFirstSubmittedSubmissionToExecutingRequest)
+	if len(params) != 0 {
+		if err := pjson.Unmarshal(params, in); err != nil {
+			return nil, pjrpc.JRPCErrParseError("failed to parse params")
+		}
+	}
+
+	res, err := r.svc.GetAndUpdateFirstSubmittedSubmissionToExecuting(ctx, in)
+	if err != nil {
+		return nil, fmt.Errorf("failed GetAndUpdateFirstSubmittedSubmissionToExecuting: %w", err)
 	}
 
 	return res, nil

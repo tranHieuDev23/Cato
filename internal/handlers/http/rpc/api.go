@@ -53,6 +53,7 @@ type API interface {
 	CreateSubmission(CreateSubmissionRequest) CreateSubmissionResponse
 	GetSubmissionSnippetList(GetSubmissionSnippetListRequest) GetSubmissionSnippetListResponse
 	GetSubmission(GetSubmissionRequest) GetSubmissionResponse
+	UpdateSubmission(UpdateSubmissionRequest) UpdateSubmissionResponse
 	DeleteSubmission(DeleteSubmissionRequest) DeleteSubmissionResponse
 
 	GetAccountSubmissionSnippetList(GetAccountSubmissionSnippetListRequest) GetAccountSubmissionSnippetListResponse
@@ -60,6 +61,10 @@ type API interface {
 	GetAccountProblemSubmissionSnippetList(
 		GetAccountProblemSubmissionSnippetListRequest,
 	) GetAccountProblemSubmissionSnippetListResponse
+
+	GetAndUpdateFirstSubmittedSubmissionToExecuting(
+		GetAndUpdateFirstSubmittedSubmissionToExecutingRequest,
+	) GetAndUpdateFirstSubmittedSubmissionToExecutingResponse
 }
 
 type GetServerInfoRequest struct{}
@@ -252,6 +257,16 @@ type CreateSubmissionResponse struct {
 	SubmissionSnippet SubmissionSnippet
 }
 
+type UpdateSubmissionRequest struct {
+	ID     uint64
+	Status uint8 `validate:"oneof=1 2 3"`
+	Result uint8 `validate:"oneof=1 2 3 4 5 6 7"`
+}
+
+type UpdateSubmissionResponse struct {
+	SubmissionSnippet SubmissionSnippet
+}
+
 type GetSubmissionSnippetListRequest struct {
 	Offset uint64
 	Limit  uint64 `validate:"max=100"`
@@ -308,4 +323,10 @@ type GetAccountProblemSubmissionSnippetListRequest struct {
 type GetAccountProblemSubmissionSnippetListResponse struct {
 	TotalSubmissionCount  uint64
 	SubmissionSnippetList []SubmissionSnippet
+}
+
+type GetAndUpdateFirstSubmittedSubmissionToExecutingRequest struct{}
+
+type GetAndUpdateFirstSubmittedSubmissionToExecutingResponse struct {
+	Submission Submission
 }
