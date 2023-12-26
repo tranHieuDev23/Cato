@@ -5,10 +5,32 @@ import (
 
 	"gitlab.com/pjrpc/pjrpc/v2"
 	"go.uber.org/zap"
+
+	"github.com/tranHieuDev23/cato/internal/configs"
 )
 
-func InitializeLogger() (*zap.Logger, func(), error) {
-	logger, err := zap.NewProduction()
+func getZapLoggerLevel(level string) zap.AtomicLevel {
+	switch level {
+	case "debug":
+		return zap.NewAtomicLevelAt(zap.DebugLevel)
+	case "info":
+		return zap.NewAtomicLevelAt(zap.InfoLevel)
+	case "warn":
+		return zap.NewAtomicLevelAt(zap.WarnLevel)
+	case "error":
+		return zap.NewAtomicLevelAt(zap.ErrorLevel)
+	case "panic":
+		return zap.NewAtomicLevelAt(zap.PanicLevel)
+	default:
+		return zap.NewAtomicLevelAt(zap.InfoLevel)
+	}
+}
+
+func InitializeLogger(logConfig configs.Log) (*zap.Logger, func(), error) {
+	zapLoggerConfig := zap.NewProductionConfig()
+	zapLoggerConfig.Level = getZapLoggerLevel(logConfig.Level)
+
+	logger, err := zapLoggerConfig.Build()
 	if err != nil {
 		return nil, nil, err
 	}

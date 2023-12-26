@@ -5,5 +5,5 @@ import (
 )
 
 func InitializeDockerClient() (*client.Client, error) {
-	return client.NewClientWithOpts(client.FromEnv)
+	return client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 }

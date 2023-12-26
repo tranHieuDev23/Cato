@@ -12,6 +12,7 @@ import (
 type ConfigFilePath string
 
 type Config struct {
+	Log      Log      `yaml:"log"`
 	Database Database `yaml:"database"`
 	Auth     Auth     `yaml:"auth"`
 	HTTP     HTTP     `yaml:"http"`

@@ -8,6 +8,7 @@ package wiring
 
 import (
 	"github.com/google/wire"
+
 	"github.com/tranHieuDev23/cato/internal/app"
 	"github.com/tranHieuDev23/cato/internal/configs"
 	"github.com/tranHieuDev23/cato/internal/dataaccess"
@@ -24,13 +25,13 @@ import (
 // Injectors from wire.go:
 
 func InitializeHost(filePath configs.ConfigFilePath, args utils.Arguments) (*app.Host, func(), error) {
-	logger, cleanup, err := utils.InitializeLogger()
+	config, err := configs.NewConfig(filePath)
 	if err != nil {
 		return nil, nil, err
 	}
-	config, err := configs.NewConfig(filePath)
+	log := config.Log
+	logger, cleanup, err := utils.InitializeLogger(log)
 	if err != nil {
-		cleanup()
 		return nil, nil, err
 	}
 	database := config.Database
@@ -105,13 +106,13 @@ func InitializeHost(filePath configs.ConfigFilePath, args utils.Arguments) (*app
 }
 
 func InitializeWorker(filePath configs.ConfigFilePath, args utils.Arguments) (*app.Worker, func(), error) {
-	logger, cleanup, err := utils.InitializeLogger()
+	config, err := configs.NewConfig(filePath)
 	if err != nil {
 		return nil, nil, err
 	}
-	config, err := configs.NewConfig(filePath)
+	log := config.Log
+	logger, cleanup, err := utils.InitializeLogger(log)
 	if err != nil {
-		cleanup()
 		return nil, nil, err
 	}
 	database := config.Database
