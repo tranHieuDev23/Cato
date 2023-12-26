@@ -17,7 +17,7 @@ type DistributedWorkerCato struct {
 
 func NewDistributedWorkerCato(
 	dbMigrator db.Migrator,
-	scheduleSubmittedExecutingSubmissionToJudge jobs.DistributedScheduleSubmittedExecutingSubmissionToJudge,
+	scheduleSubmittedExecutingSubmissionToJudge jobs.ScheduleSubmittedExecutingSubmissionToJudge,
 	logger *zap.Logger,
 ) *DistributedWorkerCato {
 	return &DistributedWorkerCato{

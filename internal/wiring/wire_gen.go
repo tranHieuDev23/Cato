@@ -11,6 +11,7 @@ import (
 	"github.com/tranHieuDev23/cato/internal/app"
 	"github.com/tranHieuDev23/cato/internal/configs"
 	"github.com/tranHieuDev23/cato/internal/dataaccess"
+	"github.com/tranHieuDev23/cato/internal/dataaccess/cato"
 	"github.com/tranHieuDev23/cato/internal/dataaccess/db"
 	"github.com/tranHieuDev23/cato/internal/handlers"
 	"github.com/tranHieuDev23/cato/internal/handlers/http"
@@ -22,7 +23,7 @@ import (
 
 // Injectors from wire.go:
 
-func InitializeLocalCato(filePath configs.ConfigFilePath) (*app.LocalCato, func(), error) {
+func InitializeLocalCato(filePath configs.ConfigFilePath, args utils.Arguments) (*app.LocalCato, func(), error) {
 	logger, cleanup, err := utils.InitializeLogger()
 	if err != nil {
 		return nil, nil, err
@@ -52,8 +53,8 @@ func InitializeLocalCato(filePath configs.ConfigFilePath) (*app.LocalCato, func(
 	role := logic.NewRole(logger)
 	accountPasswordDataAccessor := db.NewAccountPasswordDataAccessor(gormDB, logger)
 	configsLogic := config.Logic
-	distributedAccount := logic.NewDistributedAccount(logicHash, logicToken, role, accountDataAccessor, accountPasswordDataAccessor, gormDB, logger, configsLogic)
-	distributedCreateFirstAdminAccount := jobs.NewDistributedCreateFirstAdminAccount(distributedAccount)
+	account := logic.NewAccount(logicHash, logicToken, role, accountDataAccessor, accountPasswordDataAccessor, gormDB, logger, configsLogic, args)
+	createFirstAdminAccount := jobs.NewCreateFirstAdminAccount(account)
 	problemDataAccessor := db.NewProblemDataAccessor(gormDB, logger)
 	submissionDataAccessor := db.NewSubmissionDataAccessor(gormDB, logger)
 	testCaseDataAccessor := db.NewTestCaseDataAccessor(gormDB, logger)
@@ -62,19 +63,24 @@ func InitializeLocalCato(filePath configs.ConfigFilePath) (*app.LocalCato, func(
 		cleanup()
 		return nil, nil, err
 	}
-	localJudge, err := logic.NewLocalJudge(problemDataAccessor, submissionDataAccessor, testCaseDataAccessor, client, gormDB, logger, configsLogic)
+	httpClientWithAuthCookie := cato.NewHTTPClientWithAuthCookie(logger)
+	apiClient, err := cato.InitializeAuthenticatedClient(args, httpClientWithAuthCookie, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
-	localSubmission := logic.NewLocalSubmission(logicToken, role, localJudge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, gormDB, logger)
-	localScheduleSubmittedExecutingSubmissionToJudge := jobs.NewLocalScheduleSubmittedExecutingSubmissionToJudge(localSubmission)
-	localAccount := logic.NewLocalAccount(logicHash, logicToken, role, accountDataAccessor, accountPasswordDataAccessor, gormDB, logger, configsLogic)
+	judge, err := logic.NewJudge(problemDataAccessor, submissionDataAccessor, testCaseDataAccessor, client, gormDB, apiClient, logger, configsLogic, args)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	submission := logic.NewSubmission(logicToken, role, judge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, gormDB, logger, args)
+	scheduleSubmittedExecutingSubmissionToJudge := jobs.NewScheduleSubmittedExecutingSubmissionToJudge(submission)
 	problemTestCaseHashDataAccessor := db.NewProblemTestCaseHashDataAccessor(gormDB, logger)
 	testCase := logic.NewTestCase(logicToken, role, problemDataAccessor, testCaseDataAccessor, problemTestCaseHashDataAccessor, gormDB, logger, configsLogic)
 	problemExampleDataAccessor := db.NewProblemExampleDataAccessor(gormDB, logger)
 	problem := logic.NewProblem(logicToken, role, testCase, accountDataAccessor, problemDataAccessor, problemExampleDataAccessor, problemTestCaseHashDataAccessor, testCaseDataAccessor, submissionDataAccessor, logger, gormDB)
-	localAPIServerHandler := http.NewLocalAPIServerHandler(localAccount, problem, testCase, localSubmission, configsLogic, logger)
+	apiServer := http.NewAPIServerHandler(account, problem, testCase, submission, configsLogic, logger, args)
 	v := middlewares.InitializePJRPCMiddlewareList()
 	httpAuth, err := middlewares.NewHTTPAuth(logicToken, token, logger)
 	if err != nil {
@@ -84,14 +90,14 @@ func InitializeLocalCato(filePath configs.ConfigFilePath) (*app.LocalCato, func(
 	v2 := middlewares.InitalizeHTTPMiddlewareList(httpAuth)
 	spaHandler := http.NewSPAHandler()
 	configsHTTP := config.HTTP
-	localServer := http.NewLocalServer(localAPIServerHandler, v, v2, spaHandler, logger, configsHTTP)
-	localCato := app.NewLocalCato(migrator, distributedCreateFirstAdminAccount, localScheduleSubmittedExecutingSubmissionToJudge, localServer, logger)
+	server := http.NewServer(apiServer, v, v2, spaHandler, logger, configsHTTP, args)
+	localCato := app.NewLocalCato(migrator, createFirstAdminAccount, scheduleSubmittedExecutingSubmissionToJudge, server, logger)
 	return localCato, func() {
 		cleanup()
 	}, nil
 }
 
-func InitializeDistributedHostCato(filePath configs.ConfigFilePath) (*app.DistributedHostCato, func(), error) {
+func InitializeDistributedHostCato(filePath configs.ConfigFilePath, args utils.Arguments) (*app.DistributedHostCato, func(), error) {
 	logger, cleanup, err := utils.InitializeLogger()
 	if err != nil {
 		return nil, nil, err
@@ -121,9 +127,8 @@ func InitializeDistributedHostCato(filePath configs.ConfigFilePath) (*app.Distri
 	role := logic.NewRole(logger)
 	accountPasswordDataAccessor := db.NewAccountPasswordDataAccessor(gormDB, logger)
 	configsLogic := config.Logic
-	distributedAccount := logic.NewDistributedAccount(logicHash, logicToken, role, accountDataAccessor, accountPasswordDataAccessor, gormDB, logger, configsLogic)
-	distributedCreateFirstAdminAccount := jobs.NewDistributedCreateFirstAdminAccount(distributedAccount)
-	localAccount := logic.NewLocalAccount(logicHash, logicToken, role, accountDataAccessor, accountPasswordDataAccessor, gormDB, logger, configsLogic)
+	account := logic.NewAccount(logicHash, logicToken, role, accountDataAccessor, accountPasswordDataAccessor, gormDB, logger, configsLogic, args)
+	createFirstAdminAccount := jobs.NewCreateFirstAdminAccount(account)
 	problemDataAccessor := db.NewProblemDataAccessor(gormDB, logger)
 	testCaseDataAccessor := db.NewTestCaseDataAccessor(gormDB, logger)
 	problemTestCaseHashDataAccessor := db.NewProblemTestCaseHashDataAccessor(gormDB, logger)
@@ -136,13 +141,19 @@ func InitializeDistributedHostCato(filePath configs.ConfigFilePath) (*app.Distri
 		cleanup()
 		return nil, nil, err
 	}
-	localJudge, err := logic.NewLocalJudge(problemDataAccessor, submissionDataAccessor, testCaseDataAccessor, client, gormDB, logger, configsLogic)
+	httpClientWithAuthCookie := cato.NewHTTPClientWithAuthCookie(logger)
+	apiClient, err := cato.InitializeAuthenticatedClient(args, httpClientWithAuthCookie, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
-	localSubmission := logic.NewLocalSubmission(logicToken, role, localJudge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, gormDB, logger)
-	localAPIServerHandler := http.NewLocalAPIServerHandler(localAccount, problem, testCase, localSubmission, configsLogic, logger)
+	judge, err := logic.NewJudge(problemDataAccessor, submissionDataAccessor, testCaseDataAccessor, client, gormDB, apiClient, logger, configsLogic, args)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	submission := logic.NewSubmission(logicToken, role, judge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, gormDB, logger, args)
+	apiServer := http.NewAPIServerHandler(account, problem, testCase, submission, configsLogic, logger, args)
 	v := middlewares.InitializePJRPCMiddlewareList()
 	httpAuth, err := middlewares.NewHTTPAuth(logicToken, token, logger)
 	if err != nil {
@@ -152,14 +163,14 @@ func InitializeDistributedHostCato(filePath configs.ConfigFilePath) (*app.Distri
 	v2 := middlewares.InitalizeHTTPMiddlewareList(httpAuth)
 	spaHandler := http.NewSPAHandler()
 	configsHTTP := config.HTTP
-	localServer := http.NewLocalServer(localAPIServerHandler, v, v2, spaHandler, logger, configsHTTP)
-	distributedHostCato := app.NewDistributedHostCato(migrator, distributedCreateFirstAdminAccount, localServer, logger)
+	server := http.NewServer(apiServer, v, v2, spaHandler, logger, configsHTTP, args)
+	distributedHostCato := app.NewDistributedHostCato(migrator, createFirstAdminAccount, server, logger)
 	return distributedHostCato, func() {
 		cleanup()
 	}, nil
 }
 
-func InitializeDistributedWorkerCato(filePath configs.ConfigFilePath) (*app.DistributedWorkerCato, func(), error) {
+func InitializeDistributedWorkerCato(filePath configs.ConfigFilePath, args utils.Arguments) (*app.DistributedWorkerCato, func(), error) {
 	logger, cleanup, err := utils.InitializeLogger()
 	if err != nil {
 		return nil, nil, err
@@ -193,15 +204,21 @@ func InitializeDistributedWorkerCato(filePath configs.ConfigFilePath) (*app.Dist
 		cleanup()
 		return nil, nil, err
 	}
-	configsLogic := config.Logic
-	distributedJudge, err := logic.NewDistributedJudge(problemDataAccessor, submissionDataAccessor, testCaseDataAccessor, client, gormDB, logger, configsLogic)
+	httpClientWithAuthCookie := cato.NewHTTPClientWithAuthCookie(logger)
+	apiClient, err := cato.InitializeAuthenticatedClient(args, httpClientWithAuthCookie, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
-	distributedSubmission := logic.NewDistributedSubmission(logicToken, role, distributedJudge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, gormDB, logger)
-	distributedScheduleSubmittedExecutingSubmissionToJudge := jobs.NewDistributedScheduleSubmittedExecutingSubmissionToJudge(distributedSubmission)
-	distributedWorkerCato := app.NewDistributedWorkerCato(migrator, distributedScheduleSubmittedExecutingSubmissionToJudge, logger)
+	configsLogic := config.Logic
+	judge, err := logic.NewJudge(problemDataAccessor, submissionDataAccessor, testCaseDataAccessor, client, gormDB, apiClient, logger, configsLogic, args)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	submission := logic.NewSubmission(logicToken, role, judge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, gormDB, logger, args)
+	scheduleSubmittedExecutingSubmissionToJudge := jobs.NewScheduleSubmittedExecutingSubmissionToJudge(submission)
+	distributedWorkerCato := app.NewDistributedWorkerCato(migrator, scheduleSubmittedExecutingSubmissionToJudge, logger)
 	return distributedWorkerCato, func() {
 		cleanup()
 	}, nil

@@ -27,7 +27,7 @@ type apiServerHandler struct {
 	logicConfig     configs.Logic
 	logger          *zap.Logger
 	validate        *validator.Validate
-	isLocal         bool
+	appArguments    utils.Arguments
 }
 
 func NewAPIServerHandler(
@@ -37,7 +37,7 @@ func NewAPIServerHandler(
 	submissionLogic logic.Submission,
 	logicConfig configs.Logic,
 	logger *zap.Logger,
-	isLocal bool,
+	appArguments utils.Arguments,
 ) rpcserver.APIServer {
 	validate := validator.New()
 	return &apiServerHandler{
@@ -48,7 +48,7 @@ func NewAPIServerHandler(
 		logicConfig:     logicConfig,
 		logger:          logger,
 		validate:        validate,
-		isLocal:         isLocal,
+		appArguments:    appArguments,
 	}
 }
 
@@ -100,7 +100,7 @@ func (a apiServerHandler) GetServerInfo(
 	_ *rpc.GetServerInfoRequest,
 ) (*rpc.GetServerInfoResponse, error) {
 	return &rpc.GetServerInfoResponse{
-		IsLocal: a.isLocal,
+		IsDistributed: a.appArguments.Distributed,
 		SupportedLanguageList: lo.Map[configs.Language, rpc.Language](
 			a.logicConfig.Judge.Languages,
 			func(item configs.Language, _ int) rpc.Language {
@@ -472,30 +472,4 @@ func (a apiServerHandler) GetAndUpdateFirstSubmittedSubmissionToExecuting(
 
 	token := a.getAuthorizationBearerToken(ctx)
 	return a.submissionLogic.GetAndUpdateFirstSubmittedSubmissionToExecuting(ctx, token)
-}
-
-type LocalAPIServerHandler rpcserver.APIServer
-
-func NewLocalAPIServerHandler(
-	accountLogic logic.LocalAccount,
-	problemLogic logic.Problem,
-	testCaseLogic logic.TestCase,
-	submissionLogic logic.LocalSubmission,
-	logicConfig configs.Logic,
-	logger *zap.Logger,
-) LocalAPIServerHandler {
-	return NewAPIServerHandler(accountLogic, problemLogic, testCaseLogic, submissionLogic, logicConfig, logger, true)
-}
-
-type DistributedAPIServerHandler rpcserver.APIServer
-
-func NewDistributedAPIServerHandler(
-	accountLogic logic.LocalAccount,
-	problemLogic logic.Problem,
-	testCaseLogic logic.TestCase,
-	submissionLogic logic.DistributedSubmission,
-	logicConfig configs.Logic,
-	logger *zap.Logger,
-) DistributedAPIServerHandler {
-	return NewAPIServerHandler(accountLogic, problemLogic, testCaseLogic, submissionLogic, logicConfig, logger, false)
 }

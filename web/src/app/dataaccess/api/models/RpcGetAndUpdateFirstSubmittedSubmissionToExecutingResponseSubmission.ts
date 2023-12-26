@@ -21,24 +21,24 @@ import {
 } from './RpcSubmission';
 
 /**
- * @type RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponseSubmission
+ * @type RpcGetAndUpdateFirstSubmittedSubmissionToExecutingResponseSubmission
  * 
  * @export
  */
-export type RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponseSubmission = RpcSubmission;
+export type RpcGetAndUpdateFirstSubmittedSubmissionToExecutingResponseSubmission = RpcSubmission;
 
-export function RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponseSubmissionFromJSON(json: any): RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponseSubmission {
-    return RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponseSubmissionFromJSONTyped(json, false);
+export function RpcGetAndUpdateFirstSubmittedSubmissionToExecutingResponseSubmissionFromJSON(json: any): RpcGetAndUpdateFirstSubmittedSubmissionToExecutingResponseSubmission {
+    return RpcGetAndUpdateFirstSubmittedSubmissionToExecutingResponseSubmissionFromJSONTyped(json, false);
 }
 
-export function RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponseSubmissionFromJSONTyped(json: any, ignoreDiscriminator: boolean): RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponseSubmission {
+export function RpcGetAndUpdateFirstSubmittedSubmissionToExecutingResponseSubmissionFromJSONTyped(json: any, ignoreDiscriminator: boolean): RpcGetAndUpdateFirstSubmittedSubmissionToExecutingResponseSubmission {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return { ...RpcSubmissionFromJSONTyped(json, true) };
 }
 
-export function RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponseSubmissionToJSON(value?: RpcGetAndUpdateFirstSubmittedSubmissionAsExecutingResponseSubmission | null): any {
+export function RpcGetAndUpdateFirstSubmittedSubmissionToExecutingResponseSubmissionToJSON(value?: RpcGetAndUpdateFirstSubmittedSubmissionToExecutingResponseSubmission | null): any {
     if (value === undefined) {
         return undefined;
     }

@@ -43,7 +43,7 @@ const (
 	JSONRPCMethodGetAccountSubmissionSnippetList_Client                 = "get_account_submission_snippet_list"
 	JSONRPCMethodGetProblemSubmissionSnippetList_Client                 = "get_problem_submission_snippet_list"
 	JSONRPCMethodGetAccountProblemSubmissionSnippetList_Client          = "get_account_problem_submission_snippet_list"
-	JSONRPCMethodGetAndUpdateFirstSubmittedSubmissionToExecuting_Client = "get_and_update_first_submitted_submission_as_executing"
+	JSONRPCMethodGetAndUpdateFirstSubmittedSubmissionToExecuting_Client = "get_and_update_first_submitted_submission_to_executing"
 )
 
 // APIClient is an API client for API service.

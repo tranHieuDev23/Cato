@@ -44,7 +44,7 @@ const (
 	JSONRPCMethodGetAccountSubmissionSnippetList                 = "get_account_submission_snippet_list"
 	JSONRPCMethodGetProblemSubmissionSnippetList                 = "get_problem_submission_snippet_list"
 	JSONRPCMethodGetAccountProblemSubmissionSnippetList          = "get_account_problem_submission_snippet_list"
-	JSONRPCMethodGetAndUpdateFirstSubmittedSubmissionToExecuting = "get_and_update_first_submitted_submission_as_executing"
+	JSONRPCMethodGetAndUpdateFirstSubmittedSubmissionToExecuting = "get_and_update_first_submitted_submission_to_executing"
 )
 
 // APIServer is an API server for API service.

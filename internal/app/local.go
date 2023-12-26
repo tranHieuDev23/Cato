@@ -24,9 +24,9 @@ type LocalCato struct {
 
 func NewLocalCato(
 	dbMigrator db.Migrator,
-	createFirstAdminAccountJob jobs.DistributedCreateFirstAdminAccount,
-	scheduleSubmittedExecutingSubmissionToJudge jobs.LocalScheduleSubmittedExecutingSubmissionToJudge,
-	httpServer http.LocalServer,
+	createFirstAdminAccountJob jobs.CreateFirstAdminAccount,
+	scheduleSubmittedExecutingSubmissionToJudge jobs.ScheduleSubmittedExecutingSubmissionToJudge,
+	httpServer http.Server,
 	logger *zap.Logger,
 ) *LocalCato {
 	return &LocalCato{

@@ -13,12 +13,15 @@ import (
 
 	"github.com/tranHieuDev23/cato/internal/configs"
 	"github.com/tranHieuDev23/cato/internal/dataaccess/db"
+	"github.com/tranHieuDev23/cato/internal/handlers/http/rpc"
+	"github.com/tranHieuDev23/cato/internal/handlers/http/rpc/rpcclient"
 	"github.com/tranHieuDev23/cato/internal/utils"
 )
 
 type Judge interface {
-	JudgeSubmission(ctx context.Context, id uint64) error
-	ScheduleSubmissionToJudge(id uint64)
+	JudgeSubmission(ctx context.Context, problemID uint64, language string, content string) (db.SubmissionResult, error)
+	ScheduleJudgeLocalSubmission(id uint64)
+	ScheduleJudgeDistributedFirstSubmittedSubmission()
 }
 
 type judge struct {
@@ -26,9 +29,10 @@ type judge struct {
 	submissionDataAccessor       db.SubmissionDataAccessor
 	testCaseDataAccessor         db.TestCaseDataAccessor
 	db                           *gorm.DB
+	apiClient                    rpcclient.APIClient
 	logger                       *zap.Logger
 	logicConfig                  configs.Logic
-	isLocal                      bool
+	appArguments                 utils.Arguments
 	workerPool                   *workerpool.WorkerPool
 	languageToCompileLogic       map[string]Compile
 	languageToTestCaseRunLogic   map[string]TestCaseRun
@@ -41,9 +45,10 @@ func NewJudge(
 	testCaseDataAccessor db.TestCaseDataAccessor,
 	dockerClient *client.Client,
 	db *gorm.DB,
+	apiClient rpcclient.APIClient,
 	logger *zap.Logger,
 	logicConfig configs.Logic,
-	isLocal bool,
+	appArguments utils.Arguments,
 ) (Judge, error) {
 	submissionRetryDelayDuration, err := logicConfig.Judge.GetSubmissionRetryDelayDuration()
 	if err != nil {
@@ -56,9 +61,10 @@ func NewJudge(
 		submissionDataAccessor:       submissionDataAccessor,
 		testCaseDataAccessor:         testCaseDataAccessor,
 		db:                           db,
+		apiClient:                    apiClient,
 		logger:                       logger,
 		logicConfig:                  logicConfig,
-		isLocal:                      isLocal,
+		appArguments:                 appArguments,
 		workerPool:                   workerpool.New(1),
 		languageToCompileLogic:       make(map[string]Compile),
 		languageToTestCaseRunLogic:   make(map[string]TestCaseRun),
@@ -102,17 +108,14 @@ func (j judge) updateSubmissionStatusAndResult(
 
 func (j judge) judgeDBSubmissionProblemAndTestCase(
 	ctx context.Context,
-	submission *db.Submission,
 	problem *db.Problem,
 	testCase *db.TestCase,
 	compileOutput CompileOutput,
 	runLogic TestCaseRun,
-) (bool, error) {
+) (db.SubmissionResult, error) {
 	logger := utils.LoggerWithContext(ctx, j.logger).
-		With(zap.Uint("submission_id", submission.ID)).
 		With(zap.Uint("problem_id", problem.ID)).
 		With(zap.Uint("test_case_id", testCase.ID))
-
 	logger.Info("running submission against test case")
 
 	runOutput, err := runLogic.Run(
@@ -123,95 +126,74 @@ func (j judge) judgeDBSubmissionProblemAndTestCase(
 		problem.MemoryLimitInByte,
 	)
 	if err != nil {
-		return false, err
+		return 0, err
 	}
 
 	if runOutput.TimeLimitExceeded {
 		logger.Info("submission exceeded time limit")
-		err = j.updateSubmissionStatusAndResult(
-			ctx, submission, db.SubmissionStatusFinished, db.SubmissionResultTimeLimitExceeded)
-		if err != nil {
-			return false, err
-		}
-
-		return false, nil
+		return db.SubmissionResultTimeLimitExceeded, nil
 	}
 
 	if runOutput.MemoryLimitExceeded {
 		logger.Info("submission exceeded memory limit")
-		err = j.updateSubmissionStatusAndResult(
-			ctx, submission, db.SubmissionStatusFinished, db.SubmissionResultMemoryLimitExceeded)
-		if err != nil {
-			return false, err
-		}
-
-		return false, nil
+		return db.SubmissionResultMemoryLimitExceeded, nil
 	}
 
 	if runOutput.ReturnCode != 0 {
 		logger.With(zap.Int64("return_code", runOutput.ReturnCode)).Info("submission has runtime error")
-		err = j.updateSubmissionStatusAndResult(
-			ctx, submission, db.SubmissionStatusFinished, db.SubmissionResultRuntimeError)
-		if err != nil {
-			return false, err
-		}
-
-		return false, nil
+		return db.SubmissionResultRuntimeError, nil
 	}
 
 	if runOutput.StdOut != testCase.Output {
 		logger.Info("submission gave incorrect output")
-		err = j.updateSubmissionStatusAndResult(
-			ctx, submission, db.SubmissionStatusFinished, db.SubmissionResultWrongAnswer)
-		if err != nil {
-			return false, err
-		}
-
-		return false, nil
+		return db.SubmissionResultWrongAnswer, nil
 	}
 
-	return true, nil
+	return db.SubmissionResultOK, nil
 }
 
-func (j judge) judgeDBSubmission(ctx context.Context, submission *db.Submission) error {
-	logger := utils.LoggerWithContext(ctx, j.logger).With(zap.Uint("submission_id", submission.ID))
+func (j judge) JudgeSubmission(
+	ctx context.Context,
+	problemID uint64,
+	language string,
+	content string,
+) (db.SubmissionResult, error) {
+	logger := utils.LoggerWithContext(ctx, j.logger).With(zap.Uint64("problemID", problemID))
 
-	problem, err := j.problemDataAccessor.GetProblem(ctx, submission.OfProblemID)
+	problem, err := j.problemDataAccessor.GetProblem(ctx, problemID)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	if problem == nil {
-		logger.With(zap.Uint64("problem_id", submission.OfProblemID)).Error("cannot find problem")
-		return errors.New("cannot find problem")
+		logger.With(zap.Uint64("problem_id", problemID)).Error("cannot find problem")
+		return 0, errors.New("cannot find problem")
 	}
 
-	if !j.isLocal {
+	if j.appArguments.Distributed {
 		logger.Info("validating problem hash")
 		err = j.validateProblemHash(ctx, problem)
 		if err != nil {
-			return err
+			return 0, err
 		}
 	}
 
-	logger.Info("retrieving test case information")
-	testCaseID, err := j.testCaseDataAccessor.GetTestCaseIDListOfProblem(ctx, uint64(problem.ID))
-	if err != nil {
-		return err
-	}
-
 	logger.Info("compiling submission")
-	compileLogic, ok := j.languageToCompileLogic[submission.Language]
+	compileLogic, ok := j.languageToCompileLogic[language]
 	if !ok {
-		logger.With(zap.String("language", submission.Language)).Info("submission has unsupported language")
-		return j.updateSubmissionStatusAndResult(
-			ctx, submission, db.SubmissionStatusFinished, db.SubmissionResultUnsupportedLanguage)
+		logger.With(zap.String("language", language)).Info("submission has unsupported language")
+		return db.SubmissionResultUnsupportedLanguage, nil
 	}
 
-	compileOutput, err := compileLogic.Compile(ctx, submission.Content)
+	compileOutput, err := compileLogic.Compile(ctx, content)
 	if err != nil {
 		logger.With(zap.Error(err)).Error("failed to compile submission")
-		return err
+		return 0, err
+	}
+
+	if compileOutput.ProgramFilePath == "" {
+		logger.With(zap.Any("compile_output", compileOutput)).Info("submission has compile error")
+		return db.SubmissionResultCompileError, nil
 	}
 
 	defer func() {
@@ -224,52 +206,46 @@ func (j judge) judgeDBSubmission(ctx context.Context, submission *db.Submission)
 		}
 	}()
 
-	if compileOutput.ProgramFilePath == "" {
-		logger.With(zap.Any("compile_output", compileOutput)).Info("submission has compile error")
-		return j.updateSubmissionStatusAndResult(
-			ctx, submission, db.SubmissionStatusFinished, db.SubmissionResultCompileError)
+	logger.Info("running submission against test cases")
+	testCaseID, err := j.testCaseDataAccessor.GetTestCaseIDListOfProblem(ctx, uint64(problem.ID))
+	if err != nil {
+		return 0, err
 	}
 
-	logger.Info("running submission against test cases")
-	runLogic := j.languageToTestCaseRunLogic[submission.Language]
+	runLogic := j.languageToTestCaseRunLogic[language]
 	for _, testCaseID := range testCaseID {
 		testCase, testCaseErr := j.testCaseDataAccessor.GetTestCase(ctx, testCaseID)
 		if testCaseErr != nil {
-			return testCaseErr
+			return 0, testCaseErr
 		}
 
-		passed, testCaseErr := j.
-			judgeDBSubmissionProblemAndTestCase(ctx, submission, problem, testCase, compileOutput, runLogic)
+		result, testCaseErr := j.
+			judgeDBSubmissionProblemAndTestCase(ctx, problem, testCase, compileOutput, runLogic)
 		if testCaseErr != nil {
-			return testCaseErr
+			return 0, testCaseErr
 		}
 
-		if !passed {
-			return nil
+		if result != db.SubmissionResultOK {
+			return result, nil
 		}
 	}
 
 	logger.Info("submission passed")
-	return j.updateSubmissionStatusAndResult(ctx, submission, db.SubmissionStatusFinished, db.SubmissionResultOK)
+	return db.SubmissionResultOK, nil
 }
 
-func (j judge) JudgeSubmission(ctx context.Context, id uint64) error {
+func (j judge) judgeLocalSubmission(ctx context.Context, submissionID uint64) {
 	var (
-		logger     = utils.LoggerWithContext(ctx, j.logger).With(zap.Uint64("id", id))
+		logger     = utils.LoggerWithContext(ctx, j.logger).With(zap.Uint64("submission_id", submissionID))
 		submission *db.Submission
 		err        error
 	)
 
 	logger.Info("retrieving submission information")
 	if txErr := j.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		submission, err = j.submissionDataAccessor.WithDB(tx).GetSubmission(ctx, id)
+		submission, err = j.submissionDataAccessor.WithDB(tx).GetSubmission(ctx, submissionID)
 		if err != nil {
 			return err
-		}
-
-		if submission == nil {
-			logger.Error("cannot find submission")
-			return errors.New("cannot find submission")
 		}
 
 		if submission.Status != db.SubmissionStatusSubmitted {
@@ -285,79 +261,64 @@ func (j judge) JudgeSubmission(ctx context.Context, id uint64) error {
 
 		return nil
 	}); txErr != nil {
-		return txErr
+		logger.With(zap.Error(txErr)).Error("failed to retrieve local submission information")
+		return
 	}
 
-	err = j.judgeDBSubmission(ctx, submission)
-	if err != nil {
-		logger.With(zap.Error(err)).Error("encountered error while judging submission, reverting status to submitted")
+	revertFunc := func(revertErr error) {
+		logger.
+			With(zap.Error(revertErr)).
+			Error("encountered error while judging submission, reverting status to submitted")
 
-		if revertErr := j.updateSubmissionStatusAndResult(
-			ctx, submission, db.SubmissionStatusSubmitted, 0,
-		); revertErr != nil {
+		revertErr = j.updateSubmissionStatusAndResult(ctx, submission, db.SubmissionStatusSubmitted, 0)
+		if revertErr != nil {
 			logger.With(zap.Error(revertErr)).Error("failed to revert submission status to submitted")
 		}
 
 		time.AfterFunc(j.submissionRetryDelayDuration, func() {
-			j.ScheduleSubmissionToJudge(id)
+			j.ScheduleJudgeLocalSubmission(submissionID)
 		})
-
-		return err
 	}
 
-	return nil
+	result, err := j.JudgeSubmission(ctx, submission.OfProblemID, submission.Language, submission.Content)
+	if err != nil {
+		revertFunc(err)
+		return
+	}
+
+	err = j.updateSubmissionStatusAndResult(ctx, submission, db.SubmissionStatusFinished, result)
+	if err != nil {
+		revertFunc(err)
+	}
 }
 
-func (j judge) ScheduleSubmissionToJudge(id uint64) {
-	j.workerPool.Submit(func() {
-		if err := j.JudgeSubmission(context.Background(), id); err != nil {
-			j.logger.With(zap.Error(err)).Error("error occurred when judging submission")
-		}
+func (j judge) ScheduleJudgeLocalSubmission(submissionID uint64) {
+	j.workerPool.Submit(func() { j.judgeLocalSubmission(context.Background(), submissionID) })
+}
+
+func (j judge) judgeLDistributedSubmission(ctx context.Context) {
+	response, err := j.apiClient.GetAndUpdateFirstSubmittedSubmissionToExecuting(
+		ctx, &rpc.GetAndUpdateFirstSubmittedSubmissionToExecutingRequest{})
+	if err != nil {
+		return
+	}
+
+	submission := response.Submission
+	result, err := j.JudgeSubmission(ctx, submission.Problem.ID, submission.Language, submission.Content)
+	if err != nil {
+		return
+	}
+
+	_, err = j.apiClient.UpdateSubmission(ctx, &rpc.UpdateSubmissionRequest{
+		ID:     submission.ID,
+		Status: uint8(rpc.SubmissionStatusFinished),
+		Result: uint8(result),
 	})
+	if err != nil {
+		return
+	}
 }
 
-type LocalJudge Judge
-
-func NewLocalJudge(
-	problemDataAccessor db.ProblemDataAccessor,
-	submissionDataAccessor db.SubmissionDataAccessor,
-	testCaseDataAccessor db.TestCaseDataAccessor,
-	dockerClient *client.Client,
-	db *gorm.DB,
-	logger *zap.Logger,
-	logicConfig configs.Logic,
-) (LocalJudge, error) {
-	return NewJudge(
-		problemDataAccessor,
-		submissionDataAccessor,
-		testCaseDataAccessor,
-		dockerClient,
-		db,
-		logger,
-		logicConfig,
-		true,
-	)
-}
-
-type DistributedJudge Judge
-
-func NewDistributedJudge(
-	problemDataAccessor db.ProblemDataAccessor,
-	submissionDataAccessor db.SubmissionDataAccessor,
-	testCaseDataAccessor db.TestCaseDataAccessor,
-	dockerClient *client.Client,
-	db *gorm.DB,
-	logger *zap.Logger,
-	logicConfig configs.Logic,
-) (DistributedJudge, error) {
-	return NewJudge(
-		problemDataAccessor,
-		submissionDataAccessor,
-		testCaseDataAccessor,
-		dockerClient,
-		db,
-		logger,
-		logicConfig,
-		false,
-	)
+func (j judge) ScheduleJudgeDistributedFirstSubmittedSubmission() {
+	j.workerPool.Submit(func() { j.judgeLDistributedSubmission(context.Background()) })
 }

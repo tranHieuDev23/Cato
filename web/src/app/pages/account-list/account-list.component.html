@@ -116,7 +116,7 @@
                         <span nz-radio nzValue="admin">Admin</span>
                         <span nz-radio nzValue="contestant">Contestant</span>
                         <span nz-radio nzValue="problem_setter">Problem Setter</span>
-                        <span nz-radio *ngIf="serverInfo?.isLocal === false" nzValue="worker">Worker</span>
+                        <span nz-radio *ngIf="serverInfo?.isDistributed" nzValue="worker">Worker</span>
                     </nz-radio-group>
                 </nz-form-control>
             </nz-form-item>
@@ -181,7 +181,7 @@
                         <span nz-radio nzValue="admin">Admin</span>
                         <span nz-radio nzValue="contestant">Contestant</span>
                         <span nz-radio nzValue="problem_setter">Problem Setter</span>
-                        <span nz-radio *ngIf="serverInfo?.isLocal === false" nzValue="worker">Worker</span>
+                        <span nz-radio *ngIf="serverInfo?.isDistributed" nzValue="worker">Worker</span>
                     </nz-radio-group>
                 </nz-form-control>
             </nz-form-item>

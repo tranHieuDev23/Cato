@@ -31,7 +31,7 @@ export interface RpcGetServerInfoResponse {
      * @type {boolean}
      * @memberof RpcGetServerInfoResponse
      */
-    isLocal: boolean;
+    isDistributed: boolean;
     /**
      * 
      * @type {Array<RpcLanguage>}
@@ -45,7 +45,7 @@ export interface RpcGetServerInfoResponse {
  */
 export function instanceOfRpcGetServerInfoResponse(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "isLocal" in value;
+    isInstance = isInstance && "isDistributed" in value;
     isInstance = isInstance && "supportedLanguageList" in value;
 
     return isInstance;
@@ -61,7 +61,7 @@ export function RpcGetServerInfoResponseFromJSONTyped(json: any, ignoreDiscrimin
     }
     return {
         
-        'isLocal': json['IsLocal'],
+        'isDistributed': json['IsDistributed'],
         'supportedLanguageList': ((json['SupportedLanguageList'] as Array<any>).map(RpcLanguageFromJSON)),
     };
 }
@@ -75,7 +75,7 @@ export function RpcGetServerInfoResponseToJSON(value?: RpcGetServerInfoResponse 
     }
     return {
         
-        'IsLocal': value.isLocal,
+        'IsDistributed': value.isDistributed,
         'SupportedLanguageList': ((value.supportedLanguageList as Array<any>).map(RpcLanguageToJSON)),
     };
 }

@@ -25,19 +25,3 @@ func NewScheduleSubmittedExecutingSubmissionToJudge(
 func (j scheduleSubmittedExecutingSubmissionToJudge) Run() error {
 	return j.submissionLogic.ScheduleSubmittedExecutingSubmissionToJudge(context.Background())
 }
-
-type LocalScheduleSubmittedExecutingSubmissionToJudge ScheduleSubmittedExecutingSubmissionToJudge
-
-func NewLocalScheduleSubmittedExecutingSubmissionToJudge(
-	submissionLogic logic.LocalSubmission,
-) LocalScheduleSubmittedExecutingSubmissionToJudge {
-	return NewScheduleSubmittedExecutingSubmissionToJudge(submissionLogic)
-}
-
-type DistributedScheduleSubmittedExecutingSubmissionToJudge ScheduleSubmittedExecutingSubmissionToJudge
-
-func NewDistributedScheduleSubmittedExecutingSubmissionToJudge(
-	submissionLogic logic.DistributedSubmission,
-) DistributedScheduleSubmittedExecutingSubmissionToJudge {
-	return NewScheduleSubmittedExecutingSubmissionToJudge(submissionLogic)
-}

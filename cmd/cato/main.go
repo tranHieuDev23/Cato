@@ -7,47 +7,87 @@ import (
 
 	"github.com/tranHieuDev23/cato/internal/app"
 	"github.com/tranHieuDev23/cato/internal/configs"
+	"github.com/tranHieuDev23/cato/internal/utils"
 	"github.com/tranHieuDev23/cato/internal/wiring"
 )
 
 const (
-	flagConfigFilePath = "config-file-path"
-	flagDistributed    = "distributed"
-	flagWorker         = "worker"
+	flagDistributed           = "distributed"
+	flagWorker                = "worker"
+	flagNoBrowser             = "no-browser"
+	flagHostAddress           = "host-address"
+	flagWorkerAccountName     = "worker-account-name"
+	flagWorkerAccountPassword = "worker-account-password"
+	flagConfigFilePath        = "config-file-path"
 )
+
+func getArguments(cmd *cobra.Command) (utils.Arguments, error) {
+	distributed, err := cmd.Flags().GetBool(flagDistributed)
+	if err != nil {
+		return utils.Arguments{}, err
+	}
+
+	worker, err := cmd.Flags().GetBool(flagWorker)
+	if err != nil {
+		return utils.Arguments{}, err
+	}
+
+	noBrowser, err := cmd.Flags().GetBool(flagNoBrowser)
+	if err != nil {
+		return utils.Arguments{}, err
+	}
+
+	hostAddress, err := cmd.Flags().GetString(flagHostAddress)
+	if err != nil {
+		return utils.Arguments{}, err
+	}
+
+	workerAccountName, err := cmd.Flags().GetString(flagWorkerAccountName)
+	if err != nil {
+		return utils.Arguments{}, err
+	}
+
+	workerAccountPassword, err := cmd.Flags().GetString(flagWorkerAccountPassword)
+	if err != nil {
+		return utils.Arguments{}, err
+	}
+
+	return utils.Arguments{
+		Distributed:           distributed,
+		Worker:                worker,
+		NoBrowser:             noBrowser,
+		HostAddress:           hostAddress,
+		WorkerAccountName:     workerAccountName,
+		WorkerAccountPassword: workerAccountPassword,
+	}, nil
+}
 
 func main() {
 	rootCommand := &cobra.Command{
-		Use: "Start the program",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			configFilePath, err := cmd.Flags().GetString(flagConfigFilePath)
-			if err != nil {
-				return err
-			}
-
-			distributed, err := cmd.Flags().GetBool(flagDistributed)
-			if err != nil {
-				return err
-			}
-
-			worker, err := cmd.Flags().GetBool(flagWorker)
-			if err != nil {
-				return err
-			}
-
 			var (
 				app     app.App
 				cleanup func()
 			)
 
-			if distributed {
-				if worker {
-					app, cleanup, err = wiring.InitializeDistributedWorkerCato(configs.ConfigFilePath(configFilePath))
+			configFilePath, err := cmd.Flags().GetString(flagConfigFilePath)
+			if err != nil {
+				return err
+			}
+
+			arguments, err := getArguments(cmd)
+			if err != nil {
+				return err
+			}
+
+			if arguments.Distributed {
+				if arguments.Worker {
+					app, cleanup, err = wiring.InitializeDistributedWorkerCato(configs.ConfigFilePath(configFilePath), arguments)
 				} else {
-					app, cleanup, err = wiring.InitializeDistributedHostCato(configs.ConfigFilePath(configFilePath))
+					app, cleanup, err = wiring.InitializeDistributedHostCato(configs.ConfigFilePath(configFilePath), arguments)
 				}
 			} else {
-				app, cleanup, err = wiring.InitializeLocalCato(configs.ConfigFilePath(configFilePath))
+				app, cleanup, err = wiring.InitializeLocalCato(configs.ConfigFilePath(configFilePath), arguments)
 			}
 
 			if err != nil {
@@ -68,7 +108,27 @@ func main() {
 	rootCommand.Flags().Bool(
 		flagWorker,
 		false,
-		"If provided and --distributed is set, will start the problem in distributed mode as a worker process.",
+		"If provided and --distributed is set, will start the program in distributed mode as a worker process.",
+	)
+	rootCommand.Flags().Bool(
+		flagNoBrowser,
+		false,
+		"If provided, will not open a browser windows when the server starts.",
+	)
+	rootCommand.Flags().String(
+		flagHostAddress,
+		"http://127.0.0.1:8080",
+		"The address of the host server when running in worker node.",
+	)
+	rootCommand.Flags().String(
+		flagWorkerAccountName,
+		"worker",
+		"The worker account name when running in worker node.",
+	)
+	rootCommand.Flags().String(
+		flagWorkerAccountPassword,
+		"changeme",
+		"The worker account name when running in worker node.",
 	)
 	rootCommand.Flags().String(
 		flagConfigFilePath,

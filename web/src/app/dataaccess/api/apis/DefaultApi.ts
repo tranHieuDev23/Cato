@@ -30,7 +30,7 @@ import type {
   RequestBodyOfTheGetAccountProblemSnippetListMethod,
   RequestBodyOfTheGetAccountProblemSubmissionSnippetListMethod,
   RequestBodyOfTheGetAccountSubmissionSnippetListMethod,
-  RequestBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethod,
+  RequestBodyOfTheGetAndUpdateFirstSubmittedSubmissionToExecutingMethod,
   RequestBodyOfTheGetProblemMethod,
   RequestBodyOfTheGetProblemSnippetListMethod,
   RequestBodyOfTheGetProblemSubmissionSnippetListMethod,
@@ -59,7 +59,7 @@ import type {
   ResponseBodyOfTheGetAccountProblemSnippetListMethod,
   ResponseBodyOfTheGetAccountProblemSubmissionSnippetListMethod,
   ResponseBodyOfTheGetAccountSubmissionSnippetListMethod,
-  ResponseBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethod,
+  ResponseBodyOfTheGetAndUpdateFirstSubmittedSubmissionToExecutingMethod,
   ResponseBodyOfTheGetProblemMethod,
   ResponseBodyOfTheGetProblemSnippetListMethod,
   ResponseBodyOfTheGetProblemSubmissionSnippetListMethod,
@@ -105,8 +105,8 @@ import {
     RequestBodyOfTheGetAccountProblemSubmissionSnippetListMethodToJSON,
     RequestBodyOfTheGetAccountSubmissionSnippetListMethodFromJSON,
     RequestBodyOfTheGetAccountSubmissionSnippetListMethodToJSON,
-    RequestBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethodFromJSON,
-    RequestBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethodToJSON,
+    RequestBodyOfTheGetAndUpdateFirstSubmittedSubmissionToExecutingMethodFromJSON,
+    RequestBodyOfTheGetAndUpdateFirstSubmittedSubmissionToExecutingMethodToJSON,
     RequestBodyOfTheGetProblemMethodFromJSON,
     RequestBodyOfTheGetProblemMethodToJSON,
     RequestBodyOfTheGetProblemSnippetListMethodFromJSON,
@@ -163,8 +163,8 @@ import {
     ResponseBodyOfTheGetAccountProblemSubmissionSnippetListMethodToJSON,
     ResponseBodyOfTheGetAccountSubmissionSnippetListMethodFromJSON,
     ResponseBodyOfTheGetAccountSubmissionSnippetListMethodToJSON,
-    ResponseBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethodFromJSON,
-    ResponseBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethodToJSON,
+    ResponseBodyOfTheGetAndUpdateFirstSubmittedSubmissionToExecutingMethodFromJSON,
+    ResponseBodyOfTheGetAndUpdateFirstSubmittedSubmissionToExecutingMethodToJSON,
     ResponseBodyOfTheGetProblemMethodFromJSON,
     ResponseBodyOfTheGetProblemMethodToJSON,
     ResponseBodyOfTheGetProblemSnippetListMethodFromJSON,
@@ -253,8 +253,8 @@ export interface GetAccountSubmissionSnippetListRequest {
     requestBodyOfTheGetAccountSubmissionSnippetListMethod: RequestBodyOfTheGetAccountSubmissionSnippetListMethod;
 }
 
-export interface GetAndUpdateFirstSubmittedSubmissionAsExecutingRequest {
-    requestBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethod: RequestBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethod;
+export interface GetAndUpdateFirstSubmittedSubmissionToExecutingRequest {
+    requestBodyOfTheGetAndUpdateFirstSubmittedSubmissionToExecutingMethod: RequestBodyOfTheGetAndUpdateFirstSubmittedSubmissionToExecutingMethod;
 }
 
 export interface GetProblemRequest {
@@ -781,9 +781,9 @@ export class DefaultApi extends runtime.BaseAPI {
 
     /**
      */
-    async getAndUpdateFirstSubmittedSubmissionAsExecutingRaw(requestParameters: GetAndUpdateFirstSubmittedSubmissionAsExecutingRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ResponseBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethod>> {
-        if (requestParameters.requestBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethod === null || requestParameters.requestBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethod === undefined) {
-            throw new runtime.RequiredError('requestBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethod','Required parameter requestParameters.requestBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethod was null or undefined when calling getAndUpdateFirstSubmittedSubmissionAsExecuting.');
+    async getAndUpdateFirstSubmittedSubmissionToExecutingRaw(requestParameters: GetAndUpdateFirstSubmittedSubmissionToExecutingRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ResponseBodyOfTheGetAndUpdateFirstSubmittedSubmissionToExecutingMethod>> {
+        if (requestParameters.requestBodyOfTheGetAndUpdateFirstSubmittedSubmissionToExecutingMethod === null || requestParameters.requestBodyOfTheGetAndUpdateFirstSubmittedSubmissionToExecutingMethod === undefined) {
+            throw new runtime.RequiredError('requestBodyOfTheGetAndUpdateFirstSubmittedSubmissionToExecutingMethod','Required parameter requestParameters.requestBodyOfTheGetAndUpdateFirstSubmittedSubmissionToExecutingMethod was null or undefined when calling getAndUpdateFirstSubmittedSubmissionToExecuting.');
         }
 
         const queryParameters: any = {};
@@ -793,20 +793,20 @@ export class DefaultApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/#get_and_update_first_submitted_submission_as_executing`,
+            path: `/#get_and_update_first_submitted_submission_to_executing`,
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-            body: RequestBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethodToJSON(requestParameters.requestBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethod),
+            body: RequestBodyOfTheGetAndUpdateFirstSubmittedSubmissionToExecutingMethodToJSON(requestParameters.requestBodyOfTheGetAndUpdateFirstSubmittedSubmissionToExecutingMethod),
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ResponseBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethodFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => ResponseBodyOfTheGetAndUpdateFirstSubmittedSubmissionToExecutingMethodFromJSON(jsonValue));
     }
 
     /**
      */
-    async getAndUpdateFirstSubmittedSubmissionAsExecuting(requestParameters: GetAndUpdateFirstSubmittedSubmissionAsExecutingRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheGetAndUpdateFirstSubmittedSubmissionAsExecutingMethod> {
-        const response = await this.getAndUpdateFirstSubmittedSubmissionAsExecutingRaw(requestParameters, initOverrides);
+    async getAndUpdateFirstSubmittedSubmissionToExecuting(requestParameters: GetAndUpdateFirstSubmittedSubmissionToExecutingRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheGetAndUpdateFirstSubmittedSubmissionToExecutingMethod> {
+        const response = await this.getAndUpdateFirstSubmittedSubmissionToExecutingRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

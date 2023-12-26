@@ -70,7 +70,7 @@ type API interface {
 type GetServerInfoRequest struct{}
 
 type GetServerInfoResponse struct {
-	IsLocal               bool
+	IsDistributed         bool
 	SupportedLanguageList []Language
 }
 

@@ -27,6 +27,7 @@ type server struct {
 	spaHandler          http.Handler
 	logger              *zap.Logger
 	httpConfig          configs.HTTP
+	appArguments        utils.Arguments
 }
 
 func NewServer(
@@ -36,6 +37,7 @@ func NewServer(
 	spaHandler SPAHandler,
 	logger *zap.Logger,
 	httpConfig configs.HTTP,
+	appArguments utils.Arguments,
 ) Server {
 	return &server{
 		apiServerHandler:    apiServerHandler,
@@ -44,6 +46,7 @@ func NewServer(
 		spaHandler:          spaHandler,
 		logger:              logger,
 		httpConfig:          httpConfig,
+		appArguments:        appArguments,
 	}
 }
 
@@ -71,33 +74,12 @@ func (s server) Start() error {
 		ReadHeaderTimeout: time.Minute,
 	}
 
+	if !s.appArguments.NoBrowser {
+		time.AfterFunc(time.Second, func() {
+			_ = browser.OpenURL(fmt.Sprintf("http://%s", s.httpConfig.Address))
+		})
+	}
+
 	s.logger.With(zap.String("address", s.httpConfig.Address)).Info("starting http server")
-	_ = browser.OpenURL(fmt.Sprintf("http://%s", s.httpConfig.Address))
 	return httpServer.ListenAndServe()
-}
-
-type LocalServer Server
-
-func NewLocalServer(
-	apiServerHandler LocalAPIServerHandler,
-	middlewareList []pjrpc.Middleware,
-	httpMiddlewareList []func(http.Handler) http.Handler,
-	spaHandler SPAHandler,
-	logger *zap.Logger,
-	httpConfig configs.HTTP,
-) LocalServer {
-	return NewServer(apiServerHandler, middlewareList, httpMiddlewareList, spaHandler, logger, httpConfig)
-}
-
-type DistributedServer Server
-
-func NewDistributedServer(
-	apiServerHandler DistributedAPIServerHandler,
-	middlewareList []pjrpc.Middleware,
-	httpMiddlewareList []func(http.Handler) http.Handler,
-	spaHandler SPAHandler,
-	logger *zap.Logger,
-	httpConfig configs.HTTP,
-) DistributedServer {
-	return NewServer(apiServerHandler, middlewareList, httpMiddlewareList, spaHandler, logger, httpConfig)
 }

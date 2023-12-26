@@ -52,7 +52,7 @@ type account struct {
 	db                          *gorm.DB
 	logger                      *zap.Logger
 	logicConfig                 configs.Logic
-	isLocal                     bool
+	appArguments                utils.Arguments
 	displayNameSanitizePolicy   *bluemonday.Policy
 }
 
@@ -65,7 +65,7 @@ func NewAccount(
 	db *gorm.DB,
 	logger *zap.Logger,
 	logicConfig configs.Logic,
-	isLocal bool,
+	appArguments utils.Arguments,
 ) Account {
 	return &account{
 		hash:                        hash,
@@ -76,7 +76,7 @@ func NewAccount(
 		db:                          db,
 		logger:                      logger,
 		logicConfig:                 logicConfig,
-		isLocal:                     isLocal,
+		appArguments:                appArguments,
 		displayNameSanitizePolicy:   bluemonday.StrictPolicy(),
 	}
 }
@@ -204,7 +204,7 @@ func (a account) CreateAccount(
 		return nil, pjrpc.JRPCErrInvalidParams()
 	}
 
-	if a.isLocal && in.Role == string(rpc.AccountRoleWorker) {
+	if !a.appArguments.Distributed && in.Role == string(rpc.AccountRoleWorker) {
 		logger.Error("failed to create account: trying to create worker account on local server")
 		return nil, pjrpc.JRPCErrInvalidParams()
 	}
@@ -469,7 +469,7 @@ func (a account) UpdateAccount(
 ) (*rpc.UpdateAccountResponse, error) {
 	logger := utils.LoggerWithContext(ctx, a.logger)
 
-	if a.isLocal && in.Role != nil && *in.Role == string(rpc.AccountRoleWorker) {
+	if !a.appArguments.Distributed && in.Role != nil && *in.Role == string(rpc.AccountRoleWorker) {
 		logger.Error("failed to update account: trying to update account to worker on local server")
 		return nil, pjrpc.JRPCErrInvalidParams()
 	}
@@ -531,38 +531,8 @@ func (a account) WithDB(db *gorm.DB) Account {
 		accountPasswordDataAccessor: a.accountPasswordDataAccessor.WithDB(db),
 		db:                          db,
 		logger:                      a.logger,
-		isLocal:                     a.isLocal,
+		appArguments:                a.appArguments,
 		logicConfig:                 a.logicConfig,
 		displayNameSanitizePolicy:   a.displayNameSanitizePolicy,
 	}
-}
-
-type LocalAccount Account
-
-func NewLocalAccount(
-	hash Hash,
-	token Token,
-	role Role,
-	accountDataAccessor db.AccountDataAccessor,
-	accountPasswordDataAccessor db.AccountPasswordDataAccessor,
-	db *gorm.DB,
-	logger *zap.Logger,
-	logicConfig configs.Logic,
-) LocalAccount {
-	return NewAccount(hash, token, role, accountDataAccessor, accountPasswordDataAccessor, db, logger, logicConfig, true)
-}
-
-type DistributedAccount Account
-
-func NewDistributedAccount(
-	hash Hash,
-	token Token,
-	role Role,
-	accountDataAccessor db.AccountDataAccessor,
-	accountPasswordDataAccessor db.AccountPasswordDataAccessor,
-	db *gorm.DB,
-	logger *zap.Logger,
-	logicConfig configs.Logic,
-) DistributedAccount {
-	return NewAccount(hash, token, role, accountDataAccessor, accountPasswordDataAccessor, db, logger, logicConfig, false)
 }

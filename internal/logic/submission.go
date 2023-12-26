@@ -63,7 +63,7 @@ type submission struct {
 	submissionDataAccessor db.SubmissionDataAccessor
 	db                     *gorm.DB
 	logger                 *zap.Logger
-	isLocal                bool
+	appArguments           utils.Arguments
 }
 
 func NewSubmission(
@@ -75,7 +75,7 @@ func NewSubmission(
 	submissionDataAccessor db.SubmissionDataAccessor,
 	db *gorm.DB,
 	logger *zap.Logger,
-	isLocal bool,
+	appArguments utils.Arguments,
 ) Submission {
 	return &submission{
 		token:                  token,
@@ -86,7 +86,7 @@ func NewSubmission(
 		submissionDataAccessor: submissionDataAccessor,
 		db:                     db,
 		logger:                 logger,
-		isLocal:                isLocal,
+		appArguments:           appArguments,
 	}
 }
 
@@ -186,8 +186,8 @@ func (s submission) CreateSubmission(
 		return nil, err
 	}
 
-	if s.isLocal {
-		s.judge.ScheduleSubmissionToJudge(uint64(submission.ID))
+	if !s.appArguments.Distributed {
+		s.judge.ScheduleJudgeLocalSubmission(uint64(submission.ID))
 	}
 
 	return &rpc.CreateSubmissionResponse{
@@ -709,7 +709,7 @@ func (s submission) ScheduleSubmittedExecutingSubmissionToJudge(ctx context.Cont
 	}
 
 	for _, id := range submittedSubmissionIDList {
-		s.judge.ScheduleSubmissionToJudge(id)
+		s.judge.ScheduleJudgeLocalSubmission(id)
 	}
 
 	executingSubmissionIDList, err := s.submissionDataAccessor.GetSubmissionIDList(ctx, db.SubmissionListFilterParams{
@@ -731,40 +731,8 @@ func (s submission) ScheduleSubmittedExecutingSubmissionToJudge(ctx context.Cont
 			return submissionErr
 		}
 
-		s.judge.ScheduleSubmissionToJudge(id)
+		s.judge.ScheduleJudgeLocalSubmission(id)
 	}
 
 	return nil
-}
-
-type LocalSubmission Submission
-
-func NewLocalSubmission(
-	token Token,
-	role Role,
-	judge LocalJudge,
-	accountDataAccessor db.AccountDataAccessor,
-	problemDataAccessor db.ProblemDataAccessor,
-	submissionDataAccessor db.SubmissionDataAccessor,
-	db *gorm.DB,
-	logger *zap.Logger,
-) LocalSubmission {
-	return NewSubmission(
-		token, role, judge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, db, logger, true)
-}
-
-type DistributedSubmission Submission
-
-func NewDistributedSubmission(
-	token Token,
-	role Role,
-	judge DistributedJudge,
-	accountDataAccessor db.AccountDataAccessor,
-	problemDataAccessor db.ProblemDataAccessor,
-	submissionDataAccessor db.SubmissionDataAccessor,
-	db *gorm.DB,
-	logger *zap.Logger,
-) DistributedSubmission {
-	return NewSubmission(
-		token, role, judge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, db, logger, false)
 }

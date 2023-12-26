@@ -19,8 +19,8 @@ type DistributedHostCato struct {
 
 func NewDistributedHostCato(
 	dbMigrator db.Migrator,
-	createFirstAdminAccountJob jobs.DistributedCreateFirstAdminAccount,
-	httpServer http.LocalServer,
+	createFirstAdminAccountJob jobs.CreateFirstAdminAccount,
+	httpServer http.Server,
 	logger *zap.Logger,
 ) *DistributedHostCato {
 	return &DistributedHostCato{

@@ -25,19 +25,28 @@ var WireSet = wire.NewSet(
 	app.WireSet,
 )
 
-func InitializeLocalCato(filePath configs.ConfigFilePath) (*app.LocalCato, func(), error) {
+func InitializeLocalCato(
+	filePath configs.ConfigFilePath,
+	args utils.Arguments,
+) (*app.LocalCato, func(), error) {
 	wire.Build(WireSet)
 
 	return nil, nil, nil
 }
 
-func InitializeDistributedHostCato(filePath configs.ConfigFilePath) (*app.DistributedHostCato, func(), error) {
+func InitializeDistributedHostCato(
+	filePath configs.ConfigFilePath,
+	args utils.Arguments,
+) (*app.DistributedHostCato, func(), error) {
 	wire.Build(WireSet)
 
 	return nil, nil, nil
 }
 
-func InitializeDistributedWorkerCato(filePath configs.ConfigFilePath) (*app.DistributedWorkerCato, func(), error) {
+func InitializeDistributedWorkerCato(
+	filePath configs.ConfigFilePath,
+	args utils.Arguments,
+) (*app.DistributedWorkerCato, func(), error) {
 	wire.Build(WireSet)
 
 	return nil, nil, nil
