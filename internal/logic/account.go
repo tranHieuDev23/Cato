@@ -344,6 +344,7 @@ func (a account) CreateSession(
 
 	return &rpc.CreateSessionResponse{
 		Account: a.dbAccountToRPCAccount(account),
+		Token:   token,
 	}, token, expireTime, nil
 }
 
