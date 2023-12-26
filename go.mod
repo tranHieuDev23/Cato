@@ -14,6 +14,7 @@ require (
 	github.com/google/wire v0.5.0
 	github.com/microcosm-cc/bluemonday v1.0.26
 	github.com/mikespook/gorbac v2.3.0+incompatible
+	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
 	github.com/samber/lo v1.39.0
 	github.com/spf13/cobra v1.8.0
 	gitlab.com/pjrpc/pjrpc/v2 v2.5.0

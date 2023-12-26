@@ -2,12 +2,14 @@ package http
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
 	"gitlab.com/pjrpc/pjrpc/v2"
 	"go.uber.org/zap"
 
+	"github.com/pkg/browser"
 	"github.com/tranHieuDev23/cato/internal/configs"
 	"github.com/tranHieuDev23/cato/internal/handlers/http/rpc/rpcserver"
 	"github.com/tranHieuDev23/cato/internal/utils"
@@ -69,6 +71,7 @@ func (s server) Start() error {
 	}
 
 	s.logger.With(zap.String("address", s.httpConfig.Address)).Info("starting http server")
+	_ = browser.OpenURL(fmt.Sprintf("http://%s", s.httpConfig.Address))
 	return httpServer.ListenAndServe()
 }
 

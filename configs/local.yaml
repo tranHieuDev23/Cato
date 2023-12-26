@@ -74,7 +74,7 @@ auth:
     expires_in: 24h
     regenerate_token_before_expiry: 1h
 http:
-  address: ":8080"
+  address: "0.0.0.0:8080"
 logic:
   first_admin:
     account_name: system
