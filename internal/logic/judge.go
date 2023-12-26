@@ -19,7 +19,7 @@ import (
 )
 
 type Judge interface {
-	JudgeSubmission(ctx context.Context, problemID uint64, language string, content string) (db.SubmissionResult, error)
+	JudgeSubmission(ctx context.Context, problem *db.Problem, language string, content string) (db.SubmissionResult, error)
 	ScheduleJudgeLocalSubmission(id uint64)
 	ScheduleJudgeDistributedFirstSubmittedSubmission()
 }
@@ -181,26 +181,15 @@ func (j judge) judgeDBSubmissionProblemAndTestCase(
 
 func (j judge) JudgeSubmission(
 	ctx context.Context,
-	problemID uint64,
+	problem *db.Problem,
 	language string,
 	content string,
 ) (db.SubmissionResult, error) {
-	logger := utils.LoggerWithContext(ctx, j.logger).With(zap.Uint64("problemID", problemID))
-
-	problem, err := j.problemDataAccessor.GetProblem(ctx, problemID)
-	if err != nil {
-		return 0, err
-	}
-
-	if problem == nil {
-		logger.With(zap.Uint64("problem_id", problemID)).Error("cannot find problem")
-		return 0, errors.New("cannot find problem")
-	}
+	logger := utils.LoggerWithContext(ctx, j.logger).With(zap.String("problemUUID", problem.UUID))
 
 	if j.appArguments.Distributed {
 		logger.Info("validating problem hash")
-		err = j.validateProblemHash(ctx, problem)
-		if err != nil {
+		if err := j.validateProblemHash(ctx, problem); err != nil {
 			return 0, err
 		}
 	}
@@ -307,7 +296,12 @@ func (j judge) judgeLocalSubmission(ctx context.Context, submissionID uint64) {
 		})
 	}
 
-	result, err := j.JudgeSubmission(ctx, submission.OfProblemID, submission.Language, submission.Content)
+	problem, err := j.problemDataAccessor.GetProblem(ctx, submission.OfProblemID)
+	if err != nil {
+		return
+	}
+
+	result, err := j.JudgeSubmission(ctx, problem, submission.Language, submission.Content)
 	if err != nil {
 		revertFunc(err)
 		return
@@ -324,14 +318,29 @@ func (j judge) ScheduleJudgeLocalSubmission(submissionID uint64) {
 }
 
 func (j judge) judgeLDistributedSubmission(ctx context.Context) {
+	logger := utils.LoggerWithContext(ctx, j.logger)
+
 	response, err := j.apiClient.GetAndUpdateFirstSubmittedSubmissionToExecuting(
 		ctx, &rpc.GetAndUpdateFirstSubmittedSubmissionToExecutingRequest{})
 	if err != nil {
 		return
 	}
 
+	problem, err := j.problemDataAccessor.GetProblemByUUID(ctx, response.Submission.Problem.UUID)
+	if err != nil {
+		return
+	}
+
+	if problem == nil {
+		logger.
+			With(zap.Uint64("submission_id", response.Submission.ID)).
+			With(zap.String("problem_uuid", response.Submission.Problem.UUID)).
+			Error("problem is not yet synced on worker, will not judge")
+		return
+	}
+
 	submission := response.Submission
-	result, err := j.JudgeSubmission(ctx, submission.Problem.ID, submission.Language, submission.Content)
+	result, err := j.JudgeSubmission(ctx, problem, submission.Language, submission.Content)
 	if err != nil {
 		return
 	}

@@ -21,10 +21,10 @@ import { exists, mapValues } from '../runtime';
 export interface RpcSubmissionProblemSnippet {
     /**
      * 
-     * @type {number}
+     * @type {string}
      * @memberof RpcSubmissionProblemSnippet
      */
-    iD: number;
+    uUID: string;
     /**
      * 
      * @type {string}
@@ -38,7 +38,7 @@ export interface RpcSubmissionProblemSnippet {
  */
 export function instanceOfRpcSubmissionProblemSnippet(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "iD" in value;
+    isInstance = isInstance && "uUID" in value;
     isInstance = isInstance && "displayName" in value;
 
     return isInstance;
@@ -54,7 +54,7 @@ export function RpcSubmissionProblemSnippetFromJSONTyped(json: any, ignoreDiscri
     }
     return {
         
-        'iD': json['ID'],
+        'uUID': json['UUID'],
         'displayName': json['DisplayName'],
     };
 }
@@ -68,7 +68,7 @@ export function RpcSubmissionProblemSnippetToJSON(value?: RpcSubmissionProblemSn
     }
     return {
         
-        'ID': value.iD,
+        'UUID': value.uUID,
         'DisplayName': value.displayName,
     };
 }

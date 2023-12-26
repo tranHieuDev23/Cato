@@ -1,6 +1,6 @@
 <nz-descriptions [nzBordered]="true" nzSize="small">
     <nz-descriptions-item nzTitle="Problem">
-        <a *ngIf="submission" href="/problem/{{ submission.problem.iD }}" target="_blank">
+        <a *ngIf="submission" href="/problem/{{ submission.problem.uUID }}" target="_blank">
             {{ submission.problem.displayName }}
         </a>
     </nz-descriptions-item>

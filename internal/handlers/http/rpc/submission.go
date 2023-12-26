@@ -23,7 +23,7 @@ const (
 )
 
 type SubmissionProblemSnippet struct {
-	ID          uint64
+	UUID        string
 	DisplayName string
 }
 

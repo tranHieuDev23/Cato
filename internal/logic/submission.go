@@ -99,7 +99,7 @@ func (s submission) dbSubmissionToRPCSubmission(
 	return rpc.Submission{
 		ID: uint64(submission.ID),
 		Problem: rpc.SubmissionProblemSnippet{
-			ID:          submission.OfProblemID,
+			UUID:        problem.UUID,
 			DisplayName: problem.DisplayName,
 		},
 		Author: rpc.Account{
@@ -124,7 +124,7 @@ func (s submission) dbSubmissionToRPCSubmissionSnippet(
 	return rpc.SubmissionSnippet{
 		ID: uint64(submission.ID),
 		Problem: rpc.SubmissionProblemSnippet{
-			ID:          submission.OfProblemID,
+			UUID:        problem.UUID,
 			DisplayName: problem.DisplayName,
 		},
 		Author: rpc.Account{

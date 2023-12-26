@@ -25,7 +25,7 @@
             <tr *ngFor="let submissionSnippet of table.data" (click)="onSubmissionSnippetClicked(submissionSnippet)">
                 <td>{{ submissionSnippet.iD }}</td>
                 <td>
-                    <a routerLink="/problem/{{ submissionSnippet.problem.iD }}" (click)="$event.stopPropagation()">
+                    <a routerLink="/problem/{{ submissionSnippet.problem.uUID }}" (click)="$event.stopPropagation()">
                         {{ submissionSnippet.problem.displayName }}
                     </a>
                 </td>

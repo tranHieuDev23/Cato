@@ -90,6 +90,10 @@ export class ProblemService {
         throw new PermissionDeniedError();
       }
 
+      if (apiError.code == ErrorCode.NotFound) {
+        throw new ProblemNotFoundError();
+      }
+
       throw e;
     }
   }
