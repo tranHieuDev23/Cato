@@ -11,12 +11,6 @@ export const routes: Routes = [
     canActivate: [LoggedOutGuard],
   },
   {
-    path: 'welcome',
-    loadChildren: () =>
-      import('./pages/welcome/welcome.routes').then((m) => m.WELCOME_ROUTES),
-    canActivate: [LoggedInGuard],
-  },
-  {
     path: 'profile',
     loadChildren: () =>
       import('./pages/profile/profile.routes').then((m) => m.PROFILE_ROUTES),

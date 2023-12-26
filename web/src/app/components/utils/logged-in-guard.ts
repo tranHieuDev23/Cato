@@ -30,8 +30,6 @@ export class LoggedInGuard {
     }
 
     switch (route.url[0].path) {
-      case 'welcome':
-        return true;
       case 'profile':
         return true;
       case 'account-list':

@@ -135,7 +135,7 @@ export class LoginComponent implements OnInit {
       this.notificationService.error('Failed to log in', 'Unknown error');
       return;
     }
-    this.router.navigateByUrl('/welcome');
+    this.router.navigateByUrl('/problem-list');
   }
 
   public async onRegisterClicked(): Promise<void> {
@@ -177,6 +177,6 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    this.router.navigateByUrl('/welcome');
+    this.router.navigateByUrl('/problem-list');
   }
 }

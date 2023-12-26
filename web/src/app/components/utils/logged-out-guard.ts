@@ -15,6 +15,6 @@ export class LoggedOutGuard {
       return true;
     }
 
-    return this.router.parseUrl('/welcome');
+    return this.router.parseUrl('/problem-list');
   }
 }
