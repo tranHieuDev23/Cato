@@ -25,24 +25,26 @@ type Judge interface {
 }
 
 type judge struct {
-	problemDataAccessor          db.ProblemDataAccessor
-	submissionDataAccessor       db.SubmissionDataAccessor
-	testCaseDataAccessor         db.TestCaseDataAccessor
-	db                           *gorm.DB
-	apiClient                    rpcclient.APIClient
-	logger                       *zap.Logger
-	logicConfig                  configs.Logic
-	appArguments                 utils.Arguments
-	workerPool                   *workerpool.WorkerPool
-	languageToCompileLogic       map[string]Compile
-	languageToTestCaseRunLogic   map[string]TestCaseRun
-	submissionRetryDelayDuration time.Duration
+	problemDataAccessor             db.ProblemDataAccessor
+	submissionDataAccessor          db.SubmissionDataAccessor
+	testCaseDataAccessor            db.TestCaseDataAccessor
+	problemTestCaseHashDataAccessor db.ProblemTestCaseHashDataAccessor
+	db                              *gorm.DB
+	apiClient                       rpcclient.APIClient
+	logger                          *zap.Logger
+	logicConfig                     configs.Logic
+	appArguments                    utils.Arguments
+	workerPool                      *workerpool.WorkerPool
+	languageToCompileLogic          map[string]Compile
+	languageToTestCaseRunLogic      map[string]TestCaseRun
+	submissionRetryDelayDuration    time.Duration
 }
 
 func NewJudge(
 	problemDataAccessor db.ProblemDataAccessor,
 	submissionDataAccessor db.SubmissionDataAccessor,
 	testCaseDataAccessor db.TestCaseDataAccessor,
+	problemTestCaseHashDataAccessor db.ProblemTestCaseHashDataAccessor,
 	dockerClient *client.Client,
 	db *gorm.DB,
 	apiClient rpcclient.APIClient,
@@ -57,18 +59,24 @@ func NewJudge(
 	}
 
 	j := &judge{
-		problemDataAccessor:          problemDataAccessor,
-		submissionDataAccessor:       submissionDataAccessor,
-		testCaseDataAccessor:         testCaseDataAccessor,
-		db:                           db,
-		apiClient:                    apiClient,
-		logger:                       logger,
-		logicConfig:                  logicConfig,
-		appArguments:                 appArguments,
-		workerPool:                   workerpool.New(1),
-		languageToCompileLogic:       make(map[string]Compile),
-		languageToTestCaseRunLogic:   make(map[string]TestCaseRun),
-		submissionRetryDelayDuration: submissionRetryDelayDuration,
+		problemDataAccessor:             problemDataAccessor,
+		submissionDataAccessor:          submissionDataAccessor,
+		testCaseDataAccessor:            testCaseDataAccessor,
+		problemTestCaseHashDataAccessor: problemTestCaseHashDataAccessor,
+		db:                              db,
+		apiClient:                       apiClient,
+		logger:                          logger,
+		logicConfig:                     logicConfig,
+		appArguments:                    appArguments,
+		workerPool:                      workerpool.New(1),
+		languageToCompileLogic:          make(map[string]Compile),
+		languageToTestCaseRunLogic:      make(map[string]TestCaseRun),
+		submissionRetryDelayDuration:    submissionRetryDelayDuration,
+	}
+
+	if appArguments.Distributed && !appArguments.Worker {
+		// Skip pulling of Docker image on Distributed host because we are not judging there
+		return j, nil
 	}
 
 	for _, languageConfig := range logicConfig.Judge.Languages {
@@ -90,8 +98,27 @@ func NewJudge(
 	return j, nil
 }
 
-func (j judge) validateProblemHash(_ context.Context, _ *db.Problem) error {
-	// TODO: Fill this in when implement worker APIs
+func (j judge) validateProblemHash(ctx context.Context, problem *db.Problem) error {
+	logger := utils.LoggerWithContext(ctx, j.logger).With(zap.String("problem_uuid", problem.UUID))
+
+	getProblemResponse, err := j.apiClient.GetProblem(ctx, &rpc.GetProblemRequest{
+		UUID: problem.UUID,
+	})
+	if err != nil {
+		return err
+	}
+
+	problemTestCaseHash, err := j.problemTestCaseHashDataAccessor.
+		GetProblemTestCaseHashOfProblem(ctx, uint64(problem.ID))
+	if err != nil {
+		return err
+	}
+
+	if getProblemResponse.Problem.TestCaseHash != problemTestCaseHash.Hash {
+		logger.Error("test case hash of problem is not equal to the latest from host, will not judge")
+		return errors.New("test case hash of problem is not equal to the latest from host, will not judge")
+	}
+
 	return nil
 }
 
