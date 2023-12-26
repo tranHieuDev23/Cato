@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/spf13/cobra"
@@ -9,6 +10,11 @@ import (
 	"github.com/tranHieuDev23/cato/internal/configs"
 	"github.com/tranHieuDev23/cato/internal/utils"
 	"github.com/tranHieuDev23/cato/internal/wiring"
+)
+
+var (
+	version    string
+	commitHash string
 )
 
 const (
@@ -64,6 +70,7 @@ func getArguments(cmd *cobra.Command) (utils.Arguments, error) {
 
 func main() {
 	rootCommand := &cobra.Command{
+		Version: fmt.Sprintf("%s-%s", version, commitHash),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var (
 				app     app.App
