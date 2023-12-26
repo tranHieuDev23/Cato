@@ -6,10 +6,15 @@ import (
 	"github.com/dustin/go-humanize"
 )
 
-type FirstAdmin struct {
+type FirstAccount struct {
 	AccountName string `yaml:"account_name"`
 	DisplayName string `yaml:"display_name"`
 	Password    string `yaml:"password"`
+}
+
+type FirstAccounts struct {
+	Admin  FirstAccount `yaml:"admin"`
+	Worker FirstAccount `yaml:"worker"`
 }
 
 type ProblemTestCaseHash struct {
@@ -59,7 +64,7 @@ func (j Judge) GetSubmissionRetryDelayDuration() (time.Duration, error) {
 }
 
 type Logic struct {
-	FirstAdmin          FirstAdmin          `yaml:"first_admin"`
+	FirstAccounts       FirstAccounts       `yaml:"first_accounts"`
 	ProblemTestCaseHash ProblemTestCaseHash `yaml:"problem_test_case_hash"`
 	Judge               Judge               `yaml:"judge"`
 }

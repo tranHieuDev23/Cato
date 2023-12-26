@@ -16,7 +16,7 @@ type App interface {
 
 type LocalCato struct {
 	dbMigrator                                  db.Migrator
-	createFirstAdminAccountJob                  jobs.CreateFirstAdminAccount
+	createFirstAccountsJob                      jobs.CreateFirstAccounts
 	scheduleSubmittedExecutingSubmissionToJudge jobs.ScheduleSubmittedExecutingSubmissionToJudge
 	httpServer                                  http.Server
 	logger                                      *zap.Logger
@@ -24,14 +24,14 @@ type LocalCato struct {
 
 func NewLocalCato(
 	dbMigrator db.Migrator,
-	createFirstAdminAccountJob jobs.CreateFirstAdminAccount,
+	createFirstAccountsJob jobs.CreateFirstAccounts,
 	scheduleSubmittedExecutingSubmissionToJudge jobs.ScheduleSubmittedExecutingSubmissionToJudge,
 	httpServer http.Server,
 	logger *zap.Logger,
 ) *LocalCato {
 	return &LocalCato{
-		dbMigrator:                 dbMigrator,
-		createFirstAdminAccountJob: createFirstAdminAccountJob,
+		dbMigrator:             dbMigrator,
+		createFirstAccountsJob: createFirstAccountsJob,
 		scheduleSubmittedExecutingSubmissionToJudge: scheduleSubmittedExecutingSubmissionToJudge,
 		httpServer: httpServer,
 		logger:     logger,
@@ -43,7 +43,7 @@ func (c LocalCato) Start() error {
 		return err
 	}
 
-	if err := c.createFirstAdminAccountJob.Run(); err != nil {
+	if err := c.createFirstAccountsJob.Run(); err != nil {
 		return err
 	}
 

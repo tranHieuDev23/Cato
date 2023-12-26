@@ -32,6 +32,12 @@ export interface RpcCreateSessionResponse {
      * @memberof RpcCreateSessionResponse
      */
     account: RpcCreateAccountResponseAccount;
+    /**
+     * 
+     * @type {string}
+     * @memberof RpcCreateSessionResponse
+     */
+    token: string;
 }
 
 /**
@@ -40,6 +46,7 @@ export interface RpcCreateSessionResponse {
 export function instanceOfRpcCreateSessionResponse(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "account" in value;
+    isInstance = isInstance && "token" in value;
 
     return isInstance;
 }
@@ -55,6 +62,7 @@ export function RpcCreateSessionResponseFromJSONTyped(json: any, ignoreDiscrimin
     return {
         
         'account': RpcCreateAccountResponseAccountFromJSON(json['Account']),
+        'token': json['Token'],
     };
 }
 
@@ -68,6 +76,7 @@ export function RpcCreateSessionResponseToJSON(value?: RpcCreateSessionResponse 
     return {
         
         'Account': RpcCreateAccountResponseAccountToJSON(value.account),
+        'Token': value.token,
     };
 }
 

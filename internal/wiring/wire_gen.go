@@ -54,7 +54,7 @@ func InitializeLocalCato(filePath configs.ConfigFilePath, args utils.Arguments) 
 	accountPasswordDataAccessor := db.NewAccountPasswordDataAccessor(gormDB, logger)
 	configsLogic := config.Logic
 	account := logic.NewAccount(logicHash, logicToken, role, accountDataAccessor, accountPasswordDataAccessor, gormDB, logger, configsLogic, args)
-	createFirstAdminAccount := jobs.NewCreateFirstAdminAccount(account)
+	createFirstAccounts := jobs.NewCreateFirstAccounts(account)
 	problemDataAccessor := db.NewProblemDataAccessor(gormDB, logger)
 	submissionDataAccessor := db.NewSubmissionDataAccessor(gormDB, logger)
 	testCaseDataAccessor := db.NewTestCaseDataAccessor(gormDB, logger)
@@ -63,12 +63,12 @@ func InitializeLocalCato(filePath configs.ConfigFilePath, args utils.Arguments) 
 		cleanup()
 		return nil, nil, err
 	}
-	httpClientWithAuthCookie := cato.NewHTTPClientWithAuthCookie(logger)
-	apiClient, err := cato.InitializeAuthenticatedClient(args, httpClientWithAuthCookie, logger)
+	httpClientWithAuthToken, err := cato.NewHTTPClientWithAuthToken(args, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
+	apiClient := cato.InitializeAuthenticatedClient(args, httpClientWithAuthToken)
 	judge, err := logic.NewJudge(problemDataAccessor, submissionDataAccessor, testCaseDataAccessor, client, gormDB, apiClient, logger, configsLogic, args)
 	if err != nil {
 		cleanup()
@@ -91,7 +91,7 @@ func InitializeLocalCato(filePath configs.ConfigFilePath, args utils.Arguments) 
 	spaHandler := http.NewSPAHandler()
 	configsHTTP := config.HTTP
 	server := http.NewServer(apiServer, v, v2, spaHandler, logger, configsHTTP, args)
-	localCato := app.NewLocalCato(migrator, createFirstAdminAccount, scheduleSubmittedExecutingSubmissionToJudge, server, logger)
+	localCato := app.NewLocalCato(migrator, createFirstAccounts, scheduleSubmittedExecutingSubmissionToJudge, server, logger)
 	return localCato, func() {
 		cleanup()
 	}, nil
@@ -128,7 +128,7 @@ func InitializeDistributedHostCato(filePath configs.ConfigFilePath, args utils.A
 	accountPasswordDataAccessor := db.NewAccountPasswordDataAccessor(gormDB, logger)
 	configsLogic := config.Logic
 	account := logic.NewAccount(logicHash, logicToken, role, accountDataAccessor, accountPasswordDataAccessor, gormDB, logger, configsLogic, args)
-	createFirstAdminAccount := jobs.NewCreateFirstAdminAccount(account)
+	createFirstAccounts := jobs.NewCreateFirstAccounts(account)
 	problemDataAccessor := db.NewProblemDataAccessor(gormDB, logger)
 	testCaseDataAccessor := db.NewTestCaseDataAccessor(gormDB, logger)
 	problemTestCaseHashDataAccessor := db.NewProblemTestCaseHashDataAccessor(gormDB, logger)
@@ -141,12 +141,12 @@ func InitializeDistributedHostCato(filePath configs.ConfigFilePath, args utils.A
 		cleanup()
 		return nil, nil, err
 	}
-	httpClientWithAuthCookie := cato.NewHTTPClientWithAuthCookie(logger)
-	apiClient, err := cato.InitializeAuthenticatedClient(args, httpClientWithAuthCookie, logger)
+	httpClientWithAuthToken, err := cato.NewHTTPClientWithAuthToken(args, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
+	apiClient := cato.InitializeAuthenticatedClient(args, httpClientWithAuthToken)
 	judge, err := logic.NewJudge(problemDataAccessor, submissionDataAccessor, testCaseDataAccessor, client, gormDB, apiClient, logger, configsLogic, args)
 	if err != nil {
 		cleanup()
@@ -164,7 +164,7 @@ func InitializeDistributedHostCato(filePath configs.ConfigFilePath, args utils.A
 	spaHandler := http.NewSPAHandler()
 	configsHTTP := config.HTTP
 	server := http.NewServer(apiServer, v, v2, spaHandler, logger, configsHTTP, args)
-	distributedHostCato := app.NewDistributedHostCato(migrator, createFirstAdminAccount, server, logger)
+	distributedHostCato := app.NewDistributedHostCato(migrator, createFirstAccounts, server, logger)
 	return distributedHostCato, func() {
 		cleanup()
 	}, nil
@@ -204,12 +204,12 @@ func InitializeDistributedWorkerCato(filePath configs.ConfigFilePath, args utils
 		cleanup()
 		return nil, nil, err
 	}
-	httpClientWithAuthCookie := cato.NewHTTPClientWithAuthCookie(logger)
-	apiClient, err := cato.InitializeAuthenticatedClient(args, httpClientWithAuthCookie, logger)
+	httpClientWithAuthToken, err := cato.NewHTTPClientWithAuthToken(args, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
+	apiClient := cato.InitializeAuthenticatedClient(args, httpClientWithAuthToken)
 	configsLogic := config.Logic
 	judge, err := logic.NewJudge(problemDataAccessor, submissionDataAccessor, testCaseDataAccessor, client, gormDB, apiClient, logger, configsLogic, args)
 	if err != nil {

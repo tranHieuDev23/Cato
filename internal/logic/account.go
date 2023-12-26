@@ -31,7 +31,7 @@ var (
 )
 
 type Account interface {
-	CreateFirstAdminAccount(ctx context.Context) error
+	CreateFirstAccounts(ctx context.Context) error
 	CreateAccount(ctx context.Context, in *rpc.CreateAccountRequest, token string) (*rpc.CreateAccountResponse, error)
 	GetAccountList(ctx context.Context, in *rpc.GetAccountListRequest, token string) (*rpc.GetAccountListResponse, error)
 	GetAccount(ctx context.Context, in *rpc.GetAccountRequest, token string) (*rpc.GetAccountResponse, error)
@@ -123,54 +123,83 @@ func (a account) IsAccountNameTaken(ctx context.Context, accountName string) (bo
 	return account != nil, nil
 }
 
-func (a account) CreateFirstAdminAccount(ctx context.Context) error {
+func (a account) createFirstAccount(
+	ctx context.Context,
+	tx *gorm.DB,
+	firstAccountConfig configs.FirstAccount,
+	role db.AccountRole,
+) error {
+	logger := utils.LoggerWithContext(ctx, a.logger).With(zap.String("role", string(role)))
+	logger.Info("creating first account")
+
+	if !a.isValidAccountName(firstAccountConfig.AccountName) {
+		logger.Error("invalid first account's account_name")
+		return errors.New("invalid first account's account_name")
+	}
+
+	if !a.isValidDisplayName(firstAccountConfig.DisplayName) {
+		logger.Error("invalid first account's display_name")
+		return errors.New("invalid first account's display_name")
+	}
+
+	if !a.isValidPassword(firstAccountConfig.Password) {
+		logger.Error("invalid first account's password")
+		return errors.New("invalid first account's password")
+	}
+
+	account := &db.Account{
+		AccountName: firstAccountConfig.AccountName,
+		DisplayName: firstAccountConfig.DisplayName,
+		Role:        db.AccountRoleAdmin,
+	}
+
+	if err := a.accountDataAccessor.WithDB(tx).CreateAccount(ctx, account); err != nil {
+		return err
+	}
+
+	hashedPassword, err := a.hash.Hash(ctx, firstAccountConfig.Password)
+	if err != nil {
+		return err
+	}
+
+	accountPassword := &db.AccountPassword{
+		OfAccountID: uint64(account.ID),
+		Hash:        hashedPassword,
+	}
+	err = a.accountPasswordDataAccessor.WithDB(tx).CreateAccountPassword(ctx, accountPassword)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a account) CreateFirstAccounts(ctx context.Context) error {
 	logger := utils.LoggerWithContext(ctx, a.logger)
 
 	return a.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if accountCount, err := a.accountDataAccessor.WithDB(tx).GetAccountCount(ctx); err != nil {
+		accountCount, err := a.accountDataAccessor.WithDB(tx).GetAccountCount(ctx)
+		if err != nil {
 			return err
-		} else if accountCount > 0 {
+		}
+
+		if accountCount > 0 {
 			logger.Info("there are accounts in the database, will not create first admin account")
 			return nil
 		}
 
-		if !a.isValidAccountName(a.logicConfig.FirstAdmin.AccountName) {
-			logger.Error("invalid first admin's account_name")
-			return errors.New("invalid first admin's account_name")
-		}
-
-		if !a.isValidDisplayName(a.logicConfig.FirstAdmin.DisplayName) {
-			logger.Error("invalid first admin's display_name")
-			return errors.New("invalid first admin's display_name")
-		}
-
-		if !a.isValidDisplayName(a.logicConfig.FirstAdmin.Password) {
-			logger.Error("invalid first admin's password")
-			return errors.New("invalid first admin's password")
-		}
-
-		account := &db.Account{
-			AccountName: a.logicConfig.FirstAdmin.AccountName,
-			DisplayName: a.logicConfig.FirstAdmin.DisplayName,
-			Role:        db.AccountRoleAdmin,
-		}
-
-		if err := a.accountDataAccessor.WithDB(tx).CreateAccount(ctx, account); err != nil {
-			return err
-		}
-
-		hashedPassword, err := a.hash.Hash(ctx, a.logicConfig.FirstAdmin.Password)
+		err = a.createFirstAccount(ctx, tx, a.logicConfig.FirstAccounts.Admin, db.AccountRoleAdmin)
 		if err != nil {
+			logger.With(zap.Error(err)).Error("failed to create first admin")
 			return err
 		}
 
-		accountPassword := &db.AccountPassword{
-			OfAccountID: uint64(account.ID),
-			Hash:        hashedPassword,
-		}
-		err = a.accountPasswordDataAccessor.WithDB(tx).CreateAccountPassword(ctx, accountPassword)
-		if err != nil {
-			return err
+		if a.appArguments.Distributed {
+			err = a.createFirstAccount(ctx, tx, a.logicConfig.FirstAccounts.Worker, db.AccountRoleWorker)
+			if err != nil {
+				logger.With(zap.Error(err)).Error("failed to create first worker")
+				return err
+			}
 		}
 
 		return nil

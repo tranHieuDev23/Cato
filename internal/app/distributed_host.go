@@ -11,23 +11,23 @@ import (
 )
 
 type DistributedHostCato struct {
-	dbMigrator                 db.Migrator
-	createFirstAdminAccountJob jobs.CreateFirstAdminAccount
-	httpServer                 http.Server
-	logger                     *zap.Logger
+	dbMigrator             db.Migrator
+	createFirstAccountsJob jobs.CreateFirstAccounts
+	httpServer             http.Server
+	logger                 *zap.Logger
 }
 
 func NewDistributedHostCato(
 	dbMigrator db.Migrator,
-	createFirstAdminAccountJob jobs.CreateFirstAdminAccount,
+	createFirstAccountsJob jobs.CreateFirstAccounts,
 	httpServer http.Server,
 	logger *zap.Logger,
 ) *DistributedHostCato {
 	return &DistributedHostCato{
-		dbMigrator:                 dbMigrator,
-		createFirstAdminAccountJob: createFirstAdminAccountJob,
-		httpServer:                 httpServer,
-		logger:                     logger,
+		dbMigrator:             dbMigrator,
+		createFirstAccountsJob: createFirstAccountsJob,
+		httpServer:             httpServer,
+		logger:                 logger,
 	}
 }
 
@@ -36,7 +36,7 @@ func (c DistributedHostCato) Start() error {
 		return err
 	}
 
-	if err := c.createFirstAdminAccountJob.Run(); err != nil {
+	if err := c.createFirstAccountsJob.Run(); err != nil {
 		return err
 	}
 

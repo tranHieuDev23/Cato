@@ -121,6 +121,7 @@ type CreateSessionRequest struct {
 
 type CreateSessionResponse struct {
 	Account Account
+	Token   string
 }
 
 type GetSessionRequest struct{}
