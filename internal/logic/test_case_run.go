@@ -209,7 +209,7 @@ func (t testCaseRun) Run(
 	}
 
 	defer func() {
-		err = t.dockerClient.ContainerRemove(ctx, containerCreateResponse.ID, types.ContainerRemoveOptions{})
+		err = t.dockerClient.ContainerRemove(ctx, containerCreateResponse.ID, types.ContainerRemoveOptions{Force: true})
 		if err != nil {
 			logger.With(zap.Error(err)).Error("failed to remove run test case container")
 		}
