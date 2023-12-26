@@ -150,7 +150,7 @@ func (a account) createFirstAccount(
 	account := &db.Account{
 		AccountName: firstAccountConfig.AccountName,
 		DisplayName: firstAccountConfig.DisplayName,
-		Role:        db.AccountRoleAdmin,
+		Role:        role,
 	}
 
 	if err := a.accountDataAccessor.WithDB(tx).CreateAccount(ctx, account); err != nil {
