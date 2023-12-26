@@ -9,8 +9,8 @@
     </p>
     <nz-table #table [nzBordered]="true" [nzData]="submissionSnippetList" [nzPageIndex]="pageIndex"
         [nzPageSize]="pageSize" [nzTotal]="totalSubmissionCount" [nzLoading]="loading" [nzShowSizeChanger]="true"
-        [nzPageSizeOptions]="[10, 20, 50, 100]" (nzPageIndexChange)="onPageIndexChange($event)"
-        (nzPageSizeChange)="onPageSizeChange($event)">
+        [nzFrontPagination]="false" [nzPageSizeOptions]="[10, 20, 50, 100]"
+        (nzPageIndexChange)="onPageIndexChange($event)" (nzPageSizeChange)="onPageSizeChange($event)">
         <thead>
             <tr>
                 <th>#</th>

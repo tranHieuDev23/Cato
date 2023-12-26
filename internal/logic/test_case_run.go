@@ -110,13 +110,13 @@ func (t testCaseRun) getContainerCommand(
 func (t testCaseRun) onContainerWaitData(
 	ctx context.Context,
 	data container.WaitResponse,
-	containerAttachResponse types.HijackedResponse,
+	containerAttachStdoutAndStderrResponse types.HijackedResponse,
 ) (RunOutput, error) {
 	logger := utils.LoggerWithContext(ctx, t.logger)
 
 	stdoutBuffer := new(bytes.Buffer)
 	stderrBuffer := new(bytes.Buffer)
-	if _, err := stdcopy.StdCopy(stdoutBuffer, stderrBuffer, containerAttachResponse.Reader); err != nil {
+	if _, err := stdcopy.StdCopy(stdoutBuffer, stderrBuffer, containerAttachStdoutAndStderrResponse.Reader); err != nil {
 		logger.With(zap.Error(err)).Error("failed to read from stdout and stderr of container")
 		return RunOutput{}, err
 	}
@@ -216,22 +216,24 @@ func (t testCaseRun) Run(
 	}()
 
 	containerID := containerCreateResponse.ID
-	containerAttachResponse, err := t.dockerClient.ContainerAttach(ctx, containerID, types.ContainerAttachOptions{
-		Stream: true, Stdin: true, Stdout: true, Stderr: true,
+	containerAttachStdinResponse, err := t.dockerClient.ContainerAttach(ctx, containerID, types.ContainerAttachOptions{
+		Stream: true, Stdin: true,
 	})
 	if err != nil {
 		logger.With(zap.String("container_id", containerID)).With(zap.Error(err)).
-			Error("failed to attached to run test case container")
+			Error("failed to attached to stdin of run test case container")
 		return RunOutput{}, err
 	}
 
-	defer containerAttachResponse.Close()
+	defer containerAttachStdinResponse.Close()
 
-	_, err = containerAttachResponse.Conn.Write(append([]byte(input), '\n'))
+	_, err = containerAttachStdinResponse.Conn.Write(append([]byte(input), '\n'))
 	if err != nil {
 		logger.With(zap.Error(err)).Error("failed to write to stdin of container")
 		return RunOutput{}, err
 	}
+
+	containerAttachStdinResponse.Close()
 
 	err = t.dockerClient.ContainerStart(ctx, containerID, types.ContainerStartOptions{})
 	if err != nil {
@@ -240,14 +242,21 @@ func (t testCaseRun) Run(
 		return RunOutput{}, err
 	}
 
-	containerWaitCtx, containerWaitCancelFunc := context.WithTimeout(
-		ctx, time.Duration(timeLimitInMillisecond)*time.Millisecond)
+	containerAttachStdoutAndStderrResponse, err := t.dockerClient.
+		ContainerAttach(ctx, containerID, types.ContainerAttachOptions{Stream: true, Stdout: true, Stderr: true})
+	if err != nil {
+		logger.With(zap.String("container_id", containerID)).With(zap.Error(err)).
+			Error("failed to attached to run test case container")
+		return RunOutput{}, err
+	}
+
+	containerWaitCtx, containerWaitCancelFunc := context.WithTimeout(ctx, time.Minute)
 	defer containerWaitCancelFunc()
 
 	dataChan, errChan := t.dockerClient.ContainerWait(containerWaitCtx, containerID, container.WaitConditionNotRunning)
 	select {
 	case data := <-dataChan:
-		return t.onContainerWaitData(ctx, data, containerAttachResponse)
+		return t.onContainerWaitData(ctx, data, containerAttachStdoutAndStderrResponse)
 
 	case err = <-errChan:
 		return t.onContainerWaitError(ctx, containerID, err)

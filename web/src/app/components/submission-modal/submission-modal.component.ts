@@ -15,6 +15,8 @@ import {
   NzNotificationModule,
   NzNotificationService,
 } from 'ng-zorro-antd/notification';
+import { SubmissionStatusColorPipe } from '../utils/submission-status-color.pipe';
+import { NzTagModule } from 'ng-zorro-antd/tag';
 
 export interface SubmissionModalData {
   submission: RpcSubmission;
@@ -23,6 +25,8 @@ export interface SubmissionModalData {
 @Component({
   selector: 'app-submission-modal',
   standalone: true,
+  templateUrl: './submission-modal.component.html',
+  styleUrl: './submission-modal.component.scss',
   imports: [
     CodemirrorModule,
     NzDescriptionsModule,
@@ -33,9 +37,10 @@ export interface SubmissionModalData {
     NzButtonModule,
     NzIconModule,
     NzNotificationModule,
+    SubmissionStatusPipe,
+    SubmissionStatusColorPipe,
+    NzTagModule,
   ],
-  templateUrl: './submission-modal.component.html',
-  styleUrl: './submission-modal.component.scss',
 })
 export class SubmissionModalComponent implements OnInit {
   @Input() public submission: RpcSubmission | undefined;

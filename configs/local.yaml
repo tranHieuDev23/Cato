@@ -85,9 +85,23 @@ logic:
   judge:
     submission_retry_delay: 5s
     languages:
+      c:
+        compile:
+          image: "docker.io/library/gcc:9.5.0-bullseye"
+          command_template: ["gcc", "-o", "$PROGRAM", "-O2", "$SOURCE"]
+          timeout: 30s
+          cpu_quota: 4000000
+          memory: 4GiB
+          source_file_name: main.c
+          program_file_name: a.out
+        test_case_run:
+          image: "docker.io/library/debian:bullseye-slim"
+          command_template:
+            ["timeout", "--foreground", "$TIME_LIMIT", "$PROGRAM"]
+          cpu_quota: 1000000
       cpp:
         compile:
-          image: "gcc:9.5.0-bullseye"
+          image: "docker.io/library/gcc:9.5.0-bullseye"
           command_template: ["g++", "-o", "$PROGRAM", "-O2", "$SOURCE"]
           timeout: 30s
           cpu_quota: 4000000
@@ -95,12 +109,27 @@ logic:
           source_file_name: main.cpp
           program_file_name: a.out
         test_case_run:
-          image: "debian:bullseye-slim"
+          image: "docker.io/library/debian:bullseye-slim"
           command_template:
             ["timeout", "--foreground", "$TIME_LIMIT", "$PROGRAM"]
           cpu_quota: 1000000
+      java:
+        compile:
+          image: "docker.io/library/openjdk:22-jdk-slim-buster"
+          command_template: ["javac", "$SOURCE"]
+          timeout: 30s
+          cpu_quota: 4000000
+          memory: 4GiB
+          source_file_name: Main.java
+          program_file_name: Main.class
+        test_case_run:
+          image: "docker.io/library/openjdk:22-jdk-slim-buster"
+          command_template:
+            ["timeout", "--foreground", "$TIME_LIMIT", "java", "Main"]
+          cpu_quota: 1000000
       python:
         test_case_run:
-          image: "python:alpine3.19"
-          command_template: ["python", "$PROGRAM"]
+          image: "docker.io/library/python:3.13-rc-slim"
+          command_template:
+            ["timeout", "--foreground", "$TIME_LIMIT", "python", "$PROGRAM"]
           cpu_quota: 1000000

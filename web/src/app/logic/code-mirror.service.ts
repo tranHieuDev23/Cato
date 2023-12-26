@@ -5,6 +5,9 @@ import { Injectable } from '@angular/core';
 })
 export class CodeMirrorService {
   public submissionLanguageToCodeMirrorMode(language: string): string {
+    if (language === 'c') {
+      return 'text/x-c++src';
+    }
     if (language === 'cpp') {
       return 'text/x-c++src';
     }

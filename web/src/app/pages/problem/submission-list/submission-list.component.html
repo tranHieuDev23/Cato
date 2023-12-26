@@ -6,7 +6,7 @@
     Last updated at {{ lastLoadedTime | date:'d/M/yyyy, h:mm a':'long' }}
 </p>
 <nz-table #table [nzData]="submissionSnippetList" [nzPageIndex]="pageIndex" [nzPageSize]="pageSize"
-    [nzTotal]="totalSubmissionCount" [nzLoading]="loading" [nzShowSizeChanger]="true"
+    [nzTotal]="totalSubmissionCount" [nzLoading]="loading" [nzShowSizeChanger]="true" [nzFrontPagination]="false"
     [nzPageSizeOptions]="[10, 20, 50, 100]" (nzPageIndexChange)="onPageIndexChange($event)"
     (nzPageSizeChange)="onPageSizeChange($event)">
     <thead>
