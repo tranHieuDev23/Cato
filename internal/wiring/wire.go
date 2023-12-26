@@ -25,28 +25,19 @@ var WireSet = wire.NewSet(
 	app.WireSet,
 )
 
-func InitializeLocal(
+func InitializeHost(
 	filePath configs.ConfigFilePath,
 	args utils.Arguments,
-) (*app.Local, func(), error) {
+) (*app.Host, func(), error) {
 	wire.Build(WireSet)
 
 	return nil, nil, nil
 }
 
-func InitializeDistributedHost(
+func InitializeWorker(
 	filePath configs.ConfigFilePath,
 	args utils.Arguments,
-) (*app.DistributedHost, func(), error) {
-	wire.Build(WireSet)
-
-	return nil, nil, nil
-}
-
-func InitializeDistributedWorker(
-	filePath configs.ConfigFilePath,
-	args utils.Arguments,
-) (*app.DistributedWorker, func(), error) {
+) (*app.Worker, func(), error) {
 	wire.Build(WireSet)
 
 	return nil, nil, nil

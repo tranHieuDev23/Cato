@@ -14,34 +14,37 @@ import (
 	"github.com/tranHieuDev23/cato/internal/utils"
 )
 
-type DistributedWorker struct {
+type Worker struct {
 	dbMigrator                                  db.Migrator
 	scheduleSubmittedExecutingSubmissionToJudge jobs.ScheduleSubmittedExecutingSubmissionToJudge
 	syncProblems                                jobs.SyncProblems
+	judgeDistributedFirstSubmittedSubmission    jobs.JudgeDistributedFirstSubmittedSubmission
 	logger                                      *zap.Logger
 	cron                                        *cron.Cron
 	logicConfig                                 configs.Logic
 }
 
-func NewDistributedWorker(
+func NewWorker(
 	dbMigrator db.Migrator,
 	scheduleSubmittedExecutingSubmissionToJudge jobs.ScheduleSubmittedExecutingSubmissionToJudge,
 	syncProblems jobs.SyncProblems,
+	judgeDistributedFirstSubmittedSubmission jobs.JudgeDistributedFirstSubmittedSubmission,
 	logger *zap.Logger,
 	cron *cron.Cron,
 	logicConfig configs.Logic,
-) *DistributedWorker {
-	return &DistributedWorker{
+) *Worker {
+	return &Worker{
 		dbMigrator: dbMigrator,
 		scheduleSubmittedExecutingSubmissionToJudge: scheduleSubmittedExecutingSubmissionToJudge,
-		syncProblems: syncProblems,
-		logger:       logger,
-		cron:         cron,
-		logicConfig:  logicConfig,
+		syncProblems:                             syncProblems,
+		judgeDistributedFirstSubmittedSubmission: judgeDistributedFirstSubmittedSubmission,
+		logger:                                   logger,
+		cron:                                     cron,
+		logicConfig:                              logicConfig,
 	}
 }
 
-func (c DistributedWorker) Start() error {
+func (c Worker) Start() error {
 	if err := c.dbMigrator.Migrate(context.Background()); err != nil {
 		return err
 	}
@@ -53,6 +56,14 @@ func (c DistributedWorker) Start() error {
 	if _, err := c.cron.AddFunc(c.logicConfig.SyncProblem.Schedule, func() {
 		if err := c.syncProblems.Run(); err != nil {
 			c.logger.With(zap.Error(err)).Error("failed to run sync problem cronjob")
+		}
+	}); err != nil {
+		return err
+	}
+
+	if _, err := c.cron.AddFunc(c.logicConfig.Judge.Schedule, func() {
+		if err := c.judgeDistributedFirstSubmittedSubmission.Run(); err != nil {
+			c.logger.With(zap.Error(err)).Error("failed to run judge distributed first submitted submission cronjob")
 		}
 	}); err != nil {
 		return err

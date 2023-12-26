@@ -8,6 +8,7 @@ import (
 
 	"github.com/docker/docker/client"
 	"github.com/gammazero/workerpool"
+	"gitlab.com/pjrpc/pjrpc/v2"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
@@ -21,7 +22,7 @@ import (
 type Judge interface {
 	JudgeSubmission(ctx context.Context, problem *db.Problem, language string, content string) (db.SubmissionResult, error)
 	ScheduleJudgeLocalSubmission(id uint64)
-	ScheduleJudgeDistributedFirstSubmittedSubmission()
+	JudgeDistributedFirstSubmittedSubmission(ctx context.Context) error
 }
 
 type judge struct {
@@ -317,18 +318,26 @@ func (j judge) ScheduleJudgeLocalSubmission(submissionID uint64) {
 	j.workerPool.Submit(func() { j.judgeLocalSubmission(context.Background(), submissionID) })
 }
 
-func (j judge) judgeLDistributedSubmission(ctx context.Context) {
+func (j judge) JudgeDistributedFirstSubmittedSubmission(ctx context.Context) error {
 	logger := utils.LoggerWithContext(ctx, j.logger)
 
 	response, err := j.apiClient.GetAndUpdateFirstSubmittedSubmissionToExecuting(
 		ctx, &rpc.GetAndUpdateFirstSubmittedSubmissionToExecutingRequest{})
 	if err != nil {
-		return
+		errorResponse := new(pjrpc.ErrorResponse)
+		if errors.As(errors.Unwrap(err), &errorResponse) {
+			if errorResponse.Code == int(rpc.ErrorCodeNotFound) {
+				logger.Info("no submitted problem found, no need to judge")
+				return nil
+			}
+		}
+
+		return err
 	}
 
 	problem, err := j.problemDataAccessor.GetProblemByUUID(ctx, response.Submission.Problem.UUID)
 	if err != nil {
-		return
+		return err
 	}
 
 	if problem == nil {
@@ -336,13 +345,13 @@ func (j judge) judgeLDistributedSubmission(ctx context.Context) {
 			With(zap.Uint64("submission_id", response.Submission.ID)).
 			With(zap.String("problem_uuid", response.Submission.Problem.UUID)).
 			Error("problem is not yet synced on worker, will not judge")
-		return
+		return err
 	}
 
 	submission := response.Submission
 	result, err := j.JudgeSubmission(ctx, problem, submission.Language, submission.Content)
 	if err != nil {
-		return
+		return err
 	}
 
 	_, err = j.apiClient.UpdateSubmission(ctx, &rpc.UpdateSubmissionRequest{
@@ -351,10 +360,8 @@ func (j judge) judgeLDistributedSubmission(ctx context.Context) {
 		Result: uint8(result),
 	})
 	if err != nil {
-		return
+		return err
 	}
-}
 
-func (j judge) ScheduleJudgeDistributedFirstSubmittedSubmission() {
-	j.workerPool.Submit(func() { j.judgeLDistributedSubmission(context.Background()) })
+	return nil
 }

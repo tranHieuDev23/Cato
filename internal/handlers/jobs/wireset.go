@@ -6,4 +6,5 @@ var WireSet = wire.NewSet(
 	NewCreateFirstAccounts,
 	NewScheduleSubmittedExecutingSubmissionToJudge,
 	NewSyncProblems,
+	NewJudgeDistributedFirstSubmittedSubmission,
 )

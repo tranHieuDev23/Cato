@@ -277,7 +277,7 @@ export class TestCaseListComponent implements OnInit {
   }
 
   public onExpandTestCaseModalCopyOutputClicked(): void {
-    copyToClipboard(this.expandTestCaseModalInput);
+    copyToClipboard(this.expandTestCaseModalOutput);
     this.notificationService.success('Output copied to clipboard', '');
   }
 

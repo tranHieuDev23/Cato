@@ -80,14 +80,10 @@ func main() {
 				return err
 			}
 
-			if arguments.Distributed {
-				if arguments.Worker {
-					app, cleanup, err = wiring.InitializeDistributedWorker(configs.ConfigFilePath(configFilePath), arguments)
-				} else {
-					app, cleanup, err = wiring.InitializeDistributedHost(configs.ConfigFilePath(configFilePath), arguments)
-				}
+			if arguments.Distributed && arguments.Worker {
+				app, cleanup, err = wiring.InitializeWorker(configs.ConfigFilePath(configFilePath), arguments)
 			} else {
-				app, cleanup, err = wiring.InitializeLocal(configs.ConfigFilePath(configFilePath), arguments)
+				app, cleanup, err = wiring.InitializeHost(configs.ConfigFilePath(configFilePath), arguments)
 			}
 
 			if err != nil {

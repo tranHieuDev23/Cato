@@ -208,7 +208,7 @@ func (s submission) isValidSubmissionStatusTransition(
 		return oldStatus == db.SubmissionStatus(rpc.SubmissionStatusSubmitted)
 	}
 
-	if newStatus == rpc.SubmissionStatusExecuting {
+	if newStatus == rpc.SubmissionStatusFinished {
 		return oldStatus == db.SubmissionStatus(rpc.SubmissionStatusExecuting)
 	}
 

@@ -55,6 +55,7 @@ type Language struct {
 }
 
 type Judge struct {
+	Schedule             string     `yaml:"schedule"`
 	Languages            []Language `yaml:"languages"`
 	SubmissionRetryDelay string     `yaml:"submission_retry_delay"`
 }

@@ -8,7 +8,6 @@ package wiring
 
 import (
 	"github.com/google/wire"
-
 	"github.com/tranHieuDev23/cato/internal/app"
 	"github.com/tranHieuDev23/cato/internal/configs"
 	"github.com/tranHieuDev23/cato/internal/dataaccess"
@@ -24,7 +23,7 @@ import (
 
 // Injectors from wire.go:
 
-func InitializeLocal(filePath configs.ConfigFilePath, args utils.Arguments) (*app.Local, func(), error) {
+func InitializeHost(filePath configs.ConfigFilePath, args utils.Arguments) (*app.Host, func(), error) {
 	logger, cleanup, err := utils.InitializeLogger()
 	if err != nil {
 		return nil, nil, err
@@ -92,86 +91,13 @@ func InitializeLocal(filePath configs.ConfigFilePath, args utils.Arguments) (*ap
 	spaHandler := http.NewSPAHandler()
 	configsHTTP := config.HTTP
 	server := http.NewServer(apiServer, v, v2, spaHandler, logger, configsHTTP, args)
-	local := app.NewLocalCato(migrator, createFirstAccounts, scheduleSubmittedExecutingSubmissionToJudge, server, logger)
-	return local, func() {
+	host := app.NewHost(migrator, createFirstAccounts, scheduleSubmittedExecutingSubmissionToJudge, server, logger)
+	return host, func() {
 		cleanup()
 	}, nil
 }
 
-func InitializeDistributedHost(filePath configs.ConfigFilePath, args utils.Arguments) (*app.DistributedHost, func(), error) {
-	logger, cleanup, err := utils.InitializeLogger()
-	if err != nil {
-		return nil, nil, err
-	}
-	config, err := configs.NewConfig(filePath)
-	if err != nil {
-		cleanup()
-		return nil, nil, err
-	}
-	database := config.Database
-	gormDB, err := db.InitializeDB(logger, database)
-	if err != nil {
-		cleanup()
-		return nil, nil, err
-	}
-	migrator := db.NewMigrator(gormDB, logger)
-	auth := config.Auth
-	hash := auth.Hash
-	logicHash := logic.NewHash(hash, logger)
-	accountDataAccessor := db.NewAccountDataAccessor(gormDB, logger)
-	token := auth.Token
-	logicToken, err := logic.NewToken(accountDataAccessor, token, logger)
-	if err != nil {
-		cleanup()
-		return nil, nil, err
-	}
-	role := logic.NewRole(logger)
-	accountPasswordDataAccessor := db.NewAccountPasswordDataAccessor(gormDB, logger)
-	configsLogic := config.Logic
-	account := logic.NewAccount(logicHash, logicToken, role, accountDataAccessor, accountPasswordDataAccessor, gormDB, logger, configsLogic, args)
-	createFirstAccounts := jobs.NewCreateFirstAccounts(account)
-	problemDataAccessor := db.NewProblemDataAccessor(gormDB, logger)
-	testCaseDataAccessor := db.NewTestCaseDataAccessor(gormDB, logger)
-	problemTestCaseHashDataAccessor := db.NewProblemTestCaseHashDataAccessor(gormDB, logger)
-	httpClientWithAuthToken, err := cato.NewHTTPClientWithAuthToken(args, logger)
-	if err != nil {
-		cleanup()
-		return nil, nil, err
-	}
-	apiClient := cato.InitializeAuthenticatedClient(args, httpClientWithAuthToken)
-	testCase := logic.NewTestCase(logicToken, role, problemDataAccessor, testCaseDataAccessor, problemTestCaseHashDataAccessor, gormDB, apiClient, logger, configsLogic)
-	problemExampleDataAccessor := db.NewProblemExampleDataAccessor(gormDB, logger)
-	submissionDataAccessor := db.NewSubmissionDataAccessor(gormDB, logger)
-	problem := logic.NewProblem(logicToken, role, testCase, accountDataAccessor, problemDataAccessor, problemExampleDataAccessor, problemTestCaseHashDataAccessor, testCaseDataAccessor, submissionDataAccessor, logger, gormDB, apiClient, configsLogic)
-	client, err := utils.InitializeDockerClient()
-	if err != nil {
-		cleanup()
-		return nil, nil, err
-	}
-	judge, err := logic.NewJudge(problemDataAccessor, submissionDataAccessor, testCaseDataAccessor, problemTestCaseHashDataAccessor, client, gormDB, apiClient, logger, configsLogic, args)
-	if err != nil {
-		cleanup()
-		return nil, nil, err
-	}
-	submission := logic.NewSubmission(logicToken, role, judge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, gormDB, logger, args)
-	apiServer := http.NewAPIServerHandler(account, problem, testCase, submission, configsLogic, logger, args)
-	v := middlewares.InitializePJRPCMiddlewareList()
-	httpAuth, err := middlewares.NewHTTPAuth(logicToken, token, logger)
-	if err != nil {
-		cleanup()
-		return nil, nil, err
-	}
-	v2 := middlewares.InitalizeHTTPMiddlewareList(httpAuth)
-	spaHandler := http.NewSPAHandler()
-	configsHTTP := config.HTTP
-	server := http.NewServer(apiServer, v, v2, spaHandler, logger, configsHTTP, args)
-	distributedHost := app.NewDistributedHost(migrator, createFirstAccounts, server, logger)
-	return distributedHost, func() {
-		cleanup()
-	}, nil
-}
-
-func InitializeDistributedWorker(filePath configs.ConfigFilePath, args utils.Arguments) (*app.DistributedWorker, func(), error) {
+func InitializeWorker(filePath configs.ConfigFilePath, args utils.Arguments) (*app.Worker, func(), error) {
 	logger, cleanup, err := utils.InitializeLogger()
 	if err != nil {
 		return nil, nil, err
@@ -224,9 +150,10 @@ func InitializeDistributedWorker(filePath configs.ConfigFilePath, args utils.Arg
 	problemExampleDataAccessor := db.NewProblemExampleDataAccessor(gormDB, logger)
 	problem := logic.NewProblem(logicToken, role, testCase, accountDataAccessor, problemDataAccessor, problemExampleDataAccessor, problemTestCaseHashDataAccessor, testCaseDataAccessor, submissionDataAccessor, logger, gormDB, apiClient, configsLogic)
 	syncProblems := jobs.NewSyncProblems(problem)
+	judgeDistributedFirstSubmittedSubmission := jobs.NewJudgeDistributedFirstSubmittedSubmission(judge)
 	cron, cleanup2 := utils.InitializeCron()
-	distributedWorker := app.NewDistributedWorker(migrator, scheduleSubmittedExecutingSubmissionToJudge, syncProblems, logger, cron, configsLogic)
-	return distributedWorker, func() {
+	worker := app.NewWorker(migrator, scheduleSubmittedExecutingSubmissionToJudge, syncProblems, judgeDistributedFirstSubmittedSubmission, logger, cron, configsLogic)
+	return worker, func() {
 		cleanup2()
 		cleanup()
 	}, nil
