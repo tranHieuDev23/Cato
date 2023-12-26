@@ -5,5 +5,5 @@ import "github.com/google/wire"
 var WireSet = wire.NewSet(
 	InitializeLogger,
 	InitializeDockerClient,
-	InitializeGoCronScheduler,
+	InitializeCron,
 )

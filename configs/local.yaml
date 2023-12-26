@@ -88,6 +88,7 @@ logic:
   problem_test_case_hash:
     batch_size: 10
   judge:
+    schedule: "@every 5s"
     submission_retry_delay: 5s
     languages:
       - value: c

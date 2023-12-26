@@ -8,6 +8,7 @@ package wiring
 
 import (
 	"github.com/google/wire"
+
 	"github.com/tranHieuDev23/cato/internal/app"
 	"github.com/tranHieuDev23/cato/internal/configs"
 	"github.com/tranHieuDev23/cato/internal/dataaccess"
@@ -223,12 +224,8 @@ func InitializeDistributedWorker(filePath configs.ConfigFilePath, args utils.Arg
 	problemExampleDataAccessor := db.NewProblemExampleDataAccessor(gormDB, logger)
 	problem := logic.NewProblem(logicToken, role, testCase, accountDataAccessor, problemDataAccessor, problemExampleDataAccessor, problemTestCaseHashDataAccessor, testCaseDataAccessor, submissionDataAccessor, logger, gormDB, apiClient, configsLogic)
 	syncProblems := jobs.NewSyncProblems(problem)
-	scheduler, cleanup2, err := utils.InitializeGoCronScheduler(logger)
-	if err != nil {
-		cleanup()
-		return nil, nil, err
-	}
-	distributedWorker := app.NewDistributedWorker(migrator, scheduleSubmittedExecutingSubmissionToJudge, syncProblems, logger, scheduler, configsLogic)
+	cron, cleanup2 := utils.InitializeCron()
+	distributedWorker := app.NewDistributedWorker(migrator, scheduleSubmittedExecutingSubmissionToJudge, syncProblems, logger, cron, configsLogic)
 	return distributedWorker, func() {
 		cleanup2()
 		cleanup()

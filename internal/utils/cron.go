@@ -1,22 +1,14 @@
 package utils
 
 import (
-	"github.com/go-co-op/gocron/v2"
-	"go.uber.org/zap"
+	"github.com/robfig/cron/v3"
 )
 
-func InitializeGoCronScheduler(logger *zap.Logger) (gocron.Scheduler, func(), error) {
-	scheduler, err := gocron.NewScheduler()
-	if err != nil {
-		return nil, nil, err
-	}
-
+func InitializeCron() (*cron.Cron, func()) {
+	c := cron.New()
 	cleanupFunc := func() {
-		err = scheduler.Shutdown()
-		if err != nil {
-			logger.With(zap.Error(err)).Error("failed to shutdown scheduler")
-		}
+		<-c.Stop().Done()
 	}
 
-	return scheduler, cleanupFunc, nil
+	return c, cleanupFunc
 }

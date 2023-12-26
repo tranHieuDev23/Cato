@@ -6,7 +6,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/go-co-op/gocron/v2"
+	"github.com/robfig/cron/v3"
 
 	"github.com/tranHieuDev23/cato/internal/configs"
 	"github.com/tranHieuDev23/cato/internal/dataaccess/db"
@@ -19,7 +19,7 @@ type DistributedWorker struct {
 	scheduleSubmittedExecutingSubmissionToJudge jobs.ScheduleSubmittedExecutingSubmissionToJudge
 	syncProblems                                jobs.SyncProblems
 	logger                                      *zap.Logger
-	scheduler                                   gocron.Scheduler
+	cron                                        *cron.Cron
 	logicConfig                                 configs.Logic
 }
 
@@ -28,7 +28,7 @@ func NewDistributedWorker(
 	scheduleSubmittedExecutingSubmissionToJudge jobs.ScheduleSubmittedExecutingSubmissionToJudge,
 	syncProblems jobs.SyncProblems,
 	logger *zap.Logger,
-	scheduler gocron.Scheduler,
+	cron *cron.Cron,
 	logicConfig configs.Logic,
 ) *DistributedWorker {
 	return &DistributedWorker{
@@ -36,7 +36,7 @@ func NewDistributedWorker(
 		scheduleSubmittedExecutingSubmissionToJudge: scheduleSubmittedExecutingSubmissionToJudge,
 		syncProblems: syncProblems,
 		logger:       logger,
-		scheduler:    scheduler,
+		cron:         cron,
 		logicConfig:  logicConfig,
 	}
 }
@@ -50,22 +50,17 @@ func (c DistributedWorker) Start() error {
 		return err
 	}
 
-	if _, err := c.scheduler.NewJob(
-		gocron.CronJob(c.logicConfig.SyncProblem.Schedule, false),
-		gocron.NewTask(func() {
-			if err := c.syncProblems.Run(); err != nil {
-				c.logger.With(zap.Error(err)).Error("failed to run sync problem cronjob")
-			}
-		}),
-		gocron.WithSingletonMode(gocron.LimitModeReschedule),
-	); err != nil {
+	if _, err := c.cron.AddFunc(c.logicConfig.SyncProblem.Schedule, func() {
+		if err := c.syncProblems.Run(); err != nil {
+			c.logger.With(zap.Error(err)).Error("failed to run sync problem cronjob")
+		}
+	}); err != nil {
 		return err
 	}
 
-	c.logger.Info("scheduler starting")
-	c.scheduler.Start()
+	c.logger.Info("cron starting")
+	c.cron.Start()
 
 	utils.BlockUntilSignal(syscall.SIGINT, syscall.SIGTERM)
-
 	return nil
 }
