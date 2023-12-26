@@ -8,7 +8,6 @@ package wiring
 
 import (
 	"github.com/google/wire"
-
 	"github.com/tranHieuDev23/cato/internal/app"
 	"github.com/tranHieuDev23/cato/internal/configs"
 	"github.com/tranHieuDev23/cato/internal/dataaccess"
@@ -53,8 +52,8 @@ func InitializeLocalCato(filePath configs.ConfigFilePath) (*app.LocalCato, func(
 	role := logic.NewRole(logger)
 	accountPasswordDataAccessor := db.NewAccountPasswordDataAccessor(gormDB, logger)
 	configsLogic := config.Logic
-	account := logic.NewAccount(logicHash, logicToken, role, accountDataAccessor, accountPasswordDataAccessor, gormDB, logger, configsLogic)
-	createFirstAdminAccount := jobs.NewCreateFirstAdminAccount(account)
+	distributedAccount := logic.NewDistributedAccount(logicHash, logicToken, role, accountDataAccessor, accountPasswordDataAccessor, gormDB, logger, configsLogic)
+	distributedCreateFirstAdminAccount := jobs.NewDistributedCreateFirstAdminAccount(distributedAccount)
 	problemDataAccessor := db.NewProblemDataAccessor(gormDB, logger)
 	submissionDataAccessor := db.NewSubmissionDataAccessor(gormDB, logger)
 	testCaseDataAccessor := db.NewTestCaseDataAccessor(gormDB, logger)
@@ -70,11 +69,12 @@ func InitializeLocalCato(filePath configs.ConfigFilePath) (*app.LocalCato, func(
 	}
 	localSubmission := logic.NewLocalSubmission(logicToken, role, localJudge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, logger)
 	localScheduleSubmittedExecutingSubmissionToJudge := jobs.NewLocalScheduleSubmittedExecutingSubmissionToJudge(localSubmission)
+	localAccount := logic.NewLocalAccount(logicHash, logicToken, role, accountDataAccessor, accountPasswordDataAccessor, gormDB, logger, configsLogic)
 	problemTestCaseHashDataAccessor := db.NewProblemTestCaseHashDataAccessor(gormDB, logger)
 	testCase := logic.NewTestCase(logicToken, role, problemDataAccessor, testCaseDataAccessor, problemTestCaseHashDataAccessor, gormDB, logger, configsLogic)
 	problemExampleDataAccessor := db.NewProblemExampleDataAccessor(gormDB, logger)
 	problem := logic.NewProblem(logicToken, role, testCase, accountDataAccessor, problemDataAccessor, problemExampleDataAccessor, problemTestCaseHashDataAccessor, testCaseDataAccessor, submissionDataAccessor, logger, gormDB)
-	localAPIServerHandler := http.NewLocalAPIServerHandler(account, problem, testCase, localSubmission, configsLogic, logger)
+	localAPIServerHandler := http.NewLocalAPIServerHandler(localAccount, problem, testCase, localSubmission, configsLogic, logger)
 	v := middlewares.InitializePJRPCMiddlewareList()
 	httpAuth, err := middlewares.NewHTTPAuth(logicToken, token, logger)
 	if err != nil {
@@ -85,7 +85,7 @@ func InitializeLocalCato(filePath configs.ConfigFilePath) (*app.LocalCato, func(
 	spaHandler := http.NewSPAHandler()
 	configsHTTP := config.HTTP
 	localServer := http.NewLocalServer(localAPIServerHandler, v, v2, spaHandler, logger, configsHTTP)
-	localCato := app.NewLocalCato(migrator, createFirstAdminAccount, localScheduleSubmittedExecutingSubmissionToJudge, localServer, logger)
+	localCato := app.NewLocalCato(migrator, distributedCreateFirstAdminAccount, localScheduleSubmittedExecutingSubmissionToJudge, localServer, logger)
 	return localCato, func() {
 		cleanup()
 	}, nil
@@ -121,8 +121,9 @@ func InitializeDistributedHostCato(filePath configs.ConfigFilePath) (*app.Distri
 	role := logic.NewRole(logger)
 	accountPasswordDataAccessor := db.NewAccountPasswordDataAccessor(gormDB, logger)
 	configsLogic := config.Logic
-	account := logic.NewAccount(logicHash, logicToken, role, accountDataAccessor, accountPasswordDataAccessor, gormDB, logger, configsLogic)
-	createFirstAdminAccount := jobs.NewCreateFirstAdminAccount(account)
+	distributedAccount := logic.NewDistributedAccount(logicHash, logicToken, role, accountDataAccessor, accountPasswordDataAccessor, gormDB, logger, configsLogic)
+	distributedCreateFirstAdminAccount := jobs.NewDistributedCreateFirstAdminAccount(distributedAccount)
+	localAccount := logic.NewLocalAccount(logicHash, logicToken, role, accountDataAccessor, accountPasswordDataAccessor, gormDB, logger, configsLogic)
 	problemDataAccessor := db.NewProblemDataAccessor(gormDB, logger)
 	testCaseDataAccessor := db.NewTestCaseDataAccessor(gormDB, logger)
 	problemTestCaseHashDataAccessor := db.NewProblemTestCaseHashDataAccessor(gormDB, logger)
@@ -141,7 +142,7 @@ func InitializeDistributedHostCato(filePath configs.ConfigFilePath) (*app.Distri
 		return nil, nil, err
 	}
 	localSubmission := logic.NewLocalSubmission(logicToken, role, localJudge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, logger)
-	localAPIServerHandler := http.NewLocalAPIServerHandler(account, problem, testCase, localSubmission, configsLogic, logger)
+	localAPIServerHandler := http.NewLocalAPIServerHandler(localAccount, problem, testCase, localSubmission, configsLogic, logger)
 	v := middlewares.InitializePJRPCMiddlewareList()
 	httpAuth, err := middlewares.NewHTTPAuth(logicToken, token, logger)
 	if err != nil {
@@ -152,7 +153,7 @@ func InitializeDistributedHostCato(filePath configs.ConfigFilePath) (*app.Distri
 	spaHandler := http.NewSPAHandler()
 	configsHTTP := config.HTTP
 	localServer := http.NewLocalServer(localAPIServerHandler, v, v2, spaHandler, logger, configsHTTP)
-	distributedHostCato := app.NewDistributedHostCato(migrator, createFirstAdminAccount, localServer, logger)
+	distributedHostCato := app.NewDistributedHostCato(migrator, distributedCreateFirstAdminAccount, localServer, logger)
 	return distributedHostCato, func() {
 		cleanup()
 	}, nil

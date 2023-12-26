@@ -453,7 +453,7 @@ func (a apiServerHandler) UpdateTestCase(
 type LocalAPIServerHandler rpcserver.APIServer
 
 func NewLocalAPIServerHandler(
-	accountLogic logic.Account,
+	accountLogic logic.LocalAccount,
 	problemLogic logic.Problem,
 	testCaseLogic logic.TestCase,
 	submissionLogic logic.LocalSubmission,
@@ -466,7 +466,7 @@ func NewLocalAPIServerHandler(
 type DistributedAPIServerHandler rpcserver.APIServer
 
 func NewDistributedAPIServerHandler(
-	accountLogic logic.Account,
+	accountLogic logic.LocalAccount,
 	problemLogic logic.Problem,
 	testCaseLogic logic.TestCase,
 	submissionLogic logic.DistributedSubmission,

@@ -9,6 +9,10 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { CodeMirrorService } from '../../../logic/code-mirror.service';
 import { ServerService } from '../../../logic/server.service';
+import {
+  NzNotificationModule,
+  NzNotificationService,
+} from 'ng-zorro-antd/notification';
 
 export interface LanguageOption {
   value: string;
@@ -27,6 +31,7 @@ export interface LanguageOption {
     NzUploadModule,
     NzButtonModule,
     NzIconModule,
+    NzNotificationModule,
   ],
   templateUrl: './code-editor.component.html',
   styleUrl: './code-editor.component.scss',
@@ -46,15 +51,23 @@ export class CodeEditorComponent implements OnInit {
 
   constructor(
     private readonly codeMirrorService: CodeMirrorService,
-    private readonly serverService: ServerService
+    private readonly serverService: ServerService,
+    private readonly notificationService: NzNotificationService
   ) {}
 
   ngOnInit(): void {
     (async () => {
-      const serverInfo = await this.serverService.getServiceInfo();
-      this.languageOptionList = serverInfo.supportedLanguageList.map((item) => {
-        return { value: item.value, name: item.name };
-      });
+      try {
+        const serverInfo = await this.serverService.getServiceInfo();
+        this.languageOptionList = serverInfo.supportedLanguageList.map(
+          (item) => {
+            return { value: item.value, name: item.name };
+          }
+        );
+      } catch (e) {
+        this.notificationService.error('Failed to get server information', '');
+        return;
+      }
     })().then();
   }
 

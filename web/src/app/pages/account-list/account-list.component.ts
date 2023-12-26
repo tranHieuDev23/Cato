@@ -9,7 +9,7 @@ import { ActivatedRoute, Router, Params } from '@angular/router';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzTableModule } from 'ng-zorro-antd/table';
-import { RpcAccount } from '../../dataaccess/api';
+import { RpcAccount, RpcGetServerInfoResponse } from '../../dataaccess/api';
 import {
   AccountService,
   UnauthenticatedError,
@@ -39,6 +39,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSpaceModule } from 'ng-zorro-antd/space';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { Subscription } from 'rxjs';
+import { ServerService } from '../../logic/server.service';
 
 const DEFAULT_PAGE_INDEX = 1;
 const DEFAULT_PAGE_SIZE = 10;
@@ -79,6 +80,8 @@ export class AccountListComponent implements OnInit, OnDestroy {
   public createAccountForm: FormGroup;
   public editAccountForm: FormGroup;
 
+  public serverInfo: RpcGetServerInfoResponse | undefined;
+
   private queryParamsSubscription: Subscription | undefined;
 
   constructor(
@@ -90,7 +93,8 @@ export class AccountListComponent implements OnInit, OnDestroy {
     private readonly modalService: NzModalService,
     private readonly location: Location,
     private readonly pageTitleService: PageTitleService,
-    readonly formBuilder: FormBuilder
+    readonly formBuilder: FormBuilder,
+    private readonly serverService: ServerService
   ) {
     this.createAccountForm = formBuilder.group(
       {
@@ -140,6 +144,13 @@ export class AccountListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     (async () => {
+      try {
+        this.serverInfo = await this.serverService.getServiceInfo();
+      } catch (e) {
+        this.notificationService.error('Failed to get server information', '');
+        return;
+      }
+
       const sessionAccount = await this.accountService.getSessionAccount();
       if (sessionAccount === null) {
         this.notificationService.error(

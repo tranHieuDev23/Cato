@@ -51,6 +51,7 @@ type account struct {
 	db                          *gorm.DB
 	logger                      *zap.Logger
 	logicConfig                 configs.Logic
+	isLocal                     bool
 }
 
 func NewAccount(
@@ -62,6 +63,7 @@ func NewAccount(
 	db *gorm.DB,
 	logger *zap.Logger,
 	logicConfig configs.Logic,
+	isLocal bool,
 ) Account {
 	return &account{
 		hash:                        hash,
@@ -72,6 +74,7 @@ func NewAccount(
 		db:                          db,
 		logger:                      logger,
 		logicConfig:                 logicConfig,
+		isLocal:                     isLocal,
 	}
 }
 
@@ -193,6 +196,11 @@ func (a account) CreateAccount(
 
 	if !a.isValidPassword(in.Password) {
 		logger.Error("failed to create account: invalid password")
+		return nil, pjrpc.JRPCErrInvalidParams()
+	}
+
+	if a.isLocal && in.Role == string(rpc.AccountRoleWorker) {
+		logger.Error("failed to create account: trying to create worker account on local server")
 		return nil, pjrpc.JRPCErrInvalidParams()
 	}
 
@@ -455,6 +463,13 @@ func (a account) UpdateAccount(
 	in *rpc.UpdateAccountRequest,
 	token string,
 ) (*rpc.UpdateAccountResponse, error) {
+	logger := utils.LoggerWithContext(ctx, a.logger)
+
+	if a.isLocal && in.Role != nil && *in.Role == string(rpc.AccountRoleWorker) {
+		logger.Error("failed to update account: trying to update account to worker on local server")
+		return nil, pjrpc.JRPCErrInvalidParams()
+	}
+
 	account, err := a.token.GetAccount(ctx, token)
 	if err != nil {
 		return nil, err
@@ -512,5 +527,36 @@ func (a account) WithDB(db *gorm.DB) Account {
 		accountPasswordDataAccessor: a.accountPasswordDataAccessor.WithDB(db),
 		db:                          db,
 		logger:                      a.logger,
+		isLocal:                     a.isLocal,
 	}
+}
+
+type LocalAccount Account
+
+func NewLocalAccount(
+	hash Hash,
+	token Token,
+	role Role,
+	accountDataAccessor db.AccountDataAccessor,
+	accountPasswordDataAccessor db.AccountPasswordDataAccessor,
+	db *gorm.DB,
+	logger *zap.Logger,
+	logicConfig configs.Logic,
+) LocalAccount {
+	return NewAccount(hash, token, role, accountDataAccessor, accountPasswordDataAccessor, db, logger, logicConfig, true)
+}
+
+type DistributedAccount Account
+
+func NewDistributedAccount(
+	hash Hash,
+	token Token,
+	role Role,
+	accountDataAccessor db.AccountDataAccessor,
+	accountPasswordDataAccessor db.AccountPasswordDataAccessor,
+	db *gorm.DB,
+	logger *zap.Logger,
+	logicConfig configs.Logic,
+) DistributedAccount {
+	return NewAccount(hash, token, role, accountDataAccessor, accountPasswordDataAccessor, db, logger, logicConfig, false)
 }

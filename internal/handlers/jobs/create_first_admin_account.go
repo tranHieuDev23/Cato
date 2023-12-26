@@ -25,3 +25,19 @@ func NewCreateFirstAdminAccount(
 func (j createFirstAdminAccount) Run() error {
 	return j.accountLogic.CreateFirstAdminAccount(context.Background())
 }
+
+type LocalCreateFirstAdminAccount CreateFirstAdminAccount
+
+func NewLocalCreateFirstAdminAccount(
+	accountLogic logic.LocalAccount,
+) LocalCreateFirstAdminAccount {
+	return NewCreateFirstAdminAccount(accountLogic)
+}
+
+type DistributedCreateFirstAdminAccount CreateFirstAdminAccount
+
+func NewDistributedCreateFirstAdminAccount(
+	accountLogic logic.DistributedAccount,
+) DistributedCreateFirstAdminAccount {
+	return NewCreateFirstAdminAccount(accountLogic)
+}

@@ -28,7 +28,7 @@ type judge struct {
 	db                           *gorm.DB
 	logger                       *zap.Logger
 	logicConfig                  configs.Logic
-	shouldValidateProblemHash    bool
+	isLocal                      bool
 	workerPool                   *workerpool.WorkerPool
 	languageToCompileLogic       map[string]Compile
 	languageToTestCaseRunLogic   map[string]TestCaseRun
@@ -43,7 +43,7 @@ func NewJudge(
 	db *gorm.DB,
 	logger *zap.Logger,
 	logicConfig configs.Logic,
-	shouldValidateProblemHash bool,
+	isLocal bool,
 ) (Judge, error) {
 	submissionRetryDelayDuration, err := logicConfig.Judge.GetSubmissionRetryDelayDuration()
 	if err != nil {
@@ -58,7 +58,7 @@ func NewJudge(
 		db:                           db,
 		logger:                       logger,
 		logicConfig:                  logicConfig,
-		shouldValidateProblemHash:    shouldValidateProblemHash,
+		isLocal:                      isLocal,
 		workerPool:                   workerpool.New(1),
 		languageToCompileLogic:       make(map[string]Compile),
 		languageToTestCaseRunLogic:   make(map[string]TestCaseRun),
@@ -186,7 +186,7 @@ func (j judge) judgeDBSubmission(ctx context.Context, submission *db.Submission)
 		return errors.New("cannot find problem")
 	}
 
-	if j.shouldValidateProblemHash {
+	if !j.isLocal {
 		logger.Info("validating problem hash")
 		err = j.validateProblemHash(ctx, problem)
 		if err != nil {
@@ -335,7 +335,7 @@ func NewLocalJudge(
 		db,
 		logger,
 		logicConfig,
-		false,
+		true,
 	)
 }
 
@@ -358,6 +358,6 @@ func NewDistributedJudge(
 		db,
 		logger,
 		logicConfig,
-		true,
+		false,
 	)
 }

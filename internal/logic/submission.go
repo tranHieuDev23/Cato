@@ -45,14 +45,14 @@ type Submission interface {
 }
 
 type submission struct {
-	token                                  Token
-	role                                   Role
-	judge                                  Judge
-	accountDataAccessor                    db.AccountDataAccessor
-	problemDataAccessor                    db.ProblemDataAccessor
-	submissionDataAccessor                 db.SubmissionDataAccessor
-	logger                                 *zap.Logger
-	shouldScheduleCreatedSubmissionToJudge bool
+	token                  Token
+	role                   Role
+	judge                  Judge
+	accountDataAccessor    db.AccountDataAccessor
+	problemDataAccessor    db.ProblemDataAccessor
+	submissionDataAccessor db.SubmissionDataAccessor
+	logger                 *zap.Logger
+	isLocal                bool
 }
 
 func NewSubmission(
@@ -63,17 +63,17 @@ func NewSubmission(
 	problemDataAccessor db.ProblemDataAccessor,
 	submissionDataAccessor db.SubmissionDataAccessor,
 	logger *zap.Logger,
-	shouldScheduleCreatedSubmissionToJudge bool,
+	isLocal bool,
 ) Submission {
 	return &submission{
-		token:                                  token,
-		role:                                   role,
-		judge:                                  judge,
-		accountDataAccessor:                    accountDataAccessor,
-		problemDataAccessor:                    problemDataAccessor,
-		submissionDataAccessor:                 submissionDataAccessor,
-		logger:                                 logger,
-		shouldScheduleCreatedSubmissionToJudge: shouldScheduleCreatedSubmissionToJudge,
+		token:                  token,
+		role:                   role,
+		judge:                  judge,
+		accountDataAccessor:    accountDataAccessor,
+		problemDataAccessor:    problemDataAccessor,
+		submissionDataAccessor: submissionDataAccessor,
+		logger:                 logger,
+		isLocal:                isLocal,
 	}
 }
 
@@ -173,7 +173,7 @@ func (s submission) CreateSubmission(
 		return nil, err
 	}
 
-	if s.shouldScheduleCreatedSubmissionToJudge {
+	if s.isLocal {
 		s.judge.ScheduleSubmissionToJudge(uint64(submission.ID))
 	}
 
