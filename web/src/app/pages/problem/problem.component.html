@@ -34,7 +34,7 @@
                             </button>
                         </nz-button-group>
                     </p>
-                    <span nz-typography [innerHTML]="problem.description | katex"></span>
+                    <div #problemDescriptionContainer [innerHTML]="problem.description"></div>
                 </ng-container>
             </nz-tab>
 

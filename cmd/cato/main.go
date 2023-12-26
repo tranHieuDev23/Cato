@@ -121,17 +121,17 @@ func main() {
 	rootCommand.Flags().String(
 		flagHostAddress,
 		"http://127.0.0.1:8080",
-		"The address of the host server when running in worker node.",
+		"The address of the host server when running in worker mode.",
 	)
 	rootCommand.Flags().String(
 		flagWorkerAccountName,
 		"worker",
-		"The worker account name when running in worker node.",
+		"The worker account name when running in worker mode.",
 	)
 	rootCommand.Flags().String(
 		flagWorkerAccountPassword,
 		"changeme",
-		"The worker account name when running in worker node.",
+		"The worker account name when running in worker mode.",
 	)
 	rootCommand.Flags().String(
 		flagConfigFilePath,

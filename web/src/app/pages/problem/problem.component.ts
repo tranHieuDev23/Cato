@@ -1,4 +1,11 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  TemplateRef,
+  ViewChild,
+} from '@angular/core';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { RpcAccount, RpcProblem } from '../../dataaccess/api';
 import { CommonModule, Location } from '@angular/common';
@@ -40,10 +47,10 @@ import {
   SubmissionService,
 } from '../../logic/submission.service';
 import { PageTitleService } from '../../logic/page-title.service';
-import { KatexPipe } from '../../components/utils/katex.pipe';
 import { TestCaseListComponent } from './test-case-list/test-case-list.component';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { Subscription } from 'rxjs';
+import renderMathInElement from 'katex/contrib/auto-render';
 
 @Component({
   selector: 'app-problem',
@@ -67,7 +74,6 @@ import { Subscription } from 'rxjs';
     SubmissionListComponent,
     CodeEditorComponent,
     NzDescriptionsModule,
-    KatexPipe,
     TestCaseListComponent,
     RouterModule,
     NzModalModule,
@@ -76,6 +82,9 @@ import { Subscription } from 'rxjs';
   styleUrl: './problem.component.scss',
 })
 export class ProblemComponent implements OnInit, OnDestroy {
+  @ViewChild('problemDescriptionContainer') problemDescriptionContainer:
+    | ElementRef
+    | undefined;
   @ViewChild('problemTabSet') problemTabSet: NzTabSetComponent | undefined;
   @ViewChild('submissionTab') submissionTab: NzTabComponent | undefined;
 
@@ -134,6 +143,14 @@ export class ProblemComponent implements OnInit, OnDestroy {
     try {
       this.problem = await this.problemService.getProblem(problemUUID);
       this.pageTitleService.setTitle(this.problem.displayName);
+      setTimeout(() => {
+        if (!this.problemDescriptionContainer) {
+          return;
+        }
+        renderMathInElement(this.problemDescriptionContainer.nativeElement, {
+          throwOnError: false,
+        });
+      }, 0);
     } catch (e) {
       if (e instanceof UnauthenticatedError) {
         this.notificationService.error(
