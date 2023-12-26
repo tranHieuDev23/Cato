@@ -86,6 +86,12 @@ export interface RpcProblem {
      * @memberof RpcProblem
      */
     updatedTime: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof RpcProblem
+     */
+    testCaseHash: string;
 }
 
 /**
@@ -102,6 +108,7 @@ export function instanceOfRpcProblem(value: object): boolean {
     isInstance = isInstance && "exampleList" in value;
     isInstance = isInstance && "createdTime" in value;
     isInstance = isInstance && "updatedTime" in value;
+    isInstance = isInstance && "testCaseHash" in value;
 
     return isInstance;
 }
@@ -125,6 +132,7 @@ export function RpcProblemFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         'exampleList': ((json['ExampleList'] as Array<any>).map(RpcProblemExampleFromJSON)),
         'createdTime': json['CreatedTime'],
         'updatedTime': json['UpdatedTime'],
+        'testCaseHash': json['TestCaseHash'],
     };
 }
 
@@ -146,6 +154,7 @@ export function RpcProblemToJSON(value?: RpcProblem | null): any {
         'ExampleList': ((value.exampleList as Array<any>).map(RpcProblemExampleToJSON)),
         'CreatedTime': value.createdTime,
         'UpdatedTime': value.updatedTime,
+        'TestCaseHash': value.testCaseHash,
     };
 }
 

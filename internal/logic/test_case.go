@@ -21,6 +21,7 @@ import (
 	"github.com/tranHieuDev23/cato/internal/configs"
 	"github.com/tranHieuDev23/cato/internal/dataaccess/db"
 	"github.com/tranHieuDev23/cato/internal/handlers/http/rpc"
+	"github.com/tranHieuDev23/cato/internal/handlers/http/rpc/rpcclient"
 	"github.com/tranHieuDev23/cato/internal/utils"
 )
 
@@ -43,6 +44,7 @@ type TestCase interface {
 	GetTestCase(ctx context.Context, in *rpc.GetTestCaseRequest, token string) (*rpc.GetTestCaseResponse, error)
 	UpdateTestCase(ctx context.Context, in *rpc.UpdateTestCaseRequest, token string) (*rpc.UpdateTestCaseResponse, error)
 	DeleteTestCase(ctx context.Context, in *rpc.DeleteTestCaseRequest, token string) error
+	SyncProblemTestCaseList(ctx context.Context, problemUUID string) error
 	WithDB(db *gorm.DB) TestCase
 }
 
@@ -53,6 +55,7 @@ type testCase struct {
 	testCaseDataAccessor            db.TestCaseDataAccessor
 	problemTestCaseHashDataAccessor db.ProblemTestCaseHashDataAccessor
 	db                              *gorm.DB
+	apiClient                       rpcclient.APIClient
 	logger                          *zap.Logger
 	logicConfig                     configs.Logic
 }
@@ -64,6 +67,7 @@ func NewTestCase(
 	testCaseDataAccessor db.TestCaseDataAccessor,
 	problemTestCaseHashDataAccessor db.ProblemTestCaseHashDataAccessor,
 	db *gorm.DB,
+	apiClient rpcclient.APIClient,
 	logger *zap.Logger,
 	logicConfig configs.Logic,
 ) TestCase {
@@ -74,6 +78,7 @@ func NewTestCase(
 		testCaseDataAccessor:            testCaseDataAccessor,
 		problemTestCaseHashDataAccessor: problemTestCaseHashDataAccessor,
 		db:                              db,
+		apiClient:                       apiClient,
 		logger:                          logger,
 		logicConfig:                     logicConfig,
 	}
@@ -626,6 +631,88 @@ func (t testCase) UpdateTestCase(
 	return response, nil
 }
 
+func (t testCase) syncProblemTestCase(
+	ctx context.Context,
+	problemUUID string,
+	problemID uint64,
+	testCaseUUID string,
+) error {
+	logger := utils.LoggerWithContext(ctx, t.logger).
+		With(zap.String("problem_uuid", problemUUID)).
+		With(zap.String("test_case_uuid", testCaseUUID))
+
+	logger.Info("start syncing test case")
+	defer func() { logger.Info("syncing test case completed") }()
+
+	getTestCaseResponse, err := t.apiClient.GetTestCase(ctx, &rpc.GetTestCaseRequest{UUID: testCaseUUID})
+	if err != nil {
+		return err
+	}
+
+	testCase, err := t.testCaseDataAccessor.GetTestCaseByUUID(ctx, testCaseUUID)
+	if err != nil {
+		return err
+	}
+
+	if testCase == nil {
+		logger.Info("test case not found locally, will create new")
+		return t.testCaseDataAccessor.CreateTestCase(ctx, &db.TestCase{
+			UUID:        testCaseUUID,
+			OfProblemID: problemID,
+			Input:       getTestCaseResponse.TestCase.Input,
+			Output:      getTestCaseResponse.TestCase.Output,
+			IsHidden:    getTestCaseResponse.TestCase.IsHidden,
+			Hash: t.calculateTestCaseHash(
+				getTestCaseResponse.TestCase.Input,
+				getTestCaseResponse.TestCase.Output,
+			),
+		})
+	}
+
+	logger.Info("test case found locally, will update new")
+	testCase.Input = getTestCaseResponse.TestCase.Input
+	testCase.Output = getTestCaseResponse.TestCase.Output
+	testCase.IsHidden = getTestCaseResponse.TestCase.IsHidden
+	testCase.Hash = t.calculateTestCaseHash(testCase.Input, testCase.Output)
+	return t.testCaseDataAccessor.UpdateTestCase(ctx, testCase)
+}
+
+func (t testCase) SyncProblemTestCaseList(ctx context.Context, problemUUID string) error {
+	problem, err := t.problemDataAccessor.GetProblemByUUID(ctx, problemUUID)
+	if err != nil {
+		return err
+	}
+
+	currentOffset := uint64(0)
+	for {
+		getProblemTestCaseSnippetListResponse, getProblemTestCaseSnippetListErr := t.apiClient.GetProblemTestCaseSnippetList(
+			ctx,
+			&rpc.GetProblemTestCaseSnippetListRequest{
+				ProblemUUID: problemUUID,
+				Offset:      currentOffset,
+				Limit:       t.logicConfig.SyncProblem.GetTestCaseSnippetListBatchSize,
+			})
+		if getProblemTestCaseSnippetListErr != nil {
+			return getProblemTestCaseSnippetListErr
+		}
+
+		if len(getProblemTestCaseSnippetListResponse.TestCaseSnippetList) == 0 {
+			break
+		}
+
+		for _, testCaseSnippet := range getProblemTestCaseSnippetListResponse.TestCaseSnippetList {
+			err = t.syncProblemTestCase(ctx, problemUUID, uint64(problem.ID), testCaseSnippet.UUID)
+			if err != nil {
+				return err
+			}
+		}
+
+		currentOffset += uint64(len(getProblemTestCaseSnippetListResponse.TestCaseSnippetList))
+	}
+
+	return nil
+}
+
 func (t testCase) WithDB(db *gorm.DB) TestCase {
 	return &testCase{
 		token:                           t.token.WithDB(db),
@@ -634,6 +721,7 @@ func (t testCase) WithDB(db *gorm.DB) TestCase {
 		testCaseDataAccessor:            t.testCaseDataAccessor.WithDB(db),
 		problemTestCaseHashDataAccessor: t.problemTestCaseHashDataAccessor.WithDB(db),
 		db:                              db,
+		apiClient:                       t.apiClient,
 		logger:                          t.logger,
 		logicConfig:                     t.logicConfig,
 	}

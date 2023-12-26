@@ -8,7 +8,6 @@ package wiring
 
 import (
 	"github.com/google/wire"
-
 	"github.com/tranHieuDev23/cato/internal/app"
 	"github.com/tranHieuDev23/cato/internal/configs"
 	"github.com/tranHieuDev23/cato/internal/dataaccess"
@@ -78,9 +77,9 @@ func InitializeLocalCato(filePath configs.ConfigFilePath, args utils.Arguments) 
 	submission := logic.NewSubmission(logicToken, role, judge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, gormDB, logger, args)
 	scheduleSubmittedExecutingSubmissionToJudge := jobs.NewScheduleSubmittedExecutingSubmissionToJudge(submission)
 	problemTestCaseHashDataAccessor := db.NewProblemTestCaseHashDataAccessor(gormDB, logger)
-	testCase := logic.NewTestCase(logicToken, role, problemDataAccessor, testCaseDataAccessor, problemTestCaseHashDataAccessor, gormDB, logger, configsLogic)
+	testCase := logic.NewTestCase(logicToken, role, problemDataAccessor, testCaseDataAccessor, problemTestCaseHashDataAccessor, gormDB, apiClient, logger, configsLogic)
 	problemExampleDataAccessor := db.NewProblemExampleDataAccessor(gormDB, logger)
-	problem := logic.NewProblem(logicToken, role, testCase, accountDataAccessor, problemDataAccessor, problemExampleDataAccessor, problemTestCaseHashDataAccessor, testCaseDataAccessor, submissionDataAccessor, logger, gormDB)
+	problem := logic.NewProblem(logicToken, role, testCase, accountDataAccessor, problemDataAccessor, problemExampleDataAccessor, problemTestCaseHashDataAccessor, testCaseDataAccessor, submissionDataAccessor, logger, gormDB, apiClient, configsLogic)
 	apiServer := http.NewAPIServerHandler(account, problem, testCase, submission, configsLogic, logger, args)
 	v := middlewares.InitializePJRPCMiddlewareList()
 	httpAuth, err := middlewares.NewHTTPAuth(logicToken, token, logger)
@@ -133,21 +132,21 @@ func InitializeDistributedHostCato(filePath configs.ConfigFilePath, args utils.A
 	problemDataAccessor := db.NewProblemDataAccessor(gormDB, logger)
 	testCaseDataAccessor := db.NewTestCaseDataAccessor(gormDB, logger)
 	problemTestCaseHashDataAccessor := db.NewProblemTestCaseHashDataAccessor(gormDB, logger)
-	testCase := logic.NewTestCase(logicToken, role, problemDataAccessor, testCaseDataAccessor, problemTestCaseHashDataAccessor, gormDB, logger, configsLogic)
-	problemExampleDataAccessor := db.NewProblemExampleDataAccessor(gormDB, logger)
-	submissionDataAccessor := db.NewSubmissionDataAccessor(gormDB, logger)
-	problem := logic.NewProblem(logicToken, role, testCase, accountDataAccessor, problemDataAccessor, problemExampleDataAccessor, problemTestCaseHashDataAccessor, testCaseDataAccessor, submissionDataAccessor, logger, gormDB)
-	client, err := utils.InitializeDockerClient()
-	if err != nil {
-		cleanup()
-		return nil, nil, err
-	}
 	httpClientWithAuthToken, err := cato.NewHTTPClientWithAuthToken(args, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
 	apiClient := cato.InitializeAuthenticatedClient(args, httpClientWithAuthToken)
+	testCase := logic.NewTestCase(logicToken, role, problemDataAccessor, testCaseDataAccessor, problemTestCaseHashDataAccessor, gormDB, apiClient, logger, configsLogic)
+	problemExampleDataAccessor := db.NewProblemExampleDataAccessor(gormDB, logger)
+	submissionDataAccessor := db.NewSubmissionDataAccessor(gormDB, logger)
+	problem := logic.NewProblem(logicToken, role, testCase, accountDataAccessor, problemDataAccessor, problemExampleDataAccessor, problemTestCaseHashDataAccessor, testCaseDataAccessor, submissionDataAccessor, logger, gormDB, apiClient, configsLogic)
+	client, err := utils.InitializeDockerClient()
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
 	judge, err := logic.NewJudge(problemDataAccessor, submissionDataAccessor, testCaseDataAccessor, client, gormDB, apiClient, logger, configsLogic, args)
 	if err != nil {
 		cleanup()

@@ -63,8 +63,14 @@ func (j Judge) GetSubmissionRetryDelayDuration() (time.Duration, error) {
 	return time.ParseDuration(j.SubmissionRetryDelay)
 }
 
+type SyncProblem struct {
+	GetProblemSnippetListBatchSize  uint64 `yaml:"get_problem_snippet_list_batch_size"`
+	GetTestCaseSnippetListBatchSize uint64 `yaml:"get_test_case_snippet_list_batch_size"`
+}
+
 type Logic struct {
 	FirstAccounts       FirstAccounts       `yaml:"first_accounts"`
 	ProblemTestCaseHash ProblemTestCaseHash `yaml:"problem_test_case_hash"`
 	Judge               Judge               `yaml:"judge"`
+	SyncProblem         SyncProblem         `yaml:"sync_problem"`
 }

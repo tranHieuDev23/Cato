@@ -15,6 +15,7 @@ type Problem struct {
 	ExampleList            []ProblemExample `validate:"max=5"`
 	CreatedTime            uint64
 	UpdatedTime            uint64
+	TestCaseHash           string
 }
 
 type ProblemSnippet struct {

@@ -14,8 +14,10 @@ import (
 
 	"github.com/microcosm-cc/bluemonday"
 
+	"github.com/tranHieuDev23/cato/internal/configs"
 	"github.com/tranHieuDev23/cato/internal/dataaccess/db"
 	"github.com/tranHieuDev23/cato/internal/handlers/http/rpc"
+	"github.com/tranHieuDev23/cato/internal/handlers/http/rpc/rpcclient"
 	"github.com/tranHieuDev23/cato/internal/utils"
 )
 
@@ -34,6 +36,7 @@ type Problem interface {
 		in *rpc.GetAccountProblemSnippetListRequest,
 		token string,
 	) (*rpc.GetAccountProblemSnippetListResponse, error)
+	SyncProblemList(ctx context.Context) error
 	WithDB(db *gorm.DB) Problem
 }
 
@@ -49,6 +52,8 @@ type problem struct {
 	submissionDataAccessor          db.SubmissionDataAccessor
 	logger                          *zap.Logger
 	db                              *gorm.DB
+	apiClient                       rpcclient.APIClient
+	logicConfig                     configs.Logic
 	displayNameSanitizePolicy       *bluemonday.Policy
 	descriptionSanitizePolicy       *bluemonday.Policy
 }
@@ -65,6 +70,8 @@ func NewProblem(
 	submissionDataAccessor db.SubmissionDataAccessor,
 	logger *zap.Logger,
 	db *gorm.DB,
+	apiClient rpcclient.APIClient,
+	logicConfig configs.Logic,
 ) Problem {
 	return &problem{
 		token:                           token,
@@ -78,6 +85,8 @@ func NewProblem(
 		submissionDataAccessor:          submissionDataAccessor,
 		logger:                          logger,
 		db:                              db,
+		apiClient:                       apiClient,
+		logicConfig:                     logicConfig,
 		displayNameSanitizePolicy:       bluemonday.StrictPolicy(),
 		descriptionSanitizePolicy:       bluemonday.UGCPolicy(),
 	}
@@ -110,6 +119,7 @@ func (p problem) dbProblemToRPCProblem(
 	problem *db.Problem,
 	author *db.Account,
 	problemExampleList []*db.ProblemExample,
+	problemTestCaseHash *db.ProblemTestCaseHash,
 ) rpc.Problem {
 	return rpc.Problem{
 		UUID:        problem.UUID,
@@ -128,8 +138,9 @@ func (p problem) dbProblemToRPCProblem(
 				return p.dbProblemExampleToRPCProblemExample(item)
 			},
 		),
-		CreatedTime: uint64(problem.CreatedAt.UnixMilli()),
-		UpdatedTime: uint64(problem.UpdatedAt.UnixMilli()),
+		CreatedTime:  uint64(problem.CreatedAt.UnixMilli()),
+		UpdatedTime:  uint64(problem.UpdatedAt.UnixMilli()),
+		TestCaseHash: problemTestCaseHash.Hash,
 	}
 }
 
@@ -147,6 +158,78 @@ func (p problem) dbProblemToRPCProblemSnippet(problem *db.Problem, author *db.Ac
 		CreatedTime:            uint64(problem.CreatedAt.UnixMilli()),
 		UpdatedTime:            uint64(problem.UpdatedAt.UnixMilli()),
 	}
+}
+
+func (p problem) createProblem(
+	ctx context.Context,
+	uuid string,
+	displayName string,
+	authorAccountID uint64,
+	description string,
+	timeLimitInMillisecond uint64,
+	memoryLimitInByte uint64,
+	exampleList []rpc.ProblemExample,
+) (*db.Problem, []*db.ProblemExample, *db.ProblemTestCaseHash, error) {
+	displayName = p.cleanupDisplayName(displayName)
+	if !p.isValidDisplayName(displayName) {
+		return nil, make([]*db.ProblemExample, 0), nil, pjrpc.JRPCErrInvalidParams()
+	}
+
+	description = p.cleanupDescription(description)
+
+	var (
+		problem             *db.Problem
+		problemExampleList  []*db.ProblemExample
+		problemTestCaseHash *db.ProblemTestCaseHash
+		err                 error
+	)
+
+	if txErr := p.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		problem = &db.Problem{
+			UUID:                   uuid,
+			DisplayName:            displayName,
+			AuthorAccountID:        authorAccountID,
+			Description:            description,
+			TimeLimitInMillisecond: timeLimitInMillisecond,
+			MemoryLimitInByte:      memoryLimitInByte,
+		}
+		err = p.problemDataAccessor.WithDB(tx).CreateProblem(ctx, problem)
+		if err != nil {
+			return err
+		}
+
+		problemExampleList = lo.Map(exampleList, func(item rpc.ProblemExample, _ int) *db.ProblemExample {
+			return &db.ProblemExample{
+				OfProblemID: uint64(problem.ID),
+				Input:       utils.TrimSpaceRight(item.Input),
+				Output:      utils.TrimSpaceRight(item.Output),
+			}
+		})
+		err = p.problemExampleDataAccessor.WithDB(tx).CreateProblemExampleList(ctx, problemExampleList)
+		if err != nil {
+			return err
+		}
+
+		hash, hashErr := p.testCase.CalculateProblemTestCaseHash(ctx, uint64(problem.ID))
+		if hashErr != nil {
+			return hashErr
+		}
+
+		problemTestCaseHash = &db.ProblemTestCaseHash{
+			OfProblemID: uint64(problem.ID),
+			Hash:        hash,
+		}
+		err = p.problemTestCaseHashDataAccessor.WithDB(tx).CreateProblemTestCaseHash(ctx, problemTestCaseHash)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}); txErr != nil {
+		return nil, make([]*db.ProblemExample, 0), nil, txErr
+	}
+
+	return problem, problemExampleList, problemTestCaseHash, nil
 }
 
 func (p problem) CreateProblem(
@@ -172,56 +255,23 @@ func (p problem) CreateProblem(
 		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
 	}
 
-	cleanedDisplayName := p.cleanupDisplayName(in.DisplayName)
-	if !p.isValidDisplayName(cleanedDisplayName) {
-		return nil, pjrpc.JRPCErrInvalidParams()
+	problem, problemExampleList, problemTestCaseHash, err := p.createProblem(
+		ctx,
+		uuid.NewString(),
+		in.DisplayName,
+		uint64(account.ID),
+		in.Description,
+		in.TimeLimitInMillisecond,
+		in.MemoryLimitInByte,
+		in.ExampleList,
+	)
+	if err != nil {
+		return nil, err
 	}
 
-	cleanedDescription := p.cleanupDescription(in.Description)
-
-	response := &rpc.CreateProblemResponse{}
-	if txErr := p.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		problem := &db.Problem{
-			UUID:                   uuid.NewString(),
-			DisplayName:            cleanedDisplayName,
-			AuthorAccountID:        uint64(account.ID),
-			Description:            cleanedDescription,
-			TimeLimitInMillisecond: in.TimeLimitInMillisecond,
-			MemoryLimitInByte:      in.MemoryLimitInByte,
-		}
-
-		var problemExampleList []*db.ProblemExample
-
-		err = utils.ExecuteUntilFirstError(
-			func() error {
-				return p.problemDataAccessor.WithDB(tx).CreateProblem(ctx, problem)
-			},
-			func() error {
-				problemExampleList = lo.Map(in.ExampleList, func(item rpc.ProblemExample, _ int) *db.ProblemExample {
-					return &db.ProblemExample{
-						OfProblemID: uint64(problem.ID),
-						Input:       utils.TrimSpaceRight(item.Input),
-						Output:      utils.TrimSpaceRight(item.Output),
-					}
-				})
-				return p.problemExampleDataAccessor.WithDB(tx).CreateProblemExampleList(ctx, problemExampleList)
-			},
-			func() error {
-				return p.testCase.WithDB(tx).UpsertProblemTestCaseHash(ctx, uint64(problem.ID))
-			},
-		)
-		if err != nil {
-			return err
-		}
-
-		response.Problem = p.dbProblemToRPCProblem(problem, account, problemExampleList)
-
-		return nil
-	}); txErr != nil {
-		return nil, txErr
-	}
-
-	return response, nil
+	return &rpc.CreateProblemResponse{
+		Problem: p.dbProblemToRPCProblem(problem, account, problemExampleList, problemTestCaseHash),
+	}, nil
 }
 
 func (p problem) DeleteProblem(ctx context.Context, in *rpc.DeleteProblemRequest, token string) error {
@@ -378,8 +428,13 @@ func (p problem) GetProblem(
 		return nil, err
 	}
 
+	problemTestCaseHash, err := p.problemTestCaseHashDataAccessor.GetProblemTestCaseHashOfProblem(ctx, uint64(problem.ID))
+	if err != nil {
+		return nil, err
+	}
+
 	return &rpc.GetProblemResponse{
-		Problem: p.dbProblemToRPCProblem(problem, author, problemExampleList),
+		Problem: p.dbProblemToRPCProblem(problem, author, problemExampleList, problemTestCaseHash),
 	}, nil
 }
 
@@ -431,38 +486,13 @@ func (p problem) GetProblemSnippetList(
 	}, nil
 }
 
-func (p problem) applyUpdateProblem(in *rpc.UpdateProblemRequest, problem *db.Problem) error {
-	if in.DisplayName != nil {
-		cleanedDisplayName := p.cleanupDisplayName(*in.DisplayName)
-		if !p.isValidDisplayName(cleanedDisplayName) {
-			return pjrpc.JRPCErrInvalidParams()
-		}
-
-		problem.DisplayName = cleanedDisplayName
-	}
-
-	if in.Description != nil {
-		problem.Description = p.cleanupDescription(*in.Description)
-	}
-
-	if in.TimeLimitInMillisecond != nil {
-		problem.TimeLimitInMillisecond = *in.TimeLimitInMillisecond
-	}
-
-	if in.MemoryLimitInByte != nil {
-		problem.MemoryLimitInByte = *in.MemoryLimitInByte
-	}
-
-	return nil
-}
-
 func (p problem) updateProblemExampleList(
 	ctx context.Context,
 	problemID uint64,
-	in *rpc.UpdateProblemRequest,
+	exampleList *[]rpc.ProblemExample,
 	tx *gorm.DB,
 ) ([]*db.ProblemExample, error) {
-	if in.ExampleList == nil {
+	if exampleList == nil {
 		return p.problemExampleDataAccessor.WithDB(tx).GetProblemExampleListOfProblem(ctx, problemID)
 	}
 
@@ -470,7 +500,7 @@ func (p problem) updateProblemExampleList(
 		return make([]*db.ProblemExample, 0), err
 	}
 
-	problemExampleList := lo.Map(*in.ExampleList, func(item rpc.ProblemExample, _ int) *db.ProblemExample {
+	problemExampleList := lo.Map(*exampleList, func(item rpc.ProblemExample, _ int) *db.ProblemExample {
 		return &db.ProblemExample{OfProblemID: problemID, Input: item.Input, Output: item.Output}
 	})
 	if err := p.problemExampleDataAccessor.WithDB(tx).CreateProblemExampleList(ctx, problemExampleList); err != nil {
@@ -478,6 +508,49 @@ func (p problem) updateProblemExampleList(
 	}
 
 	return problemExampleList, nil
+}
+
+func (p problem) updateProblem(
+	ctx context.Context,
+	problem *db.Problem,
+	displayName *string,
+	description *string,
+	timeLimitInMillisecond *uint64,
+	memoryLimitInByte *uint64,
+	exampleList *[]rpc.ProblemExample,
+	tx *gorm.DB,
+) (*db.Problem, []*db.ProblemExample, error) {
+	if displayName != nil {
+		cleanedDisplayName := p.cleanupDisplayName(*displayName)
+		if !p.isValidDisplayName(cleanedDisplayName) {
+			return nil, make([]*db.ProblemExample, 0), pjrpc.JRPCErrInvalidParams()
+		}
+
+		problem.DisplayName = cleanedDisplayName
+	}
+
+	if description != nil {
+		problem.Description = p.cleanupDescription(*description)
+	}
+
+	if timeLimitInMillisecond != nil {
+		problem.TimeLimitInMillisecond = *timeLimitInMillisecond
+	}
+
+	if memoryLimitInByte != nil {
+		problem.MemoryLimitInByte = *memoryLimitInByte
+	}
+
+	if err := p.problemDataAccessor.WithDB(tx).UpdateProblem(ctx, problem); err != nil {
+		return nil, make([]*db.ProblemExample, 0), err
+	}
+
+	problemExampleList, err := p.updateProblemExampleList(ctx, uint64(problem.ID), exampleList, tx)
+	if err != nil {
+		return nil, make([]*db.ProblemExample, 0), err
+	}
+
+	return problem, problemExampleList, nil
 }
 
 func (p problem) UpdateProblem(
@@ -517,12 +590,18 @@ func (p problem) UpdateProblem(
 			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
 		}
 
-		problemErr = utils.ExecuteUntilFirstError(
-			func() error { return p.applyUpdateProblem(in, problem) },
-			func() error { return p.problemDataAccessor.WithDB(tx).UpdateProblem(ctx, problem) },
+		problem, problemExampleList, problemErr := p.updateProblem(
+			ctx,
+			problem,
+			in.DisplayName,
+			in.Description,
+			in.TimeLimitInMillisecond,
+			in.MemoryLimitInByte,
+			in.ExampleList,
+			tx,
 		)
 		if problemErr != nil {
-			return err
+			return problemErr
 		}
 
 		author, problemErr := p.accountDataAccessor.GetAccount(ctx, problem.AuthorAccountID)
@@ -530,12 +609,13 @@ func (p problem) UpdateProblem(
 			return problemErr
 		}
 
-		problemExampleList, problemErr := p.updateProblemExampleList(ctx, uint64(problem.ID), in, tx)
+		problemTestCaseHash, problemErr := p.problemTestCaseHashDataAccessor.
+			GetProblemTestCaseHashOfProblem(ctx, uint64(problem.ID))
 		if problemErr != nil {
 			return problemErr
 		}
 
-		response.Problem = p.dbProblemToRPCProblem(problem, author, problemExampleList)
+		response.Problem = p.dbProblemToRPCProblem(problem, author, problemExampleList, problemTestCaseHash)
 
 		return nil
 	}); txErr != nil {
@@ -543,6 +623,102 @@ func (p problem) UpdateProblem(
 	}
 
 	return response, nil
+}
+
+func (p problem) syncProblem(ctx context.Context, problemUUID string) error {
+	logger := utils.LoggerWithContext(ctx, p.logger).With(zap.String("problem_uuid", problemUUID))
+	logger.Info("start syncing problem")
+	defer func() { logger.Info("syncing problem completed") }()
+
+	getProblemResponse, err := p.apiClient.GetProblem(ctx, &rpc.GetProblemRequest{UUID: problemUUID})
+	if err != nil {
+		return err
+	}
+
+	problem, err := p.problemDataAccessor.GetProblemByUUID(ctx, problemUUID)
+	if err != nil {
+		return err
+	}
+
+	if problem != nil {
+		problemTestCaseHash, problemTestCaseHashErr := p.problemTestCaseHashDataAccessor.
+			GetProblemTestCaseHashOfProblem(ctx, uint64(problem.ID))
+		if problemTestCaseHashErr != nil {
+			return problemTestCaseHashErr
+		}
+
+		if getProblemResponse.Problem.TestCaseHash == problemTestCaseHash.Hash {
+			logger.Info("test case hash of problem is unchanged, will skip sync")
+			return nil
+		}
+	}
+
+	if problem == nil {
+		logger.Info("problem not found locally, will create new")
+		problem, _, _, err = p.createProblem(
+			ctx,
+			getProblemResponse.Problem.UUID,
+			getProblemResponse.Problem.DisplayName,
+			getProblemResponse.Problem.Author.ID,
+			getProblemResponse.Problem.Description,
+			getProblemResponse.Problem.TimeLimitInMillisecond,
+			getProblemResponse.Problem.MemoryLimitInByte,
+			getProblemResponse.Problem.ExampleList,
+		)
+		if err != nil {
+			return err
+		}
+	} else {
+		logger.Info("problem found locally, but hash changed, will update new")
+		err = p.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+			problem, _, err = p.updateProblem(
+				ctx,
+				problem,
+				&getProblemResponse.Problem.DisplayName,
+				&getProblemResponse.Problem.Description,
+				&getProblemResponse.Problem.TimeLimitInMillisecond,
+				&getProblemResponse.Problem.MemoryLimitInByte,
+				&getProblemResponse.Problem.ExampleList,
+				tx,
+			)
+
+			return err
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return utils.ExecuteUntilFirstError(
+		func() error { return p.testCase.SyncProblemTestCaseList(ctx, problemUUID) },
+		func() error { return p.testCase.UpsertProblemTestCaseHash(ctx, uint64(problem.ID)) },
+	)
+}
+
+func (p problem) SyncProblemList(ctx context.Context) error {
+	currentOffset := uint64(0)
+	for {
+		response, err := p.apiClient.GetProblemSnippetList(ctx, &rpc.GetProblemSnippetListRequest{
+			Offset: currentOffset,
+			Limit:  p.logicConfig.SyncProblem.GetProblemSnippetListBatchSize,
+		})
+		if err != nil {
+			return err
+		}
+
+		if len(response.ProblemSnippetList) == 0 {
+			return nil
+		}
+
+		for _, problemSnippet := range response.ProblemSnippetList {
+			err = p.syncProblem(ctx, problemSnippet.UUID)
+			if err != nil {
+				return err
+			}
+		}
+
+		currentOffset += uint64(len(response.ProblemSnippetList))
+	}
 }
 
 func (p problem) WithDB(db *gorm.DB) Problem {
@@ -560,5 +736,6 @@ func (p problem) WithDB(db *gorm.DB) Problem {
 		db:                              db,
 		displayNameSanitizePolicy:       p.displayNameSanitizePolicy,
 		descriptionSanitizePolicy:       p.descriptionSanitizePolicy,
+		logicConfig:                     p.logicConfig,
 	}
 }
