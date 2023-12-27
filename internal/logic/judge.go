@@ -81,14 +81,16 @@ func NewJudge(
 	}
 
 	for _, languageConfig := range logicConfig.Judge.Languages {
-		compile, compileErr := NewCompile(dockerClient, logger, languageConfig.Value, languageConfig.Compile)
+		compile, compileErr := NewCompile(
+			dockerClient, logger, languageConfig.Value, languageConfig.Compile, appArguments)
 		if compileErr != nil {
 			return nil, compileErr
 		}
 
 		j.languageToCompileLogic[languageConfig.Value] = compile
 
-		testCaseRun, testCaseRunErr := NewTestCaseRun(dockerClient, logger, languageConfig.Value, languageConfig.TestCaseRun)
+		testCaseRun, testCaseRunErr := NewTestCaseRun(
+			dockerClient, logger, languageConfig.Value, languageConfig.TestCaseRun, appArguments)
 		if testCaseRunErr != nil {
 			return nil, testCaseRunErr
 		}

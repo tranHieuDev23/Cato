@@ -7,4 +7,5 @@ type Arguments struct {
 	HostAddress           string
 	WorkerAccountName     string
 	WorkerAccountPassword string
+	PullImageAtStartUp    bool
 }

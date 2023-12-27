@@ -50,6 +50,19 @@ type testCaseRun struct {
 	logger            *zap.Logger
 	language          string
 	testCaseRunConfig configs.TestCaseRun
+	appArguments      utils.Arguments
+}
+
+func (t testCaseRun) pullImage() error {
+	t.logger.Info("pulling test case run image")
+	_, err := t.dockerClient.ImagePull(context.Background(), t.testCaseRunConfig.Image, types.ImagePullOptions{})
+	if err != nil {
+		t.logger.With(zap.Error(err)).Error("failed to pull test case run image")
+		return err
+	}
+
+	t.logger.Info("pulled test case run image successfully")
+	return nil
 }
 
 func NewTestCaseRun(
@@ -57,6 +70,7 @@ func NewTestCaseRun(
 	logger *zap.Logger,
 	language string,
 	testCaseRunConfig configs.TestCaseRun,
+	appArguments utils.Arguments,
 ) (TestCaseRun, error) {
 	t := &testCaseRun{
 		dockerClient: dockerClient,
@@ -65,13 +79,17 @@ func NewTestCaseRun(
 			With(zap.Any("test_case_run_config", testCaseRunConfig)),
 		language:          language,
 		testCaseRunConfig: testCaseRunConfig,
+		appArguments:      appArguments,
 	}
 
-	t.logger.Info("pulling load test case run image")
-	_, err := dockerClient.ImagePull(context.Background(), testCaseRunConfig.Image, types.ImagePullOptions{})
-	if err != nil {
-		t.logger.With(zap.Error(err)).Error("failed to load test case run image")
-		return nil, err
+	if appArguments.PullImageAtStartUp {
+		if err := t.pullImage(); err != nil {
+			return nil, err
+		}
+	} else {
+		go func() {
+			_ = t.pullImage()
+		}()
 	}
 
 	return t, nil

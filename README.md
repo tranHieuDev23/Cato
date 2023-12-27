@@ -128,15 +128,16 @@ Make sure that all worker machine have its own Docker (or a Docker-compatible co
 
 ### CLI Arguments
 
-| Argument                    | Description                                                                                             | Default Value           |
-| --------------------------- | ------------------------------------------------------------------------------------------------------- | ----------------------- |
-| `--distributed`             | If provided, will start the program in distributed mode.                                                | `false`                 |
-| `--worker`                  | If provided and `--distributed` is set, will start the program as a worker process in distributed mode. | `false`                 |
-| `--no-browser`              | If provided, will not open a browser window when the server starts.                                     | `false`                 |
-| `--host-address`            | The address of the host server when running in worker mode.                                             | `http://127.0.0.1:8080` |
-| `--worker-account-name`     | The worker account name when running in worker mode.                                                    | `worker`                |
-| `--worker-account-password` | The worker account password when running in worker mode.                                                | `changeme`              |
-| `--config-file-path`        | If provided, will use the provided config file.                                                         |                         |
+| Argument                    | Description                                                                                                                                                                                                  | Default Value           |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------- |
+| `--distributed`             | If provided, will start the program in distributed mode.                                                                                                                                                     | `false`                 |
+| `--worker`                  | If provided and `--distributed` is set, will start the program as a worker process in distributed mode.                                                                                                      | `false`                 |
+| `--no-browser`              | If provided, will not open a browser window when the server starts.                                                                                                                                          | `false`                 |
+| `--host-address`            | The address of the host server when running in worker mode.                                                                                                                                                  | `http://127.0.0.1:8080` |
+| `--worker-account-name`     | The worker account name when running in worker mode.                                                                                                                                                         | `worker`                |
+| `--worker-account-password` | The worker account password when running in worker mode.                                                                                                                                                     | `changeme`              |
+| `--config-file-path`        | If provided, will use the provided config file.                                                                                                                                                              |                         |
+| `--pull-image-at-startup`   | Whether to pull Docker images necessary for compiling and executing test case at startup. If set to true and Docker fails to pull any of the provided image, the program will exit with non-zero error code. | `true`                  |
 
 ### Config files
 

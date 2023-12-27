@@ -25,6 +25,7 @@ const (
 	flagWorkerAccountName     = "worker-account-name"
 	flagWorkerAccountPassword = "worker-account-password"
 	flagConfigFilePath        = "config-file-path"
+	flagPullImageAtStartUp    = "pull-image-at-startup"
 )
 
 func getArguments(cmd *cobra.Command) (utils.Arguments, error) {
@@ -58,6 +59,11 @@ func getArguments(cmd *cobra.Command) (utils.Arguments, error) {
 		return utils.Arguments{}, err
 	}
 
+	pullImageAtStartUp, err := cmd.Flags().GetBool(flagPullImageAtStartUp)
+	if err != nil {
+		return utils.Arguments{}, err
+	}
+
 	return utils.Arguments{
 		Distributed:           distributed,
 		Worker:                worker,
@@ -65,6 +71,7 @@ func getArguments(cmd *cobra.Command) (utils.Arguments, error) {
 		HostAddress:           hostAddress,
 		WorkerAccountName:     workerAccountName,
 		WorkerAccountPassword: workerAccountPassword,
+		PullImageAtStartUp:    pullImageAtStartUp,
 	}, nil
 }
 
@@ -137,6 +144,13 @@ func main() {
 		flagConfigFilePath,
 		"",
 		"If provided, will use the provided config file.",
+	)
+	rootCommand.Flags().Bool(
+		flagPullImageAtStartUp,
+		true,
+		"Whether to pull Docker images necessary for compiling and executing test case at startup. "+
+			"If set to true and Docker fails to pull any of the provided image, the program will exit with non-zero "+
+			"error code. ",
 	)
 
 	if err := rootCommand.Execute(); err != nil {

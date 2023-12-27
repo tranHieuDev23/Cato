@@ -40,9 +40,22 @@ type compile struct {
 	logger        *zap.Logger
 	language      string
 	compileConfig *configs.Compile
+	appArguments  utils.Arguments
 
 	timeoutDuration time.Duration
 	memoryInBytes   int64
+}
+
+func (c compile) pullImage() error {
+	c.logger.Info("pulling compile image")
+	if _, err := c.dockerClient.
+		ImagePull(context.Background(), c.compileConfig.Image, types.ImagePullOptions{}); err != nil {
+		c.logger.With(zap.Error(err)).Error("failed to pull compile image")
+		return err
+	}
+
+	c.logger.Info("pulled compile image successfully")
+	return nil
 }
 
 func NewCompile(
@@ -50,6 +63,7 @@ func NewCompile(
 	logger *zap.Logger,
 	language string,
 	compileConfig *configs.Compile,
+	appArguments utils.Arguments,
 ) (Compile, error) {
 	c := &compile{
 		dockerClient: dockerClient,
@@ -58,31 +72,38 @@ func NewCompile(
 			With(zap.Any("compile_config", compileConfig)),
 		language:      language,
 		compileConfig: compileConfig,
+		appArguments:  appArguments,
 	}
 
-	if compileConfig != nil {
-		timeoutDuration, err := compileConfig.GetTimeoutDuration()
+	if compileConfig == nil {
+		return c, nil
+	}
+
+	timeoutDuration, err := compileConfig.GetTimeoutDuration()
+	if err != nil {
+		c.logger.With(zap.Error(err)).Error("failed to get timeout duration")
+		return nil, err
+	}
+
+	c.timeoutDuration = timeoutDuration
+
+	memoryInBytes, err := compileConfig.GetMemoryInBytes()
+	if err != nil {
+		c.logger.With(zap.Error(err)).Error("failed to get memory in bytes")
+		return nil, err
+	}
+
+	c.memoryInBytes = int64(memoryInBytes)
+
+	if appArguments.PullImageAtStartUp {
+		err = c.pullImage()
 		if err != nil {
-			c.logger.With(zap.Error(err)).Error("failed to get timeout duration")
 			return nil, err
 		}
-
-		c.timeoutDuration = timeoutDuration
-
-		memoryInBytes, err := compileConfig.GetMemoryInBytes()
-		if err != nil {
-			c.logger.With(zap.Error(err)).Error("failed to get memory in bytes")
-			return nil, err
-		}
-
-		c.memoryInBytes = int64(memoryInBytes)
-
-		c.logger.Info("pulling compile image")
-		_, err = dockerClient.ImagePull(context.Background(), compileConfig.Image, types.ImagePullOptions{})
-		if err != nil {
-			c.logger.With(zap.Error(err)).Error("failed to load compile image")
-			return nil, err
-		}
+	} else {
+		go func() {
+			_ = c.pullImage()
+		}()
 	}
 
 	return c, nil
