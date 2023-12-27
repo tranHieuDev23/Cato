@@ -1,7 +1,6 @@
 package app
 
 import (
-	"context"
 	"syscall"
 
 	"go.uber.org/zap"
@@ -9,13 +8,11 @@ import (
 	"github.com/robfig/cron/v3"
 
 	"github.com/tranHieuDev23/cato/internal/configs"
-	"github.com/tranHieuDev23/cato/internal/dataaccess/db"
 	"github.com/tranHieuDev23/cato/internal/handlers/jobs"
 	"github.com/tranHieuDev23/cato/internal/utils"
 )
 
 type Worker struct {
-	dbMigrator                                     db.Migrator
 	scheduleSubmittedExecutingSubmissionToJudgeJob jobs.ScheduleSubmittedExecutingSubmissionToJudge
 	syncProblemsJob                                jobs.SyncProblems
 	judgeDistributedFirstSubmittedSubmissionJob    jobs.JudgeDistributedFirstSubmittedSubmission
@@ -25,7 +22,6 @@ type Worker struct {
 }
 
 func NewWorker(
-	dbMigrator db.Migrator,
 	scheduleSubmittedExecutingSubmissionToJudgeJob jobs.ScheduleSubmittedExecutingSubmissionToJudge,
 	syncProblemsJob jobs.SyncProblems,
 	judgeDistributedFirstSubmittedSubmissionJob jobs.JudgeDistributedFirstSubmittedSubmission,
@@ -34,7 +30,6 @@ func NewWorker(
 	logicConfig configs.Logic,
 ) *Worker {
 	return &Worker{
-		dbMigrator: dbMigrator,
 		scheduleSubmittedExecutingSubmissionToJudgeJob: scheduleSubmittedExecutingSubmissionToJudgeJob,
 		syncProblemsJob: syncProblemsJob,
 		judgeDistributedFirstSubmittedSubmissionJob: judgeDistributedFirstSubmittedSubmissionJob,
@@ -45,10 +40,6 @@ func NewWorker(
 }
 
 func (c Worker) Start() error {
-	if err := c.dbMigrator.Migrate(context.Background()); err != nil {
-		return err
-	}
-
 	if err := c.scheduleSubmittedExecutingSubmissionToJudgeJob.Run(); err != nil {
 		return err
 	}

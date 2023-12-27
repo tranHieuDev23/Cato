@@ -1,20 +1,16 @@
 package app
 
 import (
-	"context"
-
 	"go.uber.org/zap"
 
 	"github.com/robfig/cron/v3"
 
 	"github.com/tranHieuDev23/cato/internal/configs"
-	"github.com/tranHieuDev23/cato/internal/dataaccess/db"
 	"github.com/tranHieuDev23/cato/internal/handlers/http"
 	"github.com/tranHieuDev23/cato/internal/handlers/jobs"
 )
 
 type Host struct {
-	dbMigrator                                     db.Migrator
 	createFirstAccountsJob                         jobs.CreateFirstAccounts
 	scheduleSubmittedExecutingSubmissionToJudgeJob jobs.ScheduleSubmittedExecutingSubmissionToJudge
 	revertExecutingSubmissionsJob                  jobs.RevertExecutingSubmissions
@@ -25,7 +21,6 @@ type Host struct {
 }
 
 func NewHost(
-	dbMigrator db.Migrator,
 	createFirstAccountsJob jobs.CreateFirstAccounts,
 	scheduleSubmittedExecutingSubmissionToJudgeJob jobs.ScheduleSubmittedExecutingSubmissionToJudge,
 	revertExecutingSubmissionsJob jobs.RevertExecutingSubmissions,
@@ -35,8 +30,7 @@ func NewHost(
 	logicConfig configs.Logic,
 ) *Host {
 	return &Host{
-		dbMigrator:             dbMigrator,
-		createFirstAccountsJob: createFirstAccountsJob,
+		createFirstAccountsJob:                         createFirstAccountsJob,
 		scheduleSubmittedExecutingSubmissionToJudgeJob: scheduleSubmittedExecutingSubmissionToJudgeJob,
 		revertExecutingSubmissionsJob:                  revertExecutingSubmissionsJob,
 		httpServer:                                     httpServer,
@@ -47,10 +41,6 @@ func NewHost(
 }
 
 func (c Host) Start() error {
-	if err := c.dbMigrator.Migrate(context.Background()); err != nil {
-		return err
-	}
-
 	if err := c.createFirstAccountsJob.Run(); err != nil {
 		return err
 	}

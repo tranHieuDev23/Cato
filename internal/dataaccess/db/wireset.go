@@ -4,6 +4,7 @@ import "github.com/google/wire"
 
 var WireSet = wire.NewSet(
 	InitializeDB,
+	NewTokenPublicKeyDataAccessor,
 	NewMigrator,
 	NewAccountDataAccessor,
 	NewAccountPasswordDataAccessor,

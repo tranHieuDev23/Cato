@@ -237,6 +237,7 @@ export class AccountService {
         if (apiError.code === ErrorCode.Unauthenticated) {
           this.sessionAccount = null;
           this.sessionAccountChanged.emit(null);
+          return null;
         } else {
           throw apiError;
         }

@@ -32,6 +32,7 @@ func (m migrator) Migrate(ctx context.Context) error {
 	if err := m.db.AutoMigrate(
 		new(Account),
 		new(AccountPassword),
+		new(TokenPublicKey),
 		new(Problem),
 		new(ProblemExample),
 		new(TestCase),

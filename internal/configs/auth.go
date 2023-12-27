@@ -7,8 +7,6 @@ type Hash struct {
 }
 
 type Token struct {
-	PrivateKey                  string `yaml:"private_key"`
-	PublicKey                   string `yaml:"public_key"`
 	ExpiresIn                   string `yaml:"expires_in"`
 	RegenerateTokenBeforeExpiry string `yaml:"regenerate_token_before_expiry"`
 }

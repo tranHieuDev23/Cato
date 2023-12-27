@@ -55,10 +55,19 @@ func InitializeDB(
 		return nil, errors.New("failed to get abs database file path")
 	}
 
-	return gorm.Open(
+	db, err := gorm.Open(
 		sqlite.Open(fmt.Sprintf("file://%s", databaseFilePath)),
-		&gorm.Config{
-			Logger: gormZapLogger{logger: logger},
-		},
+		&gorm.Config{Logger: gormZapLogger{logger: logger}},
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	migrator := NewMigrator(db, logger)
+	err = migrator.Migrate(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
 }

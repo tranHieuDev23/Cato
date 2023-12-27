@@ -104,9 +104,12 @@ func NewHTTPAuth(
 			regenerateToken, regenerateExpireTime, regenerateErr := regenerateTokenIfDurationToExpireIsWithinThreshold(
 				ctx, postRequestToken, tokenLogic, regenerateTokenBeforeExpiryDuration)
 			if regenerateErr != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				if _, writeErr := w.Write(make([]byte, 0)); writeErr != nil {
-					logger.With(zap.Error(writeErr)).Error("failed to write to response writer")
+				logger.With(zap.Error(regenerateErr)).Warn("error happened when trying to re-generate token")
+
+				// This middleware's error should not break API response
+				err = inMemoryWriter.Apply(w)
+				if err != nil {
+					logger.With(zap.Error(err)).Error("failed to apply in-memory writer to response writer")
 				}
 
 				return

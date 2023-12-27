@@ -8,7 +8,6 @@ package wiring
 
 import (
 	"github.com/google/wire"
-
 	"github.com/tranHieuDev23/cato/internal/app"
 	"github.com/tranHieuDev23/cato/internal/configs"
 	"github.com/tranHieuDev23/cato/internal/dataaccess"
@@ -29,24 +28,24 @@ func InitializeHost(filePath configs.ConfigFilePath, args utils.Arguments) (*app
 	if err != nil {
 		return nil, nil, err
 	}
+	auth := config.Auth
+	hash := auth.Hash
 	log := config.Log
 	logger, cleanup, err := utils.InitializeLogger(log)
 	if err != nil {
 		return nil, nil, err
 	}
+	logicHash := logic.NewHash(hash, logger)
 	database := config.Database
 	gormDB, err := db.InitializeDB(logger, database)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
-	migrator := db.NewMigrator(gormDB, logger)
-	auth := config.Auth
-	hash := auth.Hash
-	logicHash := logic.NewHash(hash, logger)
 	accountDataAccessor := db.NewAccountDataAccessor(gormDB, logger)
+	tokenPublicKeyDataAccessor := db.NewTokenPublicKeyDataAccessor(gormDB, logger)
 	token := auth.Token
-	logicToken, err := logic.NewToken(accountDataAccessor, token, logger)
+	logicToken, err := logic.NewToken(accountDataAccessor, tokenPublicKeyDataAccessor, token, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
@@ -98,7 +97,7 @@ func InitializeHost(filePath configs.ConfigFilePath, args utils.Arguments) (*app
 	configsHTTP := config.HTTP
 	server := http.NewServer(apiServer, v, v2, spaHandler, logger, configsHTTP, args)
 	cron, cleanup2 := utils.InitializeCron()
-	host := app.NewHost(migrator, createFirstAccounts, scheduleSubmittedExecutingSubmissionToJudge, revertExecutingSubmissions, server, logger, cron, configsLogic)
+	host := app.NewHost(createFirstAccounts, scheduleSubmittedExecutingSubmissionToJudge, revertExecutingSubmissions, server, logger, cron, configsLogic)
 	return host, func() {
 		cleanup2()
 		cleanup()
@@ -121,11 +120,11 @@ func InitializeWorker(filePath configs.ConfigFilePath, args utils.Arguments) (*a
 		cleanup()
 		return nil, nil, err
 	}
-	migrator := db.NewMigrator(gormDB, logger)
 	accountDataAccessor := db.NewAccountDataAccessor(gormDB, logger)
+	tokenPublicKeyDataAccessor := db.NewTokenPublicKeyDataAccessor(gormDB, logger)
 	auth := config.Auth
 	token := auth.Token
-	logicToken, err := logic.NewToken(accountDataAccessor, token, logger)
+	logicToken, err := logic.NewToken(accountDataAccessor, tokenPublicKeyDataAccessor, token, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
@@ -164,7 +163,7 @@ func InitializeWorker(filePath configs.ConfigFilePath, args utils.Arguments) (*a
 	syncProblems := jobs.NewSyncProblems(problem)
 	judgeDistributedFirstSubmittedSubmission := jobs.NewJudgeDistributedFirstSubmittedSubmission(judge)
 	cron, cleanup2 := utils.InitializeCron()
-	worker := app.NewWorker(migrator, scheduleSubmittedExecutingSubmissionToJudge, syncProblems, judgeDistributedFirstSubmittedSubmission, logger, cron, configsLogic)
+	worker := app.NewWorker(scheduleSubmittedExecutingSubmissionToJudge, syncProblems, judgeDistributedFirstSubmittedSubmission, logger, cron, configsLogic)
 	return worker, func() {
 		cleanup2()
 		cleanup()
