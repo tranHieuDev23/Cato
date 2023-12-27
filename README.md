@@ -34,7 +34,7 @@
 
 Cato is a simple web-based Online Judge system for competitive programming problems. Designed with local setup in mind, it can be set up with minimal effort, depending only on Docker for containerization of test runs. At the same time, it can also run in a simple distributed host-worker mode, distributing submissions to multiple judge worker machines for more efficient operation.
 
-<img src="docs/screenshot-submission-list.png" alt="Screenshot of Submissions page" />
+<img src="docs/screenshot-submissions-page.png" alt="Screenshot of Submissions page" />
 
 <a name="installation"></a>
 
@@ -120,7 +120,7 @@ Make sure that all worker machine have its own Docker (or a Docker-compatible co
 
 [QuillJS](https://quilljs.com/) is the editor for text problem description, while [Katex](https://katex.org/) is used for math typesetting, allowing problem setters to write rich problem statements with proper math annotations.
 
-<img src="docs/screenshot-problem.png" alt="Screenshot of Problem page" />
+<img src="docs/screenshot-problem-page.png" alt="Screenshot of Problem page" />
 
 <a name="config"></a>
 
