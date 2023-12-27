@@ -22,6 +22,7 @@
     -   [Running in local mode](#running-in-local-mode)
     -   [Running in distributed mode](#running-in-distributed-mode)
     -   [Editing problem statements](#editing-problem-statements)
+    -   [Custom client](#custom-client)
 -   [Config](#config)
     -   [CLI Arguments](#cli-arguments)
     -   [Config files](#config-files)
@@ -121,6 +122,12 @@ Make sure that all worker machine have its own Docker (or a Docker-compatible co
 [QuillJS](https://quilljs.com/) is the editor for text problem description, while [Katex](https://katex.org/) is used for math typesetting, allowing problem setters to write rich problem statements with proper math annotations.
 
 <img src="docs/screenshot-problem-page.png" alt="Screenshot of Problem page" />
+
+### Custom client
+
+Thinking that the web client sucks? You can totally write (or better yet, generate) your own HTTP client for Cato using [the generated OpenAPI 3.0 specification](/api/swagger.json).
+
+In fact, this project was created because I discovered that [the code generation pipeline using pjrpc and OpenAPI Generator](#generate-code) is so powerful that it allows me to finish this project within just 5 days!
 
 <a name="config"></a>
 
