@@ -1,0 +1,13 @@
+<div class="content">
+    <p nz-typography>Input</p>
+    <nge-monaco-editor class="editor" (ready)="onEditTestCaseInputEditorReady($event)">
+    </nge-monaco-editor>
+    <br />
+    <p nz-typography>Output</p>
+    <nge-monaco-editor class="editor" (ready)="onEditTestCaseOutputEditorReady($event)">
+    </nge-monaco-editor>
+    <br />
+    <label *ngIf="isHidden !== null" nz-checkbox [(ngModel)]="isHidden" (ngModelChange)="isHiddenChange.emit($event)">
+        Is hidden
+    </label>
+</div>

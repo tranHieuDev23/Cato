@@ -72,15 +72,8 @@
         </tbody>
     </nz-table>
     <ng-template #expandTestCaseModal>
-        <div class="edit-test-case-modal">
-            <p nz-typography>Input</p>
-            <nge-monaco-editor class="editor" (ready)="onExpandTestCaseInputEditorReady($event)">
-            </nge-monaco-editor>
-            <br />
-            <p nz-typography>Output</p>
-            <nge-monaco-editor class="editor" (ready)="onExpandTestCaseOutputEditorReady($event)">
-            </nge-monaco-editor>
-        </div>
+        <app-test-case-view-modal [input]="expandTestCaseModalInput" [output]="expandTestCaseModalOutput">
+        </app-test-case-view-modal>
     </ng-template>
     <ng-template #expandTestCaseModalFooter>
         <button nz-button (click)="onExpandTestCaseModalCopyInputClicked()">
@@ -91,17 +84,9 @@
         </button>
     </ng-template>
     <ng-template #editTestCaseModal>
-        <div class="edit-test-case-modal">
-            <p nz-typography>Input</p>
-            <nge-monaco-editor class="editor" (ready)="onEditTestCaseInputEditorReady($event)">
-            </nge-monaco-editor>
-            <br />
-            <p nz-typography>Output</p>
-            <nge-monaco-editor class="editor" (ready)="onEditTestCaseOutputEditorReady($event)">
-            </nge-monaco-editor>
-            <br />
-            <label nz-checkbox [(ngModel)]="editModalTestCaseIsHidden">Is hidden</label>
-        </div>
+        <app-test-case-editor-modal [(input)]="editTestCaseModalInput" [(output)]="editTestCaseModalOutput"
+            [(isHidden)]="editModalTestCaseIsHidden">
+        </app-test-case-editor-modal>
     </ng-template>
     <ng-template #uploadTestCaseModal>
         <nz-upload nzType="drag" nzAction="/#" [nzBeforeUpload]="onLoadFile">

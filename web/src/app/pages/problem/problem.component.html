@@ -3,39 +3,9 @@
         class="problem">
         <nz-tabset #problemTabSet>
             <nz-tab nzTitle="Description">
-                <ng-container *ngIf="problem">
-                    <nz-descriptions [nzColumn]="1" [nzBordered]="true" nzSize="small">
-                        <nz-descriptions-item nzTitle="Author">
-                            {{ problem.author.displayName }}
-                        </nz-descriptions-item>
-                        <nz-descriptions-item nzTitle="Created time">
-                            {{ problem.createdTime | date:'d/M/yyyy, h:mm a':'d/M/yyyy, h:mm a'}}
-                        </nz-descriptions-item>
-                        <nz-descriptions-item nzTitle="Update time">
-                            {{ problem.updatedTime | date:'d/M/yyyy, h:mm a':'d/M/yyyy, h:mm a'}}
-                        </nz-descriptions-item>
-                        <nz-descriptions-item nzTitle="Time limit">
-                            {{ problem.timeLimitInMillisecond | timeLimit}}
-                        </nz-descriptions-item>
-                        <nz-descriptions-item nzTitle="Memory limit">
-                            {{ problem.memoryLimitInByte | memory}}
-                        </nz-descriptions-item>
-                    </nz-descriptions><br />
-                    <p *ngIf="sessionAccount?.role === 'admin' ||
-                         (sessionAccount?.role === 'problem_setter' && sessionAccount?.iD === problem.author.iD)">
-                        <nz-button-group>
-                            <button nz-button routerLink="/problem-editor/{{problem.uUID}}">
-                                <span nz-icon nzType="edit" nzTheme="outline"></span>
-                                Edit
-                            </button>
-                            <button nz-button nzDanger (click)="onDeleteClicked()">
-                                <span nz-icon nzType="delete" nzTheme="outline"></span>
-                                Delete
-                            </button>
-                        </nz-button-group>
-                    </p>
-                    <div #problemDescriptionContainer [innerHTML]="problem.description"></div>
-                </ng-container>
+                <app-description *ngIf="problem && sessionAccount" [problem]="problem"
+                    [sessionAccount]="sessionAccount">
+                </app-description>
             </nz-tab>
 
             <nz-tab nzTitle="Test cases">

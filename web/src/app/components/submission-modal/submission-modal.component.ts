@@ -44,10 +44,10 @@ export interface SubmissionModalData {
 export class SubmissionModalComponent implements OnInit {
   @Input() public submission: RpcSubmission | undefined;
 
-  public editorHeight = 0;
-
-  private readonly nzModalData: SubmissionModalData | null =
-    inject(NZ_MODAL_DATA);
+  private readonly nzModalData: SubmissionModalData | null = inject(
+    NZ_MODAL_DATA,
+    { optional: true }
+  );
 
   constructor(private readonly notificationService: NzNotificationService) {}
 

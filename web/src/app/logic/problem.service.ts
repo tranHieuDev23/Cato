@@ -1,6 +1,11 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from '../dataaccess';
-import { RpcError, RpcProblem, RpcProblemSnippet } from '../dataaccess/api';
+import {
+  RpcError,
+  RpcProblem,
+  RpcProblemExample,
+  RpcProblemSnippet,
+} from '../dataaccess/api';
 import { ErrorCode } from '../dataaccess/api.service';
 import { PermissionDeniedError, UnauthenticatedError } from './account.service';
 
@@ -102,7 +107,8 @@ export class ProblemService {
     displayName: string,
     description: string,
     timeLimitInMillisecond: number,
-    memoryLimitInByte: number
+    memoryLimitInByte: number,
+    exampleList: RpcProblemExample[]
   ): Promise<RpcProblem> {
     try {
       const response = await this.api.createProblem({
@@ -110,7 +116,7 @@ export class ProblemService {
         description,
         timeLimitInMillisecond,
         memoryLimitInByte,
-        exampleList: [],
+        exampleList,
       });
       return response.problem;
     } catch (e) {
@@ -140,7 +146,8 @@ export class ProblemService {
     displayName: string,
     description: string,
     timeLimitInMillisecond: number,
-    memoryLimitInByte: number
+    memoryLimitInByte: number,
+    exampleList: RpcProblemExample[]
   ): Promise<RpcProblem> {
     try {
       const response = await this.api.updateProblem({
@@ -149,7 +156,7 @@ export class ProblemService {
         description,
         timeLimitInMillisecond,
         memoryLimitInByte,
-        exampleList: [],
+        exampleList,
       });
       return response.problem;
     } catch (e) {

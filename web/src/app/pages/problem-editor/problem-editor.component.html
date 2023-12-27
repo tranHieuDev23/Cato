@@ -88,9 +88,49 @@
                 </ng-template>
             </nz-form-control>
         </nz-form-item>
+        <nz-form-item nz-col [nzSpan]="24">
+            <button nz-button [disabled]="exampleList.length >= 5 && saving" (click)="onAddExampleTestCaseClicked()">
+                Add example test case
+            </button>
+        </nz-form-item>
+        <nz-form-item nz-col [nzSpan]="24">
+            <nz-table #table [nzData]="exampleList" [nzShowPagination]="false">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Input</th>
+                        <th>Output</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let example of table.data; index as i">
+                        <td>{{ i + 1 }}</td>
+                        <td><code nz-typography [nzContent]="example.input | ellipsis:100 "></code></td>
+                        <td><code nz-typography [nzContent]="example.output | ellipsis:100 "></code></td>
+                        <td>
+                            <nz-button-group>
+                                <button nz-button nz-tooltip="Edit" [disabled]="saving"
+                                    (click)="onExampleEditClicked(i)">
+                                    <span nz-icon nzType="edit" nzTheme="outline"></span>
+                                </button>
+                                <button nz-button nzDanger [disabled]="saving" (click)="onExampleDeleteClicked(i)">
+                                    <span nz-icon nzType="delete" nzTheme="outline"></span>
+                                </button>
+                            </nz-button-group>
+                        </td>
+                    </tr>
+                </tbody>
+            </nz-table>
+        </nz-form-item>
+        <nz-form-item nz-col [nzSpan]="24">
+            <button nz-button nzType="primary" [disabled]="!formGroup.valid || saving" (click)="onSaveClicked()">
+                Save
+            </button>
+        </nz-form-item>
     </form>
-
-    <button nz-button nzType="primary" [disabled]="!formGroup.valid || saving" (click)="onSaveClicked()">
-        Save
-    </button>
 </div>
+<ng-template #editExampleModal>
+    <app-test-case-editor-modal [(input)]="editExampleModalInput" [(output)]="editExampleModalOutput" [isHidden]="null">
+    </app-test-case-editor-modal>
+</ng-template>

@@ -1,4 +1,10 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  OnInit,
+  TemplateRef,
+  ViewChild,
+} from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -35,6 +41,12 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { PageTitleService } from '../../logic/page-title.service';
 import { UnitService } from '../../logic/unit.service';
 import { Subscription } from 'rxjs';
+import { NgeMonacoModule } from '@cisstech/nge/monaco';
+import { NzTableModule } from 'ng-zorro-antd/table';
+import { EllipsisPipe } from '../../components/utils/ellipsis.pipe';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { TestCaseEditorModalComponent } from '../../components/test-case-editor-modal/test-case-editor-modal.component';
 
 @Component({
   selector: 'app-problem-editor',
@@ -51,17 +63,28 @@ import { Subscription } from 'rxjs';
     NzSelectModule,
     NzInputNumberModule,
     NzButtonModule,
+    NgeMonacoModule,
+    NzTableModule,
+    EllipsisPipe,
+    NzIconModule,
+    NzModalModule,
+    TestCaseEditorModalComponent,
   ],
   templateUrl: './problem-editor.component.html',
   styleUrl: './problem-editor.component.scss',
 })
 export class ProblemEditorComponent implements OnInit, OnDestroy {
+  @ViewChild('editExampleModal') editExampleModal: TemplateRef<any> | undefined;
+
   public sessionAccount: RpcAccount | undefined;
   public exampleList: RpcProblemExample[] = [];
 
   private problemUUID: string | undefined;
   public formGroup: FormGroup;
   public saving = false;
+
+  public editExampleModalInput = '';
+  public editExampleModalOutput = '';
 
   private queryParamsSubscription: Subscription | undefined;
 
@@ -74,7 +97,8 @@ export class ProblemEditorComponent implements OnInit, OnDestroy {
     readonly formBuilder: FormBuilder,
     private readonly pageTitleService: PageTitleService,
     private readonly activatedRoute: ActivatedRoute,
-    private readonly unitService: UnitService
+    private readonly unitService: UnitService,
+    private readonly modalService: NzModalService
   ) {
     this.formGroup = formBuilder.group(
       {
@@ -155,6 +179,7 @@ export class ProblemEditorComponent implements OnInit, OnDestroy {
         memoryLimit: memoryLimit,
         memoryUnit: memoryUnit,
       });
+      this.exampleList = problem.exampleList;
     } catch (e) {
       if (e instanceof UnauthenticatedError) {
         this.notificationService.error(
@@ -223,6 +248,44 @@ export class ProblemEditorComponent implements OnInit, OnDestroy {
     };
   }
 
+  public async onAddExampleTestCaseClicked(): Promise<void> {
+    this.editExampleModalInput = '';
+    this.editExampleModalOutput = '';
+    this.modalService.create({
+      nzContent: this.editExampleModal,
+      nzWidth: 'fit-content',
+      nzOnOk: () => {
+        this.exampleList = [
+          ...this.exampleList,
+          {
+            input: this.editExampleModalInput,
+            output: this.editExampleModalOutput,
+          },
+        ];
+      },
+    });
+  }
+
+  public async onExampleEditClicked(index: number): Promise<void> {
+    this.editExampleModalInput = this.exampleList[index].input;
+    this.editExampleModalOutput = this.exampleList[index].output;
+    this.modalService.create({
+      nzContent: this.editExampleModal,
+      nzWidth: 'fit-content',
+      nzOnOk: () => {
+        this.exampleList = [...this.exampleList];
+        this.exampleList[index] = {
+          input: this.editExampleModalInput,
+          output: this.editExampleModalOutput,
+        };
+      },
+    });
+  }
+
+  public async onExampleDeleteClicked(index: number): Promise<void> {
+    this.exampleList = this.exampleList.filter((_, i) => i != index);
+  }
+
   public async onSaveClicked(): Promise<void> {
     const {
       displayName,
@@ -239,7 +302,8 @@ export class ProblemEditorComponent implements OnInit, OnDestroy {
           displayName,
           description,
           this.unitService.timeValueAndUnitToLimit(timeLimit, timeUnit),
-          this.unitService.memoryValueAndUnitToLimit(memoryLimit, memoryUnit)
+          this.unitService.memoryValueAndUnitToLimit(memoryLimit, memoryUnit),
+          this.exampleList
         );
 
         this.notificationService.success('Problem saved successfully', '');
@@ -250,7 +314,8 @@ export class ProblemEditorComponent implements OnInit, OnDestroy {
           displayName,
           description,
           this.unitService.timeValueAndUnitToLimit(timeLimit, timeUnit),
-          this.unitService.memoryValueAndUnitToLimit(memoryLimit, memoryUnit)
+          this.unitService.memoryValueAndUnitToLimit(memoryLimit, memoryUnit),
+          this.exampleList
         );
         this.notificationService.success('Problem updated successfully', '');
         this.router.navigateByUrl(`/problem/${this.problemUUID}`);

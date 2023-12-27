@@ -154,7 +154,7 @@ Cato use a YAML config file to configure its inner working in more details. By d
 
 ## TODO
 
--   [ ] Problem example list - Small set of small test cases that users can view and copy
+-   [x] Problem example list - Small set of small test cases that users can view and copy
 -   [ ] Custom output evaluation method:
     -   [ ] Evaluation using custom scripts running inside containers
 -   [ ] Contests

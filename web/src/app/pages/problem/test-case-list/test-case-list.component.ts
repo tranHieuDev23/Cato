@@ -2,7 +2,6 @@ import { CommonModule, Location } from '@angular/common';
 import {
   Component,
   Input,
-  OnDestroy,
   OnInit,
   TemplateRef,
   ViewChild,
@@ -37,7 +36,8 @@ import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import copyToClipboard from 'copy-to-clipboard';
 import { EllipsisPipe } from '../../../components/utils/ellipsis.pipe';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
-import { NgeMonacoModule } from '@cisstech/nge/monaco';
+import { TestCaseEditorModalComponent } from '../../../components/test-case-editor-modal/test-case-editor-modal.component';
+import { TestCaseViewModalComponent } from '../../../components/test-case-view-modal/test-case-view-modal.component';
 
 export interface TestCaseListItem {
   uuid: string;
@@ -64,12 +64,13 @@ export interface TestCaseListItem {
     NzToolTipModule,
     EllipsisPipe,
     NzUploadModule,
-    NgeMonacoModule,
+    TestCaseEditorModalComponent,
+    TestCaseViewModalComponent,
   ],
   templateUrl: './test-case-list.component.html',
   styleUrl: './test-case-list.component.scss',
 })
-export class TestCaseListComponent implements OnInit, OnDestroy {
+export class TestCaseListComponent implements OnInit {
   @ViewChild('expandTestCaseModal') expandTestCaseModal:
     | TemplateRef<any>
     | undefined;
@@ -102,9 +103,6 @@ export class TestCaseListComponent implements OnInit, OnDestroy {
 
   private uploadTestCaseModalRef: NzModalRef | undefined;
 
-  private editTestCaseModalInputOnChange: monaco.IDisposable | undefined;
-  private editTestCaseModalOutputOnChange: monaco.IDisposable | undefined;
-
   constructor(
     private readonly accountService: AccountService,
     private readonly testCaseService: TestCaseService,
@@ -117,11 +115,6 @@ export class TestCaseListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadTestCaseSnippetList().then();
-  }
-
-  ngOnDestroy(): void {
-    this.editTestCaseModalInputOnChange?.dispose();
-    this.editTestCaseModalOutputOnChange?.dispose();
   }
 
   private async loadTestCaseSnippetList(): Promise<void> {
@@ -275,24 +268,6 @@ export class TestCaseListComponent implements OnInit, OnDestroy {
     });
   }
 
-  public onExpandTestCaseInputEditorReady(editor: monaco.editor.IEditor): void {
-    editor.updateOptions({ minimap: { enabled: false } });
-    const editorModel = monaco.editor.createModel(
-      this.expandTestCaseModalInput
-    );
-    editor.setModel(editorModel);
-  }
-
-  public onExpandTestCaseOutputEditorReady(
-    editor: monaco.editor.IEditor
-  ): void {
-    editor.updateOptions({ minimap: { enabled: false } });
-    const editorModel = monaco.editor.createModel(
-      this.expandTestCaseModalOutput
-    );
-    editor.setModel(editorModel);
-  }
-
   public onExpandTestCaseModalCopyInputClicked(): void {
     copyToClipboard(this.expandTestCaseModalInput);
     this.notificationService.success('Input copied to clipboard', '');
@@ -371,36 +346,6 @@ export class TestCaseListComponent implements OnInit, OnDestroy {
         }
       },
     });
-  }
-
-  public onEditTestCaseInputEditorReady(editor: monaco.editor.IEditor): void {
-    if (this.editTestCaseModalInputOnChange) {
-      this.editTestCaseModalInputOnChange.dispose();
-    }
-
-    editor.updateOptions({ minimap: { enabled: false } });
-    const editorModel = monaco.editor.createModel(this.editTestCaseModalInput);
-    this.editTestCaseModalInputOnChange = editorModel.onDidChangeContent(() => {
-      this.editTestCaseModalInput = editorModel.getValue();
-    });
-
-    editor.setModel(editorModel);
-  }
-
-  public onEditTestCaseOutputEditorReady(editor: monaco.editor.IEditor): void {
-    if (this.editTestCaseModalOutputOnChange) {
-      this.editTestCaseModalOutputOnChange.dispose();
-    }
-
-    editor.updateOptions({ minimap: { enabled: false } });
-    const editorModel = monaco.editor.createModel(this.editTestCaseModalOutput);
-    this.editTestCaseModalOutputOnChange = editorModel.onDidChangeContent(
-      () => {
-        this.editTestCaseModalOutput = editorModel.getValue();
-      }
-    );
-
-    editor.setModel(editorModel);
   }
 
   public async onTestCaseDeleteClicked(
