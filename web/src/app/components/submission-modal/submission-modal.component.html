@@ -24,9 +24,5 @@
         <span nz-icon nzType="copy" nzTheme="outline"></span> Copy
     </button>
 </p>
-<ngx-codemirror *ngIf="submission" [ngModel]="submission.content" [options]="{
-        theme: 'material',
-        mode: codeMirrorService.submissionLanguageToCodeMirrorMode(submission.language),
-        readOnly: true,
-    }">
-</ngx-codemirror>
+<nge-monaco-editor (ready)="onMonacoEditorReady($event)">
+</nge-monaco-editor>

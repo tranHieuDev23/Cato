@@ -154,11 +154,11 @@ Cato use a YAML config file to configure its inner working in more details. By d
     -   [ ] IOI Scoring Mode - Problems are scored based for passed test cases
     -   [ ] Ranking dashboard
 -   [ ] Feature flags
-    -   [ ] Enable/disable account registration.
-    -   [ ] Enable/disable problem/test case creation.
-    -   [ ] Enable/disable submissions.
+    -   [ ] Enable/disable account registration
+    -   [ ] Enable/disable problem/test case creation
+    -   [ ] Enable/disable submissions
 -   [ ] Account disabling
--   [ ] Support for more database engine
+-   [ ] Support for more database engines
 -   [ ] Dark mode
 -   [ ] Better documentation
 

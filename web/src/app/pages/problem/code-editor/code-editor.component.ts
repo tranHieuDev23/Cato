@@ -1,18 +1,24 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CodemirrorModule } from '@ctrl/ngx-codemirror';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
-import { CodeMirrorService } from '../../../logic/code-mirror.service';
 import { ServerService } from '../../../logic/server.service';
 import {
   NzNotificationModule,
   NzNotificationService,
 } from 'ng-zorro-antd/notification';
+import { NgeMonacoModule } from '@cisstech/nge/monaco';
 
 export interface LanguageOption {
   value: string;
@@ -25,18 +31,18 @@ export interface LanguageOption {
   imports: [
     CommonModule,
     FormsModule,
-    CodemirrorModule,
     NzMenuModule,
     NzSelectModule,
     NzUploadModule,
     NzButtonModule,
     NzIconModule,
     NzNotificationModule,
+    NgeMonacoModule,
   ],
   templateUrl: './code-editor.component.html',
   styleUrl: './code-editor.component.scss',
 })
-export class CodeEditorComponent implements OnInit {
+export class CodeEditorComponent implements OnInit, OnDestroy {
   @Input() public content = '';
   @Output() public contentChange = new EventEmitter<string>();
 
@@ -49,8 +55,10 @@ export class CodeEditorComponent implements OnInit {
 
   public editorMode = 'text/x-c++src';
 
+  private editorModel: monaco.editor.ITextModel | undefined;
+  private editorOnContentChange: monaco.IDisposable | undefined;
+
   constructor(
-    private readonly codeMirrorService: CodeMirrorService,
     private readonly serverService: ServerService,
     private readonly notificationService: NzNotificationService
   ) {}
@@ -69,6 +77,25 @@ export class CodeEditorComponent implements OnInit {
         return;
       }
     })().then();
+  }
+
+  ngOnDestroy(): void {
+    this.editorOnContentChange?.dispose();
+  }
+
+  public onMonacoEditorReady(editor: monaco.editor.IEditor): void {
+    editor.updateOptions({
+      minimap: { enabled: false },
+    });
+
+    this.editorModel = monaco.editor.createModel(this.content);
+    this.editorOnContentChange = this.editorModel.onDidChangeContent(() => {
+      const content = this.editorModel?.getValue() || '';
+      this.contentChange.emit(content);
+    });
+    monaco.editor.setModelLanguage(this.editorModel, this.language);
+    editor.setModel(this.editorModel);
+    editor.layout();
   }
 
   public onLoadFile = (file: NzUploadFile): boolean => {
@@ -103,13 +130,10 @@ export class CodeEditorComponent implements OnInit {
   }
 
   public onSubmissionLanguageChange(language: string): void {
-    this.editorMode =
-      this.codeMirrorService.submissionLanguageToCodeMirrorMode(language);
+    if (this.editorModel) {
+      monaco.editor.setModelLanguage(this.editorModel, this.language);
+    }
     this.languageChange.emit(language);
-  }
-
-  public onContentChange(content: string): void {
-    this.contentChange.emit(content);
   }
 
   public onSubmitClicked(): void {

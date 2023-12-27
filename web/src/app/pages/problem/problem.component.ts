@@ -3,7 +3,6 @@ import {
   ElementRef,
   OnDestroy,
   OnInit,
-  TemplateRef,
   ViewChild,
 } from '@angular/core';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
@@ -23,7 +22,6 @@ import {
   NzNotificationModule,
   NzNotificationService,
 } from 'ng-zorro-antd/notification';
-import { CodemirrorModule } from '@ctrl/ngx-codemirror';
 import { FormsModule } from '@angular/forms';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { TimeLimitPipe } from '../../components/utils/time-limit.pipe';
@@ -59,7 +57,6 @@ import renderMathInElement from 'katex/contrib/auto-render';
     NzTypographyModule,
     CommonModule,
     NzNotificationModule,
-    CodemirrorModule,
     FormsModule,
     NzGridModule,
     TimeLimitPipe,

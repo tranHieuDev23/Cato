@@ -2,11 +2,10 @@ import { CommonModule, Location } from '@angular/common';
 import {
   Component,
   Input,
+  OnDestroy,
   OnInit,
-  QueryList,
   TemplateRef,
   ViewChild,
-  ViewChildren,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import {
@@ -30,7 +29,6 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { RpcAccount, RpcProblem } from '../../../dataaccess/api';
-import { CodemirrorComponent, CodemirrorModule } from '@ctrl/ngx-codemirror';
 import { FormsModule } from '@angular/forms';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
@@ -39,6 +37,7 @@ import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import copyToClipboard from 'copy-to-clipboard';
 import { EllipsisPipe } from '../../../components/utils/ellipsis.pipe';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
+import { NgeMonacoModule } from '@cisstech/nge/monaco';
 
 export interface TestCaseListItem {
   uuid: string;
@@ -58,7 +57,6 @@ export interface TestCaseListItem {
     NzNotificationModule,
     NzButtonModule,
     NzIconModule,
-    CodemirrorModule,
     FormsModule,
     NzTypographyModule,
     NzModalModule,
@@ -66,14 +64,12 @@ export interface TestCaseListItem {
     NzToolTipModule,
     EllipsisPipe,
     NzUploadModule,
+    NgeMonacoModule,
   ],
   templateUrl: './test-case-list.component.html',
   styleUrl: './test-case-list.component.scss',
 })
-export class TestCaseListComponent implements OnInit {
-  @ViewChildren(CodemirrorComponent)
-  codeMirrorComponentList!: QueryList<CodemirrorComponent>;
-
+export class TestCaseListComponent implements OnInit, OnDestroy {
   @ViewChild('expandTestCaseModal') expandTestCaseModal:
     | TemplateRef<any>
     | undefined;
@@ -106,6 +102,9 @@ export class TestCaseListComponent implements OnInit {
 
   private uploadTestCaseModalRef: NzModalRef | undefined;
 
+  private editTestCaseModalInputOnChange: monaco.IDisposable | undefined;
+  private editTestCaseModalOutputOnChange: monaco.IDisposable | undefined;
+
   constructor(
     private readonly accountService: AccountService,
     private readonly testCaseService: TestCaseService,
@@ -118,6 +117,11 @@ export class TestCaseListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadTestCaseSnippetList().then();
+  }
+
+  ngOnDestroy(): void {
+    this.editTestCaseModalInputOnChange?.dispose();
+    this.editTestCaseModalOutputOnChange?.dispose();
   }
 
   private async loadTestCaseSnippetList(): Promise<void> {
@@ -271,6 +275,24 @@ export class TestCaseListComponent implements OnInit {
     });
   }
 
+  public onExpandTestCaseInputEditorReady(editor: monaco.editor.IEditor): void {
+    editor.updateOptions({ minimap: { enabled: false } });
+    const editorModel = monaco.editor.createModel(
+      this.expandTestCaseModalInput
+    );
+    editor.setModel(editorModel);
+  }
+
+  public onExpandTestCaseOutputEditorReady(
+    editor: monaco.editor.IEditor
+  ): void {
+    editor.updateOptions({ minimap: { enabled: false } });
+    const editorModel = monaco.editor.createModel(
+      this.expandTestCaseModalOutput
+    );
+    editor.setModel(editorModel);
+  }
+
   public onExpandTestCaseModalCopyInputClicked(): void {
     copyToClipboard(this.expandTestCaseModalInput);
     this.notificationService.success('Input copied to clipboard', '');
@@ -349,6 +371,36 @@ export class TestCaseListComponent implements OnInit {
         }
       },
     });
+  }
+
+  public onEditTestCaseInputEditorReady(editor: monaco.editor.IEditor): void {
+    if (this.editTestCaseModalInputOnChange) {
+      this.editTestCaseModalInputOnChange.dispose();
+    }
+
+    editor.updateOptions({ minimap: { enabled: false } });
+    const editorModel = monaco.editor.createModel(this.editTestCaseModalInput);
+    this.editTestCaseModalInputOnChange = editorModel.onDidChangeContent(() => {
+      this.editTestCaseModalInput = editorModel.getValue();
+    });
+
+    editor.setModel(editorModel);
+  }
+
+  public onEditTestCaseOutputEditorReady(editor: monaco.editor.IEditor): void {
+    if (this.editTestCaseModalOutputOnChange) {
+      this.editTestCaseModalOutputOnChange.dispose();
+    }
+
+    editor.updateOptions({ minimap: { enabled: false } });
+    const editorModel = monaco.editor.createModel(this.editTestCaseModalOutput);
+    this.editTestCaseModalOutputOnChange = editorModel.onDidChangeContent(
+      () => {
+        this.editTestCaseModalOutput = editorModel.getValue();
+      }
+    );
+
+    editor.setModel(editorModel);
   }
 
   public async onTestCaseDeleteClicked(

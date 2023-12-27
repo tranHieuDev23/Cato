@@ -74,14 +74,12 @@
     <ng-template #expandTestCaseModal>
         <div class="edit-test-case-modal">
             <p nz-typography>Input</p>
-            <ngx-codemirror class="editor" [(ngModel)]="expandTestCaseModalInput"
-                [options]="{theme: 'material', mode: 'text/plain', autoRefresh: true, readOnly: true}">
-            </ngx-codemirror>
+            <nge-monaco-editor class="editor" (ready)="onExpandTestCaseInputEditorReady($event)">
+            </nge-monaco-editor>
             <br />
             <p nz-typography>Output</p>
-            <ngx-codemirror class="editor" [(ngModel)]="expandTestCaseModalOutput"
-                [options]="{theme: 'material', mode: 'text/plain', autoRefresh: true, readOnly: true}">
-            </ngx-codemirror>
+            <nge-monaco-editor class="editor" (ready)="onExpandTestCaseOutputEditorReady($event)">
+            </nge-monaco-editor>
         </div>
     </ng-template>
     <ng-template #expandTestCaseModalFooter>
@@ -95,14 +93,12 @@
     <ng-template #editTestCaseModal>
         <div class="edit-test-case-modal">
             <p nz-typography>Input</p>
-            <ngx-codemirror class="editor" [(ngModel)]="editTestCaseModalInput"
-                [options]="{theme: 'material', mode: 'text/plain', autoRefresh: true}">
-            </ngx-codemirror>
+            <nge-monaco-editor class="editor" (ready)="onEditTestCaseInputEditorReady($event)">
+            </nge-monaco-editor>
             <br />
             <p nz-typography>Output</p>
-            <ngx-codemirror class="editor" [(ngModel)]="editTestCaseModalOutput"
-                [options]="{theme: 'material', mode: 'text/plain', autoRefresh: true}">
-            </ngx-codemirror>
+            <nge-monaco-editor class="editor" (ready)="onEditTestCaseOutputEditorReady($event)">
+            </nge-monaco-editor>
             <br />
             <label nz-checkbox [(ngModel)]="editModalTestCaseIsHidden">Is hidden</label>
         </div>

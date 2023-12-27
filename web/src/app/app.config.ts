@@ -11,6 +11,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { LoggedOutGuard } from './components/utils/logged-out-guard';
 import { LoggedInGuard } from './components/utils/logged-in-guard';
+import { NgeMonacoModule } from '@cisstech/nge/monaco';
 
 registerLocaleData(en);
 
@@ -21,6 +22,14 @@ export const appConfig: ApplicationConfig = {
     provideNzI18n(en_US),
     importProvidersFrom(FormsModule),
     importProvidersFrom(HttpClientModule),
+    importProvidersFrom(
+      NgeMonacoModule.forRoot({
+        theming: {
+          themes: ['vs-dark'],
+          default: 'vs-dark',
+        },
+      })
+    ),
     provideAnimations(),
     LoggedOutGuard,
     LoggedInGuard,
