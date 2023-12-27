@@ -32,21 +32,39 @@
     <div #problemDescriptionContainer [innerHTML]="problem.description"></div>
 </div>
 <ng-container *ngIf="problem.exampleList.length > 0">
-    <h3 nz-typography>Examples</h3>
+    <h4 nz-typography>Examples</h4>
     <nz-table #table [nzData]="problem.exampleList" [nzShowPagination]="false">
         <thead>
             <tr>
                 <th>#</th>
                 <th>Input</th>
                 <th>Output</th>
+                <th>Action</th>
             </tr>
         </thead>
         <tbody>
             <tr *ngFor="let example of table.data; index as i">
                 <td>{{ i + 1 }}</td>
-                <td><code nz-typography [nzContent]="example.input" nzCopyable="true"></code></td>
-                <td><code nz-typography [nzContent]="example.output" nzCopyable="true"></code></td>
+                <td><code nz-typography [nzContent]="example.input | ellipsis:100" nzCopyable="true"></code></td>
+                <td><code nz-typography [nzContent]="example.output | ellipsis:100" nzCopyable="true"></code></td>
+                <td>
+                    <button nz-button nz-tooltip="Expand" (click)="onExampleExpandClicked(example)">
+                        <span nz-icon nzType="expand-alt" nzTheme="outline"></span>
+                    </button>
+                </td>
             </tr>
         </tbody>
     </nz-table>
 </ng-container>
+<ng-template #expandTestCaseModal>
+    <app-test-case-view-modal [input]="expandExampleModalInput" [output]="expandExampleModalOutput">
+    </app-test-case-view-modal>
+</ng-template>
+<ng-template #expandTestCaseModalFooter>
+    <button nz-button (click)="onExpandTestCaseModalCopyInputClicked()">
+        <span nz-icon nzType="copy" nzTheme="outline"></span> Copy input
+    </button>
+    <button nz-button (click)="onExpandTestCaseModalCopyOutputClicked()">
+        <span nz-icon nzType="copy" nzTheme="outline"></span> Copy output
+    </button>
+</ng-template>

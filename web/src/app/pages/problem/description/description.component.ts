@@ -4,9 +4,14 @@ import {
   Input,
   OnChanges,
   OnInit,
+  TemplateRef,
   ViewChild,
 } from '@angular/core';
-import { RpcAccount, RpcProblem } from '../../../dataaccess/api';
+import {
+  RpcAccount,
+  RpcProblem,
+  RpcProblemExample,
+} from '../../../dataaccess/api';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { CommonModule, Location } from '@angular/common';
 import { TimeLimitPipe } from '../../../components/utils/time-limit.pipe';
@@ -27,6 +32,10 @@ import {
 } from '../../../logic/account.service';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import renderMathInElement from 'katex/contrib/auto-render';
+import { EllipsisPipe } from '../../../components/utils/ellipsis.pipe';
+import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import copyToClipboard from 'copy-to-clipboard';
+import { TestCaseViewModalComponent } from '../../../components/test-case-view-modal/test-case-view-modal.component';
 
 @Component({
   selector: 'app-description',
@@ -41,6 +50,9 @@ import renderMathInElement from 'katex/contrib/auto-render';
     NzTableModule,
     NzTypographyModule,
     NzIconModule,
+    EllipsisPipe,
+    NzToolTipModule,
+    TestCaseViewModalComponent,
   ],
   templateUrl: './description.component.html',
   styleUrl: './description.component.scss',
@@ -48,6 +60,15 @@ import renderMathInElement from 'katex/contrib/auto-render';
 export class DescriptionComponent implements OnInit, OnChanges {
   @ViewChild('problemDescriptionContainer')
   problemDescriptionContainer: ElementRef | undefined;
+  @ViewChild('expandTestCaseModal') expandExampleModal:
+    | TemplateRef<any>
+    | undefined;
+  @ViewChild('expandTestCaseModalFooter') expandExampleModalFooter:
+    | TemplateRef<any>
+    | undefined;
+
+  public expandExampleModalInput = '';
+  public expandExampleModalOutput = '';
 
   @Input() public problem!: RpcProblem;
   @Input() public sessionAccount!: RpcAccount;
@@ -128,5 +149,25 @@ export class DescriptionComponent implements OnInit, OnChanges {
         }
       },
     });
+  }
+
+  public onExampleExpandClicked(example: RpcProblemExample): void {
+    this.expandExampleModalInput = example.input;
+    this.expandExampleModalOutput = example.output;
+    this.modalService.create({
+      nzContent: this.expandExampleModal,
+      nzWidth: 'fit-content',
+      nzFooter: this.expandExampleModalFooter,
+    });
+  }
+
+  public onExpandTestCaseModalCopyInputClicked(): void {
+    copyToClipboard(this.expandExampleModalInput);
+    this.notificationService.success('Input copied to clipboard', '');
+  }
+
+  public onExpandTestCaseModalCopyOutputClicked(): void {
+    copyToClipboard(this.expandExampleModalOutput);
+    this.notificationService.success('Output copied to clipboard', '');
   }
 }
