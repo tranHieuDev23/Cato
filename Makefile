@@ -70,6 +70,7 @@ build-all:
 
 .PHONY: build
 build:
+	make build-web
 	go build \
 		-ldflags "-X main.version=$(VERSION) -X main.commitHash=$(COMMIT_HASH)" \
 		-o build/$(PROJECT_NAME) \
