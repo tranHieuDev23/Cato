@@ -9,6 +9,18 @@ import {
 import { ErrorCode } from '../dataaccess/api.service';
 import { PermissionDeniedError, UnauthenticatedError } from './account.service';
 
+export class ProblemCreationDisabledError extends Error {
+  constructor() {
+    super('Problem creation is disabled');
+  }
+}
+
+export class ProblemUpdateDisabledError extends Error {
+  constructor() {
+    super('Account update is disabled');
+  }
+}
+
 export class InvalidProblemListParam extends Error {
   constructor() {
     super('Invalid problem list parameters');
@@ -137,6 +149,10 @@ export class ProblemService {
         throw new PermissionDeniedError();
       }
 
+      if (apiError.code === ErrorCode.Unavailable) {
+        throw new ProblemCreationDisabledError();
+      }
+
       throw e;
     }
   }
@@ -181,6 +197,10 @@ export class ProblemService {
         throw new ProblemNotFoundError();
       }
 
+      if (apiError.code === ErrorCode.Unavailable) {
+        throw new ProblemUpdateDisabledError();
+      }
+
       throw e;
     }
   }
@@ -208,6 +228,10 @@ export class ProblemService {
 
       if (apiError.code == ErrorCode.NotFound) {
         throw new ProblemNotFoundError();
+      }
+
+      if (apiError.code === ErrorCode.Unavailable) {
+        throw new ProblemUpdateDisabledError();
       }
 
       throw e;

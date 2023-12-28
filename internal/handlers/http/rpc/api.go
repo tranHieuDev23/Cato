@@ -65,6 +65,8 @@ type API interface {
 	GetAndUpdateFirstSubmittedSubmissionToExecuting(
 		GetAndUpdateFirstSubmittedSubmissionToExecutingRequest,
 	) GetAndUpdateFirstSubmittedSubmissionToExecutingResponse
+
+	UpdateSetting(UpdateSettingRequest) UpdateSettingResponse
 }
 
 type GetServerInfoRequest struct{}
@@ -72,6 +74,7 @@ type GetServerInfoRequest struct{}
 type GetServerInfoResponse struct {
 	IsDistributed         bool
 	SupportedLanguageList []Language
+	Setting               Setting
 }
 
 type CreateAccountRequest struct {
@@ -330,4 +333,12 @@ type GetAndUpdateFirstSubmittedSubmissionToExecutingRequest struct{}
 
 type GetAndUpdateFirstSubmittedSubmissionToExecutingResponse struct {
 	Submission Submission
+}
+
+type UpdateSettingRequest struct {
+	Setting Setting
+}
+
+type UpdateSettingResponse struct {
+	Setting Setting
 }

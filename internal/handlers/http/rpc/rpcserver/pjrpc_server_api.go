@@ -45,6 +45,7 @@ const (
 	JSONRPCMethodGetProblemSubmissionSnippetList                 = "get_problem_submission_snippet_list"
 	JSONRPCMethodGetAccountProblemSubmissionSnippetList          = "get_account_problem_submission_snippet_list"
 	JSONRPCMethodGetAndUpdateFirstSubmittedSubmissionToExecuting = "get_and_update_first_submitted_submission_to_executing"
+	JSONRPCMethodUpdateSetting                                   = "update_setting"
 )
 
 // APIServer is an API server for API service.
@@ -78,6 +79,7 @@ type APIServer interface {
 	GetProblemSubmissionSnippetList(ctx context.Context, in *rpc.GetProblemSubmissionSnippetListRequest) (*rpc.GetProblemSubmissionSnippetListResponse, error)
 	GetAccountProblemSubmissionSnippetList(ctx context.Context, in *rpc.GetAccountProblemSubmissionSnippetListRequest) (*rpc.GetAccountProblemSubmissionSnippetListResponse, error)
 	GetAndUpdateFirstSubmittedSubmissionToExecuting(ctx context.Context, in *rpc.GetAndUpdateFirstSubmittedSubmissionToExecutingRequest) (*rpc.GetAndUpdateFirstSubmittedSubmissionToExecutingResponse, error)
+	UpdateSetting(ctx context.Context, in *rpc.UpdateSettingRequest) (*rpc.UpdateSettingResponse, error)
 }
 
 type regAPI struct {
@@ -117,6 +119,7 @@ func RegisterAPIServer(srv pjrpc.Registrator, svc APIServer, middlewares ...pjrp
 	srv.RegisterMethod(JSONRPCMethodGetProblemSubmissionSnippetList, r.regGetProblemSubmissionSnippetList)
 	srv.RegisterMethod(JSONRPCMethodGetAccountProblemSubmissionSnippetList, r.regGetAccountProblemSubmissionSnippetList)
 	srv.RegisterMethod(JSONRPCMethodGetAndUpdateFirstSubmittedSubmissionToExecuting, r.regGetAndUpdateFirstSubmittedSubmissionToExecuting)
+	srv.RegisterMethod(JSONRPCMethodUpdateSetting, r.regUpdateSetting)
 
 	srv.With(middlewares...)
 }
@@ -580,6 +583,22 @@ func (r *regAPI) regGetAndUpdateFirstSubmittedSubmissionToExecuting(ctx context.
 	res, err := r.svc.GetAndUpdateFirstSubmittedSubmissionToExecuting(ctx, in)
 	if err != nil {
 		return nil, fmt.Errorf("failed GetAndUpdateFirstSubmittedSubmissionToExecuting: %w", err)
+	}
+
+	return res, nil
+}
+
+func (r *regAPI) regUpdateSetting(ctx context.Context, params json.RawMessage) (any, error) {
+	in := new(rpc.UpdateSettingRequest)
+	if len(params) != 0 {
+		if err := pjson.Unmarshal(params, in); err != nil {
+			return nil, pjrpc.JRPCErrParseError("failed to parse params")
+		}
+	}
+
+	res, err := r.svc.UpdateSetting(ctx, in)
+	if err != nil {
+		return nil, fmt.Errorf("failed UpdateSetting: %w", err)
 	}
 
 	return res, nil

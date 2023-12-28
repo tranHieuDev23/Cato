@@ -19,6 +19,8 @@ import {
   NzNotificationService,
 } from 'ng-zorro-antd/notification';
 import { NgeMonacoModule } from '@cisstech/nge/monaco';
+import { Subscription } from 'rxjs';
+import { RpcGetServerInfoResponse } from '../../../dataaccess/api';
 
 export interface LanguageOption {
   value: string;
@@ -48,30 +50,28 @@ export class CodeEditorComponent implements OnInit, OnDestroy {
 
   @Input() public language = 'cpp';
   @Output() public languageChange = new EventEmitter<string>();
-
-  public languageOptionList: LanguageOption[] = [];
-
   @Output() public submitClicked = new EventEmitter<void>();
 
-  public editorMode = 'text/x-c++src';
+  public serverInfo: RpcGetServerInfoResponse | undefined;
 
   private editorModel: monaco.editor.ITextModel | undefined;
   private editorOnContentChange: monaco.IDisposable | undefined;
+  private serverInfoChangedSubscription: Subscription;
 
   constructor(
     private readonly serverService: ServerService,
     private readonly notificationService: NzNotificationService
-  ) {}
+  ) {
+    this.serverInfoChangedSubscription =
+      this.serverService.serverInfoChanged.subscribe((serverInfo) => {
+        this.serverInfo = serverInfo;
+      });
+  }
 
   ngOnInit(): void {
     (async () => {
       try {
-        const serverInfo = await this.serverService.getServiceInfo();
-        this.languageOptionList = serverInfo.supportedLanguageList.map(
-          (item) => {
-            return { value: item.value, name: item.name };
-          }
-        );
+        this.serverInfo = await this.serverService.getServerInfo();
       } catch (e) {
         this.notificationService.error('Failed to get server information', '');
         return;
@@ -81,6 +81,7 @@ export class CodeEditorComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.editorOnContentChange?.dispose();
+    this.serverInfoChangedSubscription.unsubscribe();
   }
 
   public onMonacoEditorReady(editor: monaco.editor.IEditor): void {

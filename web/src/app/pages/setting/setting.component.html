@@ -1,0 +1,40 @@
+<div class="inner-content">
+    <ng-container *ngIf="setting">
+        <p>
+            <label nz-checkbox [(ngModel)]="setting.account.disableAccountCreation">
+                Disable account creation</label>
+        </p>
+        <p>
+            <label nz-checkbox [(ngModel)]="setting.account.disableAccountUpdate">
+                Disable account update</label>
+        </p>
+        <p>
+            <label nz-checkbox [(ngModel)]="setting.account.disableSessionCreationForContestant">
+                Disable login for contestants
+            </label>
+        </p>
+        <p>
+            <label nz-checkbox [(ngModel)]="setting.account.disableSessionCreationForProblemSetter">
+                Disable login for problem setters
+            </label>
+        </p>
+        <p>
+            <label nz-checkbox [(ngModel)]="setting.problem.disableProblemCreation">
+                Disable problem creation</label>
+        </p>
+        <p>
+            <label nz-checkbox [(ngModel)]="setting.problem.disableProblemUpdate">
+                Disable problem update</label>
+        </p>
+        <p>
+            <label nz-checkbox [(ngModel)]="setting.submission.disableSubmissionCreation">
+                Disable submission creation
+            </label>
+        </p>
+        <p>
+            <button nz-button nzType="primary" [disabled]="saving" (click)="onSaveClicked()">
+                Save
+            </button>
+        </p>
+    </ng-container>
+</div>

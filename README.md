@@ -161,10 +161,10 @@ Cato use a YAML config file to configure its inner working in more details. By d
     -   [ ] ACM Scoring Mode - Problems are either completely `Accepted` or not
     -   [ ] IOI Scoring Mode - Problems are scored based for passed test cases
     -   [ ] Ranking dashboard
--   [ ] Feature flags
-    -   [ ] Enable/disable account registration
-    -   [ ] Enable/disable problem/test case creation
-    -   [ ] Enable/disable submissions
+-   [x] Feature flags
+    -   [x] Enable/disable account registration
+    -   [x] Enable/disable problem/test case creation
+    -   [x] Enable/disable submissions
 -   [ ] Account disabling
 -   [ ] Support for more database engines
 -   [ ] Dark mode

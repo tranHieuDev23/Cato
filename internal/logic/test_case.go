@@ -51,6 +51,7 @@ type TestCase interface {
 type testCase struct {
 	token                           Token
 	role                            Role
+	setting                         Setting
 	problemDataAccessor             db.ProblemDataAccessor
 	testCaseDataAccessor            db.TestCaseDataAccessor
 	problemTestCaseHashDataAccessor db.ProblemTestCaseHashDataAccessor
@@ -63,6 +64,7 @@ type testCase struct {
 func NewTestCase(
 	token Token,
 	role Role,
+	setting Setting,
 	problemDataAccessor db.ProblemDataAccessor,
 	testCaseDataAccessor db.TestCaseDataAccessor,
 	problemTestCaseHashDataAccessor db.ProblemTestCaseHashDataAccessor,
@@ -74,6 +76,7 @@ func NewTestCase(
 	return &testCase{
 		token:                           token,
 		role:                            role,
+		setting:                         setting,
 		problemDataAccessor:             problemDataAccessor,
 		testCaseDataAccessor:            testCaseDataAccessor,
 		problemTestCaseHashDataAccessor: problemTestCaseHashDataAccessor,
@@ -202,6 +205,16 @@ func (t testCase) CreateTestCase(
 	token string,
 ) (*rpc.CreateTestCaseResponse, error) {
 	logger := utils.LoggerWithContext(ctx, t.logger)
+
+	setting, err := t.setting.GetSetting(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if setting.Problem.DisableProblemUpdate {
+		logger.Info("problem update is disabled via setting")
+		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeUnavailable))
+	}
 
 	account, err := t.token.GetAccount(ctx, token)
 	if err != nil {
@@ -361,6 +374,16 @@ func (t testCase) getTestCaseListFromZippedData(
 func (t testCase) CreateTestCaseList(ctx context.Context, in *rpc.CreateTestCaseListRequest, token string) error {
 	logger := utils.LoggerWithContext(ctx, t.logger)
 
+	setting, err := t.setting.GetSetting(ctx)
+	if err != nil {
+		return err
+	}
+
+	if setting.Problem.DisableProblemUpdate {
+		logger.Info("problem update is disabled via setting")
+		return pjrpc.JRPCErrServerError(int(rpc.ErrorCodeUnavailable))
+	}
+
 	account, err := t.token.GetAccount(ctx, token)
 	if err != nil {
 		return err
@@ -404,6 +427,16 @@ func (t testCase) CreateTestCaseList(ctx context.Context, in *rpc.CreateTestCase
 
 func (t testCase) DeleteTestCase(ctx context.Context, in *rpc.DeleteTestCaseRequest, token string) error {
 	logger := utils.LoggerWithContext(ctx, t.logger)
+
+	setting, err := t.setting.GetSetting(ctx)
+	if err != nil {
+		return err
+	}
+
+	if setting.Problem.DisableProblemUpdate {
+		logger.Info("problem update is disabled via setting")
+		return pjrpc.JRPCErrServerError(int(rpc.ErrorCodeUnavailable))
+	}
 
 	account, err := t.token.GetAccount(ctx, token)
 	if err != nil {
@@ -576,6 +609,16 @@ func (t testCase) UpdateTestCase(
 ) (*rpc.UpdateTestCaseResponse, error) {
 	logger := utils.LoggerWithContext(ctx, t.logger)
 
+	setting, err := t.setting.GetSetting(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if setting.Problem.DisableProblemUpdate {
+		logger.Info("problem update is disabled via setting")
+		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeUnavailable))
+	}
+
 	account, err := t.token.GetAccount(ctx, token)
 	if err != nil {
 		return nil, err
@@ -717,6 +760,7 @@ func (t testCase) WithDB(db *gorm.DB) TestCase {
 	return &testCase{
 		token:                           t.token.WithDB(db),
 		role:                            t.role,
+		setting:                         t.setting.WithDB(db),
 		problemDataAccessor:             t.problemDataAccessor.WithDB(db),
 		testCaseDataAccessor:            t.testCaseDataAccessor.WithDB(db),
 		problemTestCaseHashDataAccessor: t.problemTestCaseHashDataAccessor.WithDB(db),

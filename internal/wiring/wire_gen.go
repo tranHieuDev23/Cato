@@ -8,7 +8,6 @@ package wiring
 
 import (
 	"github.com/google/wire"
-
 	"github.com/tranHieuDev23/cato/internal/app"
 	"github.com/tranHieuDev23/cato/internal/configs"
 	"github.com/tranHieuDev23/cato/internal/dataaccess"
@@ -56,9 +55,12 @@ func InitializeHost(filePath configs.ConfigFilePath, args utils.Arguments) (*app
 		return nil, nil, err
 	}
 	role := logic.NewRole(logger)
+	settingDataAccessor := db.NewSettingDataAccessor(gormDB, logger)
+	setting := cache.NewSetting(client, logger)
+	logicSetting := logic.NewSetting(logicToken, role, settingDataAccessor, setting, gormDB, logger)
 	accountPasswordDataAccessor := db.NewAccountPasswordDataAccessor(gormDB, logger)
 	configsLogic := config.Logic
-	account := logic.NewAccount(logicHash, logicToken, role, accountDataAccessor, accountPasswordDataAccessor, gormDB, logger, configsLogic, args)
+	account := logic.NewAccount(logicHash, logicToken, role, logicSetting, accountDataAccessor, accountPasswordDataAccessor, gormDB, logger, configsLogic, args)
 	createFirstAccounts := jobs.NewCreateFirstAccounts(account)
 	problemDataAccessor := db.NewProblemDataAccessor(gormDB, logger)
 	submissionDataAccessor := db.NewSubmissionDataAccessor(gormDB, logger)
@@ -80,17 +82,17 @@ func InitializeHost(filePath configs.ConfigFilePath, args utils.Arguments) (*app
 		cleanup()
 		return nil, nil, err
 	}
-	submission, err := logic.NewSubmission(logicToken, role, judge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, gormDB, logger, args, configsLogic)
+	submission, err := logic.NewSubmission(logicToken, role, judge, logicSetting, accountDataAccessor, problemDataAccessor, submissionDataAccessor, gormDB, logger, args, configsLogic)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
 	scheduleSubmittedExecutingSubmissionToJudge := jobs.NewScheduleSubmittedExecutingSubmissionToJudge(submission)
 	revertExecutingSubmissions := jobs.NewRevertExecutingSubmissions(submission)
-	testCase := logic.NewTestCase(logicToken, role, problemDataAccessor, testCaseDataAccessor, problemTestCaseHashDataAccessor, gormDB, apiClient, logger, configsLogic)
+	testCase := logic.NewTestCase(logicToken, role, logicSetting, problemDataAccessor, testCaseDataAccessor, problemTestCaseHashDataAccessor, gormDB, apiClient, logger, configsLogic)
 	problemExampleDataAccessor := db.NewProblemExampleDataAccessor(gormDB, logger)
-	problem := logic.NewProblem(logicToken, role, testCase, accountDataAccessor, problemDataAccessor, problemExampleDataAccessor, problemTestCaseHashDataAccessor, testCaseDataAccessor, submissionDataAccessor, logger, gormDB, apiClient, configsLogic)
-	apiServer := http.NewAPIServerHandler(account, problem, testCase, submission, configsLogic, logger, args)
+	problem := logic.NewProblem(logicToken, role, testCase, logicSetting, accountDataAccessor, problemDataAccessor, problemExampleDataAccessor, problemTestCaseHashDataAccessor, testCaseDataAccessor, submissionDataAccessor, logger, gormDB, apiClient, configsLogic)
+	apiServer := http.NewAPIServerHandler(account, problem, testCase, submission, logicSetting, configsLogic, logger, args)
 	v := middlewares.InitializePJRPCMiddlewareList()
 	httpAuth, err := middlewares.NewHTTPAuth(logicToken, token, logger)
 	if err != nil {
@@ -159,15 +161,18 @@ func InitializeWorker(filePath configs.ConfigFilePath, args utils.Arguments) (*a
 		cleanup()
 		return nil, nil, err
 	}
-	submission, err := logic.NewSubmission(logicToken, role, judge, accountDataAccessor, problemDataAccessor, submissionDataAccessor, gormDB, logger, args, configsLogic)
+	settingDataAccessor := db.NewSettingDataAccessor(gormDB, logger)
+	setting := cache.NewSetting(client, logger)
+	logicSetting := logic.NewSetting(logicToken, role, settingDataAccessor, setting, gormDB, logger)
+	submission, err := logic.NewSubmission(logicToken, role, judge, logicSetting, accountDataAccessor, problemDataAccessor, submissionDataAccessor, gormDB, logger, args, configsLogic)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
 	scheduleSubmittedExecutingSubmissionToJudge := jobs.NewScheduleSubmittedExecutingSubmissionToJudge(submission)
-	testCase := logic.NewTestCase(logicToken, role, problemDataAccessor, testCaseDataAccessor, problemTestCaseHashDataAccessor, gormDB, apiClient, logger, configsLogic)
+	testCase := logic.NewTestCase(logicToken, role, logicSetting, problemDataAccessor, testCaseDataAccessor, problemTestCaseHashDataAccessor, gormDB, apiClient, logger, configsLogic)
 	problemExampleDataAccessor := db.NewProblemExampleDataAccessor(gormDB, logger)
-	problem := logic.NewProblem(logicToken, role, testCase, accountDataAccessor, problemDataAccessor, problemExampleDataAccessor, problemTestCaseHashDataAccessor, testCaseDataAccessor, submissionDataAccessor, logger, gormDB, apiClient, configsLogic)
+	problem := logic.NewProblem(logicToken, role, testCase, logicSetting, accountDataAccessor, problemDataAccessor, problemExampleDataAccessor, problemTestCaseHashDataAccessor, testCaseDataAccessor, submissionDataAccessor, logger, gormDB, apiClient, configsLogic)
 	syncProblems := jobs.NewSyncProblems(problem)
 	judgeDistributedFirstSubmittedSubmission := jobs.NewJudgeDistributedFirstSubmittedSubmission(judge)
 	cron, cleanup2 := utils.InitializeCron()

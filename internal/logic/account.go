@@ -47,6 +47,7 @@ type account struct {
 	hash                        Hash
 	token                       Token
 	role                        Role
+	setting                     Setting
 	accountDataAccessor         db.AccountDataAccessor
 	accountPasswordDataAccessor db.AccountPasswordDataAccessor
 	db                          *gorm.DB
@@ -60,6 +61,7 @@ func NewAccount(
 	hash Hash,
 	token Token,
 	role Role,
+	setting Setting,
 	accountDataAccessor db.AccountDataAccessor,
 	accountPasswordDataAccessor db.AccountPasswordDataAccessor,
 	db *gorm.DB,
@@ -71,6 +73,7 @@ func NewAccount(
 		hash:                        hash,
 		token:                       token,
 		role:                        role,
+		setting:                     setting,
 		accountDataAccessor:         accountDataAccessor,
 		accountPasswordDataAccessor: accountPasswordDataAccessor,
 		db:                          db,
@@ -206,13 +209,8 @@ func (a account) CreateFirstAccounts(ctx context.Context) error {
 	})
 }
 
-func (a account) CreateAccount(
-	ctx context.Context,
-	in *rpc.CreateAccountRequest,
-	token string,
-) (*rpc.CreateAccountResponse, error) {
+func (a account) getCreatedDBAccount(ctx context.Context, in *rpc.CreateAccountRequest) (*db.Account, error) {
 	logger := utils.LoggerWithContext(ctx, a.logger)
-
 	if !a.isValidAccountName(in.AccountName) {
 		logger.
 			With(zap.String("account_name", in.AccountName)).
@@ -238,19 +236,48 @@ func (a account) CreateAccount(
 		return nil, pjrpc.JRPCErrInvalidParams()
 	}
 
+	return &db.Account{
+		AccountName: in.AccountName,
+		DisplayName: cleanedDisplayName,
+		Role:        db.AccountRole(in.Role),
+	}, nil
+}
+
+func (a account) CreateAccount(
+	ctx context.Context,
+	in *rpc.CreateAccountRequest,
+	token string,
+) (*rpc.CreateAccountResponse, error) {
+	logger := utils.LoggerWithContext(ctx, a.logger)
+
+	setting, err := a.setting.GetSetting(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if setting.Account.DisableAccountCreation {
+		logger.Info("account creation is disabled via setting")
+		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeUnavailable))
+	}
+
 	if !a.canAccountBeCreatedAnonymously(in.Role) {
-		account, err := a.token.GetAccount(ctx, token)
-		if err != nil {
-			return nil, err
+		account, accountErr := a.token.GetAccount(ctx, token)
+		if accountErr != nil {
+			return nil, accountErr
 		}
 
-		hasPermission, err := a.role.AccountHasPermission(ctx, string(account.Role), PermissionAccountsAllWrite)
-		if err != nil {
-			return nil, err
+		hasPermission, accountErr := a.role.AccountHasPermission(ctx, string(account.Role), PermissionAccountsAllWrite)
+		if accountErr != nil {
+			return nil, accountErr
 		}
 		if !hasPermission {
 			return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodePermissionDenied))
 		}
+	}
+
+	account, err := a.getCreatedDBAccount(ctx, in)
+	if err != nil {
+		return nil, err
 	}
 
 	hashedPassword, err := a.hash.Hash(ctx, in.Password)
@@ -268,14 +295,8 @@ func (a account) CreateAccount(
 		if accountNameTaken {
 			logger.
 				With(zap.String("account_name", in.AccountName)).
-				Error("failed to create account: invalid display name")
+				Error("failed to create account: account name is already taken")
 			return pjrpc.JRPCErrServerError(int(rpc.ErrorCodeAlreadyExists))
-		}
-
-		account := &db.Account{
-			AccountName: in.AccountName,
-			DisplayName: cleanedDisplayName,
-			Role:        db.AccountRole(in.Role),
 		}
 
 		err = utils.ExecuteUntilFirstError(
@@ -283,10 +304,7 @@ func (a account) CreateAccount(
 				return a.accountDataAccessor.WithDB(tx).CreateAccount(ctx, account)
 			},
 			func() error {
-				accountPassword := &db.AccountPassword{
-					OfAccountID: uint64(account.ID),
-					Hash:        hashedPassword,
-				}
+				accountPassword := &db.AccountPassword{OfAccountID: uint64(account.ID), Hash: hashedPassword}
 				return a.accountPasswordDataAccessor.WithDB(tx).CreateAccountPassword(ctx, accountPassword)
 			},
 		)
@@ -295,7 +313,6 @@ func (a account) CreateAccount(
 		}
 
 		response.Account = a.dbAccountToRPCAccount(account)
-
 		return nil
 	}); txErr != nil {
 		return nil, err
@@ -310,6 +327,11 @@ func (a account) CreateSession(
 ) (*rpc.CreateSessionResponse, string, time.Time, error) {
 	logger := utils.LoggerWithContext(ctx, a.logger)
 
+	setting, err := a.setting.GetSetting(ctx)
+	if err != nil {
+		return nil, "", time.Time{}, err
+	}
+
 	account, err := a.accountDataAccessor.GetAccountByAccountName(ctx, in.AccountName)
 	if err != nil {
 		return nil, "", time.Time{}, err
@@ -317,6 +339,16 @@ func (a account) CreateSession(
 
 	if account == nil {
 		return nil, "", time.Time{}, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeNotFound))
+	}
+
+	if account.Role == db.AccountRoleContestant && setting.Account.DisableSessionCreationForContestant {
+		logger.Info("session creation for contestant is disabled via setting")
+		return nil, "", time.Time{}, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeUnavailable))
+	}
+
+	if account.Role == db.AccountRoleProblemSetter && setting.Account.DisableSessionCreationForProblemSetter {
+		logger.Info("session creation for contestant is disabled via setting")
+		return nil, "", time.Time{}, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeUnavailable))
 	}
 
 	accountPassword, err := a.accountPasswordDataAccessor.GetAccountPasswordOfAccountID(ctx, uint64(account.ID))
@@ -499,6 +531,16 @@ func (a account) UpdateAccount(
 ) (*rpc.UpdateAccountResponse, error) {
 	logger := utils.LoggerWithContext(ctx, a.logger)
 
+	setting, err := a.setting.GetSetting(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if setting.Account.DisableAccountUpdate {
+		logger.Info("account update is disabled via setting")
+		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeUnavailable))
+	}
+
 	if !a.appArguments.Distributed && in.Role != nil && *in.Role == string(rpc.AccountRoleWorker) {
 		logger.Error("failed to update account: trying to update account to worker on local server")
 		return nil, pjrpc.JRPCErrInvalidParams()
@@ -557,6 +599,7 @@ func (a account) WithDB(db *gorm.DB) Account {
 		hash:                        a.hash,
 		token:                       a.token.WithDB(db),
 		role:                        a.role,
+		setting:                     a.setting.WithDB(db),
 		accountDataAccessor:         a.accountDataAccessor.WithDB(db),
 		accountPasswordDataAccessor: a.accountPasswordDataAccessor.WithDB(db),
 		db:                          db,

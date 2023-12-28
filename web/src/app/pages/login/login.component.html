@@ -27,7 +27,7 @@
             </form>
         </nz-tab>
 
-        <nz-tab nzTitle="Register">
+        <nz-tab *ngIf="!serverInfo?.setting?.account?.disableAccountCreation" nzTitle="Register">
             <form nz-form [formGroup]="registerForm">
                 <nz-form-item>
                     <nz-form-control [nzErrorTip]="displayNameErrorTpl">

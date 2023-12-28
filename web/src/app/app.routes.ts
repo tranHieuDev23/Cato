@@ -53,4 +53,10 @@ export const routes: Routes = [
       ),
     canActivate: [LoggedInGuard],
   },
+  {
+    path: 'settings',
+    loadChildren: () =>
+      import('./pages/setting/setting.routes').then((m) => m.SETTING_ROUTES),
+    canActivate: [LoggedInGuard],
+  },
 ];

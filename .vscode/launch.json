@@ -12,7 +12,8 @@
             "program": "cmd/cato/main.go",
             "cwd": "${workspaceFolder}",
             "args": [
-                "--no-browser"
+                "--no-browser",
+                "--pull-image-at-startup=false"
             ]
         },
         {

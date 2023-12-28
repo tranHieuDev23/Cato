@@ -18,6 +18,7 @@ import {
 } from 'ng-zorro-antd/notification';
 import { Router } from '@angular/router';
 import {
+  AccountLoginDisabledError,
   AccountNameTakenError,
   AccountNotFoundError,
   AccountService,
@@ -29,6 +30,8 @@ import { ConfirmedValidator } from '../../components/utils/confirmed-validator';
 import { CommonModule } from '@angular/common';
 import { PageTitleService } from '../../logic/page-title.service';
 import { NzGridModule } from 'ng-zorro-antd/grid';
+import { RpcGetServerInfoResponse } from '../../dataaccess/api';
+import { ServerService } from '../../logic/server.service';
 
 @Component({
   selector: 'app-login',
@@ -51,12 +54,15 @@ export class LoginComponent implements OnInit {
   public loginForm: UntypedFormGroup;
   public registerForm: UntypedFormGroup;
 
+  public serverInfo: RpcGetServerInfoResponse | undefined;
+
   constructor(
     private readonly accountService: AccountService,
     private readonly notificationService: NzNotificationService,
     private readonly router: Router,
     formBuilder: UntypedFormBuilder,
-    private readonly pageTitleService: PageTitleService
+    private readonly pageTitleService: PageTitleService,
+    private readonly serverService: ServerService
   ) {
     this.loginForm = formBuilder.group({
       accountName: ['', [Validators.required]],
@@ -107,6 +113,14 @@ export class LoginComponent implements OnInit {
 
   ngOnInit(): void {
     this.pageTitleService.setTitle('Cato');
+    (async () => {
+      try {
+        this.serverInfo = await this.serverService.getServerInfo();
+      } catch (e) {
+        this.notificationService.error('Failed to get server information', '');
+        return;
+      }
+    })().then();
   }
 
   public async onLoginClicked(): Promise<void> {
@@ -130,6 +144,17 @@ export class LoginComponent implements OnInit {
           'Failed to log in',
           'Incorrect password'
         );
+        return;
+      }
+      if (e instanceof IncorrectPasswordError) {
+        this.notificationService.error(
+          'Failed to log in',
+          'Incorrect password'
+        );
+        return;
+      }
+      if (e instanceof AccountLoginDisabledError) {
+        this.notificationService.error('Failed to log in', 'Login is disabled');
         return;
       }
       this.notificationService.error('Failed to log in', 'Unknown error');

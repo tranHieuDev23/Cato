@@ -1,10 +1,15 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { RpcAccount, RpcProblem } from '../../dataaccess/api';
+import {
+  RpcAccount,
+  RpcGetServerInfoResponse,
+  RpcProblem,
+} from '../../dataaccess/api';
 import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Params, Router, RouterModule } from '@angular/router';
 import {
   AccountService,
   PermissionDeniedError,
+  Role,
   UnauthenticatedError,
 } from '../../logic/account.service';
 import {
@@ -30,9 +35,10 @@ import {
 } from '../../logic/submission.service';
 import { PageTitleService } from '../../logic/page-title.service';
 import { TestCaseListComponent } from './test-case-list/test-case-list.component';
-import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzModalModule } from 'ng-zorro-antd/modal';
 import { Subscription } from 'rxjs';
 import { DescriptionComponent } from './description/description.component';
+import { ServerService } from '../../logic/server.service';
 
 @Component({
   selector: 'app-problem',
@@ -58,6 +64,7 @@ export class ProblemComponent implements OnInit, OnDestroy {
   @ViewChild('submissionTab') submissionTab: NzTabComponent | undefined;
 
   public sessionAccount: RpcAccount | undefined;
+  public serverInfo: RpcGetServerInfoResponse | undefined;
   public problem: RpcProblem | undefined;
 
   public submissionContent = '';
@@ -73,8 +80,8 @@ export class ProblemComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     private readonly location: Location,
     private readonly notificationService: NzNotificationService,
-    private readonly modalService: NzModalService,
-    private readonly pageTitleService: PageTitleService
+    private readonly pageTitleService: PageTitleService,
+    private readonly serverService: ServerService
   ) {}
 
   ngOnInit(): void {
@@ -90,6 +97,14 @@ export class ProblemComponent implements OnInit, OnDestroy {
       }
 
       this.sessionAccount = sessionAccount;
+
+      try {
+        this.serverInfo = await this.serverService.getServerInfo();
+      } catch (e) {
+        this.notificationService.error('Failed to get server information', '');
+        this.location.back();
+        return;
+      }
     })().then();
     this.queryParamsSubscription = this.activatedRoute.params.subscribe(
       async (params) => {
@@ -100,6 +115,21 @@ export class ProblemComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.queryParamsSubscription?.unsubscribe();
+  }
+
+  public canCreateSubmission(): boolean {
+    if (this.serverInfo?.setting.submission.disableSubmissionCreation) {
+      return false;
+    }
+
+    if (!this.sessionAccount) {
+      return false;
+    }
+
+    return (
+      this.sessionAccount.role === Role.Admin ||
+      this.sessionAccount.role === Role.Contestant
+    );
   }
 
   private async onParamsChanged(params: Params): Promise<void> {

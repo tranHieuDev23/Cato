@@ -42,10 +42,12 @@ import {
   RpcGetSubmissionSnippetListResponse,
   RpcGetTestCaseRequest,
   RpcGetTestCaseResponse,
+  RpcSetting,
   RpcUpdateAccountRequest,
   RpcUpdateAccountResponse,
   RpcUpdateProblemRequest,
   RpcUpdateProblemResponse,
+  RpcUpdateSettingResponse,
   RpcUpdateTestCaseRequest,
   RpcUpdateTestCaseResponse,
   instanceOfRpcError,
@@ -654,6 +656,30 @@ export class ApiService {
         id: clientID,
         method: 'get_session',
         params: {},
+      },
+    });
+    if (error) {
+      throw error;
+    }
+
+    if (!result) {
+      throw new Error('No response received');
+    }
+
+    return result;
+  }
+
+  public async updateSetting(
+    setting: RpcSetting
+  ): Promise<RpcUpdateSettingResponse> {
+    const { error, result } = await this.api.updateSetting({
+      requestBodyOfTheUpdateSettingMethod: {
+        jsonrpc: jsonRPCVersion,
+        id: clientID,
+        method: 'update_setting',
+        params: {
+          setting: setting,
+        },
       },
     });
     if (error) {

@@ -42,6 +42,7 @@ import type {
   RequestBodyOfTheGetTestCaseMethod,
   RequestBodyOfTheUpdateAccountMethod,
   RequestBodyOfTheUpdateProblemMethod,
+  RequestBodyOfTheUpdateSettingMethod,
   RequestBodyOfTheUpdateSubmissionMethod,
   RequestBodyOfTheUpdateTestCaseMethod,
   ResponseBodyOfTheCreateAccountMethod,
@@ -71,6 +72,7 @@ import type {
   ResponseBodyOfTheGetTestCaseMethod,
   ResponseBodyOfTheUpdateAccountMethod,
   ResponseBodyOfTheUpdateProblemMethod,
+  ResponseBodyOfTheUpdateSettingMethod,
   ResponseBodyOfTheUpdateSubmissionMethod,
   ResponseBodyOfTheUpdateTestCaseMethod,
 } from '../models/index';
@@ -129,6 +131,8 @@ import {
     RequestBodyOfTheUpdateAccountMethodToJSON,
     RequestBodyOfTheUpdateProblemMethodFromJSON,
     RequestBodyOfTheUpdateProblemMethodToJSON,
+    RequestBodyOfTheUpdateSettingMethodFromJSON,
+    RequestBodyOfTheUpdateSettingMethodToJSON,
     RequestBodyOfTheUpdateSubmissionMethodFromJSON,
     RequestBodyOfTheUpdateSubmissionMethodToJSON,
     RequestBodyOfTheUpdateTestCaseMethodFromJSON,
@@ -187,6 +191,8 @@ import {
     ResponseBodyOfTheUpdateAccountMethodToJSON,
     ResponseBodyOfTheUpdateProblemMethodFromJSON,
     ResponseBodyOfTheUpdateProblemMethodToJSON,
+    ResponseBodyOfTheUpdateSettingMethodFromJSON,
+    ResponseBodyOfTheUpdateSettingMethodToJSON,
     ResponseBodyOfTheUpdateSubmissionMethodFromJSON,
     ResponseBodyOfTheUpdateSubmissionMethodToJSON,
     ResponseBodyOfTheUpdateTestCaseMethodFromJSON,
@@ -299,6 +305,10 @@ export interface UpdateAccountRequest {
 
 export interface UpdateProblemRequest {
     requestBodyOfTheUpdateProblemMethod: RequestBodyOfTheUpdateProblemMethod;
+}
+
+export interface UpdateSettingRequest {
+    requestBodyOfTheUpdateSettingMethod: RequestBodyOfTheUpdateSettingMethod;
 }
 
 export interface UpdateSubmissionRequest {
@@ -1148,6 +1158,37 @@ export class DefaultApi extends runtime.BaseAPI {
      */
     async updateProblem(requestParameters: UpdateProblemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheUpdateProblemMethod> {
         const response = await this.updateProblemRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async updateSettingRaw(requestParameters: UpdateSettingRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ResponseBodyOfTheUpdateSettingMethod>> {
+        if (requestParameters.requestBodyOfTheUpdateSettingMethod === null || requestParameters.requestBodyOfTheUpdateSettingMethod === undefined) {
+            throw new runtime.RequiredError('requestBodyOfTheUpdateSettingMethod','Required parameter requestParameters.requestBodyOfTheUpdateSettingMethod was null or undefined when calling updateSetting.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/#update_setting`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: RequestBodyOfTheUpdateSettingMethodToJSON(requestParameters.requestBodyOfTheUpdateSettingMethod),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ResponseBodyOfTheUpdateSettingMethodFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async updateSetting(requestParameters: UpdateSettingRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ResponseBodyOfTheUpdateSettingMethod> {
+        const response = await this.updateSettingRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

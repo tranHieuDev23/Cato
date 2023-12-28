@@ -14,6 +14,12 @@ import {
 } from './account.service';
 import { ProblemNotFoundError } from './problem.service';
 
+export class SubmissionCreationDisabledError extends Error {
+  constructor() {
+    super('Submission creation is disabled');
+  }
+}
+
 export enum SubmissionStatus {
   Submitted = 1,
   Executing = 2,
@@ -302,6 +308,10 @@ export class SubmissionService {
 
       if (apiError.code == ErrorCode.NotFound) {
         throw new ProblemNotFoundError();
+      }
+
+      if (apiError.code == ErrorCode.Unavailable) {
+        throw new SubmissionCreationDisabledError();
       }
 
       throw e;

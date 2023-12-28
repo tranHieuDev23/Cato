@@ -13,4 +13,5 @@ var WireSet = wire.NewSet(
 	NewTestCaseDataAccessor,
 	NewProblemTestCaseHashDataAccessor,
 	NewSubmissionDataAccessor,
+	NewSettingDataAccessor,
 )

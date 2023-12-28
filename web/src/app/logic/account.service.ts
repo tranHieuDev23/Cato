@@ -14,6 +14,24 @@ export enum Role {
   Worker = 'worker',
 }
 
+export class AccountCreationDisabledError extends Error {
+  constructor() {
+    super('Account creation is disabled');
+  }
+}
+
+export class AccountUpdateDisabledError extends Error {
+  constructor() {
+    super('Account update is disabled');
+  }
+}
+
+export class AccountLoginDisabledError extends Error {
+  constructor() {
+    super('Login is disabled');
+  }
+}
+
 export class AccountNotFoundError extends Error {
   constructor() {
     super('Account not found');
@@ -123,6 +141,10 @@ export class AccountService {
         throw new AccountNameTakenError();
       }
 
+      if (apiError.code === ErrorCode.Unavailable) {
+        throw new AccountCreationDisabledError();
+      }
+
       throw apiError;
     }
   }
@@ -165,6 +187,10 @@ export class AccountService {
         throw new PermissionDeniedError();
       }
 
+      if (apiError.code === ErrorCode.Unavailable) {
+        throw new AccountUpdateDisabledError();
+      }
+
       throw apiError;
     }
   }
@@ -196,6 +222,10 @@ export class AccountService {
         apiError.code === ErrorCode.JRPCErrorInvalidParams
       ) {
         throw new IncorrectPasswordError();
+      }
+
+      if (apiError.code === ErrorCode.Unavailable) {
+        throw new AccountLoginDisabledError();
       }
 
       throw apiError;

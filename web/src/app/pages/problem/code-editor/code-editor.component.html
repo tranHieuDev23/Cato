@@ -1,20 +1,24 @@
-<ul nz-menu nzMode="horizontal" class="menu">
-    <li nz-menu-item>
-        <nz-select style="width: 120px;" [(ngModel)]="language" (ngModelChange)="onSubmissionLanguageChange($event)">
-            <nz-option *ngFor="let item of languageOptionList" [nzValue]="item.value" [nzLabel]="item.name">
-            </nz-option>
-        </nz-select>
-    </li>
-    <li nz-menu-item>
-        <nz-upload nzAction="/#" [nzBeforeUpload]="onLoadFile">
-            <span nz-icon nzType="file" nzTheme="outline"></span>
-            Load file
-        </nz-upload>
-    </li>
-    <li nz-menu-item nzDanger="true" (click)="onSubmitClicked()">
-        <span nz-icon nzType="upload" nzTheme="outline"></span>
-        Submit
-    </li>
-</ul>
-<nge-monaco-editor class="editor" (ready)="onMonacoEditorReady($event)">
-</nge-monaco-editor>
+<ng-container>
+    <ul nz-menu nzMode="horizontal" class="menu">
+        <li nz-menu-item>
+            <nz-select *ngIf="serverInfo" style="width: 120px;" [(ngModel)]="language"
+                (ngModelChange)="onSubmissionLanguageChange($event)">
+                <nz-option *ngFor="let item of serverInfo.supportedLanguageList" [nzValue]="item.value"
+                    [nzLabel]="item.name">
+                </nz-option>
+            </nz-select>
+        </li>
+        <li nz-menu-item>
+            <nz-upload nzAction="/#" [nzBeforeUpload]="onLoadFile">
+                <span nz-icon nzType="file" nzTheme="outline"></span>
+                Load file
+            </nz-upload>
+        </li>
+        <li nz-menu-item nzDanger="true" (click)="onSubmitClicked()">
+            <span nz-icon nzType="upload" nzTheme="outline"></span>
+            Submit
+        </li>
+    </ul>
+    <nge-monaco-editor class="editor" (ready)="onMonacoEditorReady($event)">
+    </nge-monaco-editor>
+</ng-container>

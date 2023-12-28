@@ -29,6 +29,7 @@ var (
 	PermissionSubmissionsSelfWrite = gorbac.NewStdPermission("submissions.self.write")
 	PermissionSubmissionsAllRead   = gorbac.NewStdPermission("submissions.all.read")
 	PermissionSubmissionsAllWrite  = gorbac.NewStdPermission("submissions.all.write")
+	PermissionSettingsWrite        = gorbac.NewStdPermission("settings.write")
 )
 
 type Role interface {
@@ -53,6 +54,7 @@ func initializeGoRBAC() *gorbac.RBAC {
 	goRBACRoleAdmin.Assign(PermissionTestCasesAllWrite)
 	goRBACRoleAdmin.Assign(PermissionSubmissionsAllRead)
 	goRBACRoleAdmin.Assign(PermissionSubmissionsSelfWrite)
+	goRBACRoleAdmin.Assign(PermissionSettingsWrite)
 
 	goRBACRoleProblemSetter := gorbac.NewStdRole(string(db.AccountRoleProblemSetter))
 	goRBACRoleProblemSetter.Assign(PermissionAccountsAllRead)

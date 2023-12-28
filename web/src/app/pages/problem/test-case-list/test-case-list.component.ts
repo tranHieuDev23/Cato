@@ -16,6 +16,7 @@ import {
   PermissionDeniedError,
   AccountNotFoundError,
   AccountService,
+  Role,
 } from '../../../logic/account.service';
 import { PaginationService } from '../../../logic/pagination.service';
 import { ProblemNotFoundError } from '../../../logic/problem.service';
@@ -27,7 +28,11 @@ import {
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
-import { RpcAccount, RpcProblem } from '../../../dataaccess/api';
+import {
+  RpcAccount,
+  RpcGetServerInfoResponse,
+  RpcProblem,
+} from '../../../dataaccess/api';
 import { FormsModule } from '@angular/forms';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
@@ -38,6 +43,7 @@ import { EllipsisPipe } from '../../../components/utils/ellipsis.pipe';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { TestCaseEditorModalComponent } from '../../../components/test-case-editor-modal/test-case-editor-modal.component';
 import { TestCaseViewModalComponent } from '../../../components/test-case-view-modal/test-case-view-modal.component';
+import { ServerService } from '../../../logic/server.service';
 
 export interface TestCaseListItem {
   uuid: string;
@@ -87,6 +93,7 @@ export class TestCaseListComponent implements OnInit {
   @Input() public problem: RpcProblem | undefined;
 
   public sessionAccount: RpcAccount | undefined;
+  public serverInfo: RpcGetServerInfoResponse | undefined;
 
   public totalTestCaseCount = 0;
   public testCaseList: TestCaseListItem[] = [];
@@ -110,11 +117,21 @@ export class TestCaseListComponent implements OnInit {
     private readonly router: Router,
     private readonly notificationService: NzNotificationService,
     private readonly modalService: NzModalService,
-    private readonly location: Location
+    private readonly location: Location,
+    private readonly serverService: ServerService
   ) {}
 
   ngOnInit(): void {
-    this.loadTestCaseSnippetList().then();
+    (async () => {
+      await this.loadTestCaseSnippetList();
+      try {
+        this.serverInfo = await this.serverService.getServerInfo();
+      } catch (e) {
+        this.notificationService.error('Failed to get server information', '');
+        this.location.back();
+        return;
+      }
+    })().then();
   }
 
   private async loadTestCaseSnippetList(): Promise<void> {
@@ -216,6 +233,25 @@ export class TestCaseListComponent implements OnInit {
   public async onPageSizeChange(size: number): Promise<void> {
     this.pageSize = size;
     await this.loadTestCaseSnippetList();
+  }
+
+  public canUpdateProblem(): boolean {
+    if (this.serverInfo?.setting.problem.disableProblemUpdate) {
+      return false;
+    }
+    if (!this.sessionAccount || !this.problem) {
+      return false;
+    }
+    if (this.sessionAccount.role === Role.Admin) {
+      return true;
+    }
+    if (
+      this.sessionAccount.role === Role.ProblemSetter &&
+      this.sessionAccount.iD === this.problem.author.iD
+    ) {
+      return true;
+    }
+    return false;
   }
 
   public async onTestCaseInputClicked(

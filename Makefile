@@ -32,7 +32,7 @@ build-linux-amd64:
 build-linux-arm64:
 	GOOS=linux GOARCH=arm64 go build \
 		-ldflags "-X main.version=$(VERSION) -X main.commitHash=$(COMMIT_HASH)" \
-		-o build/$(PROJECT_NAME)_linux_arm cmd/$(PROJECT_NAME)/*.go
+		-o build/$(PROJECT_NAME)_linux_arm64 cmd/$(PROJECT_NAME)/*.go
 
 .PHONY: build-macos-amd64
 build-macos-amd64:

@@ -1,5 +1,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { RpcAccount, RpcProblemSnippet } from '../../dataaccess/api';
+import {
+  RpcAccount,
+  RpcGetServerInfoResponse,
+  RpcProblemSnippet,
+} from '../../dataaccess/api';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { ActivatedRoute, Params, Router, RouterModule } from '@angular/router';
 import { CommonModule, Location } from '@angular/common';
@@ -25,6 +29,7 @@ import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { Subscription } from 'rxjs';
+import { ServerService } from '../../logic/server.service';
 
 const DEFAULT_PAGE_INDEX = 1;
 const DEFAULT_PAGE_SIZE = 10;
@@ -48,6 +53,8 @@ const DEFAULT_PAGE_SIZE = 10;
 })
 export class ProblemListComponent implements OnInit, OnDestroy {
   public sessionAccount: RpcAccount | undefined;
+  public serverInfo: RpcGetServerInfoResponse | undefined;
+
   public problemSnippetList: RpcProblemSnippet[] = [];
   public totalProblemCount = 0;
   public pageIndex = DEFAULT_PAGE_INDEX;
@@ -65,7 +72,8 @@ export class ProblemListComponent implements OnInit, OnDestroy {
     private readonly notificationService: NzNotificationService,
     private readonly location: Location,
     private readonly pageTitleService: PageTitleService,
-    private readonly modalService: NzModalService
+    private readonly modalService: NzModalService,
+    private readonly serverService: ServerService
   ) {}
 
   ngOnInit(): void {
@@ -81,6 +89,14 @@ export class ProblemListComponent implements OnInit, OnDestroy {
       }
 
       this.sessionAccount = sessionAccount;
+
+      try {
+        this.serverInfo = await this.serverService.getServerInfo();
+      } catch (e) {
+        this.notificationService.error('Failed to get server information', '');
+        return;
+      }
+
       this.pageTitleService.setTitle('Problems');
     })().then();
     this.queryParamsSubscription = this.activatedRoute.queryParams.subscribe(

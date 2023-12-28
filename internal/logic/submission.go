@@ -62,6 +62,7 @@ type submission struct {
 	token                                       Token
 	role                                        Role
 	judge                                       Judge
+	setting                                     Setting
 	accountDataAccessor                         db.AccountDataAccessor
 	problemDataAccessor                         db.ProblemDataAccessor
 	submissionDataAccessor                      db.SubmissionDataAccessor
@@ -75,6 +76,7 @@ func NewSubmission(
 	token Token,
 	role Role,
 	judge Judge,
+	setting Setting,
 	accountDataAccessor db.AccountDataAccessor,
 	problemDataAccessor db.ProblemDataAccessor,
 	submissionDataAccessor db.SubmissionDataAccessor,
@@ -96,6 +98,7 @@ func NewSubmission(
 		token:                  token,
 		role:                   role,
 		judge:                  judge,
+		setting:                setting,
 		accountDataAccessor:    accountDataAccessor,
 		problemDataAccessor:    problemDataAccessor,
 		submissionDataAccessor: submissionDataAccessor,
@@ -167,6 +170,16 @@ func (s submission) CreateSubmission(
 	token string,
 ) (*rpc.CreateSubmissionResponse, error) {
 	logger := utils.LoggerWithContext(ctx, s.logger)
+
+	setting, err := s.setting.GetSetting(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if setting.Submission.DisableSubmissionCreation {
+		logger.Info("submission creation is disabled via setting")
+		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeUnavailable))
+	}
 
 	account, err := s.token.GetAccount(ctx, token)
 	if err != nil {

@@ -44,6 +44,7 @@ const (
 	JSONRPCMethodGetProblemSubmissionSnippetList_Client                 = "get_problem_submission_snippet_list"
 	JSONRPCMethodGetAccountProblemSubmissionSnippetList_Client          = "get_account_problem_submission_snippet_list"
 	JSONRPCMethodGetAndUpdateFirstSubmittedSubmissionToExecuting_Client = "get_and_update_first_submitted_submission_to_executing"
+	JSONRPCMethodUpdateSetting_Client                                   = "update_setting"
 )
 
 // APIClient is an API client for API service.
@@ -77,6 +78,7 @@ type APIClient interface {
 	GetProblemSubmissionSnippetList(ctx context.Context, in *rpc.GetProblemSubmissionSnippetListRequest, mods ...client.Mod) (*rpc.GetProblemSubmissionSnippetListResponse, error)
 	GetAccountProblemSubmissionSnippetList(ctx context.Context, in *rpc.GetAccountProblemSubmissionSnippetListRequest, mods ...client.Mod) (*rpc.GetAccountProblemSubmissionSnippetListResponse, error)
 	GetAndUpdateFirstSubmittedSubmissionToExecuting(ctx context.Context, in *rpc.GetAndUpdateFirstSubmittedSubmissionToExecutingRequest, mods ...client.Mod) (*rpc.GetAndUpdateFirstSubmittedSubmissionToExecutingResponse, error)
+	UpdateSetting(ctx context.Context, in *rpc.UpdateSettingRequest, mods ...client.Mod) (*rpc.UpdateSettingResponse, error)
 }
 
 type implAPIClient struct {
@@ -547,6 +549,22 @@ func (c *implAPIClient) GetAndUpdateFirstSubmittedSubmissionToExecuting(ctx cont
 	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodGetAndUpdateFirstSubmittedSubmissionToExecuting_Client, in, result, mods...)
 	if err != nil {
 		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodGetAndUpdateFirstSubmittedSubmissionToExecuting_Client, err)
+	}
+
+	return result, nil
+}
+
+func (c *implAPIClient) UpdateSetting(ctx context.Context, in *rpc.UpdateSettingRequest, mods ...client.Mod) (result *rpc.UpdateSettingResponse, err error) {
+	gen, err := uuid.NewUUID()
+	if err != nil {
+		return result, fmt.Errorf("failed to create uuid generator: %w", err)
+	}
+
+	result = new(rpc.UpdateSettingResponse)
+
+	err = c.cl.Invoke(ctx, gen.String(), JSONRPCMethodUpdateSetting_Client, in, result, mods...)
+	if err != nil {
+		return result, fmt.Errorf("failed to Invoke method %q: %w", JSONRPCMethodUpdateSetting_Client, err)
 	}
 
 	return result, nil

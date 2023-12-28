@@ -1,12 +1,14 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, Router, UrlTree } from '@angular/router';
 import { AccountService, Role } from '../../logic/account.service';
-import { RpcAccount } from '../../dataaccess/api';
+import { RpcAccount, RpcGetServerInfoResponse } from '../../dataaccess/api';
+import { ServerService } from '../../logic/server.service';
 
 @Injectable()
 export class LoggedInGuard {
   constructor(
     private readonly accountService: AccountService,
+    private readonly serverService: ServerService,
     private readonly router: Router
   ) {}
 
@@ -18,12 +20,14 @@ export class LoggedInGuard {
       return this.router.parseUrl('/login');
     }
 
-    return this.isUserAuthorized(route, sessionAccount);
+    const serverInfo = await this.serverService.getServerInfo();
+    return this.isUserAuthorized(route, sessionAccount, serverInfo);
   }
 
   private isUserAuthorized(
     route: ActivatedRouteSnapshot,
-    sessionAccount: RpcAccount
+    sessionAccount: RpcAccount,
+    serverInfo: RpcGetServerInfoResponse
   ): boolean {
     if (route.url.length === 0) {
       return true;
@@ -53,10 +57,22 @@ export class LoggedInGuard {
           sessionAccount.role == Role.Contestant
         );
       case 'problem-editor':
+        if (route.url.length === 1) {
+          // Create problem path
+          return (
+            !serverInfo.setting.problem.disableProblemCreation &&
+            (sessionAccount.role === Role.Admin ||
+              sessionAccount.role == Role.ProblemSetter)
+          );
+        }
+        // Update problem path
         return (
-          sessionAccount.role === Role.Admin ||
-          sessionAccount.role == Role.ProblemSetter
+          !serverInfo.setting.problem.disableProblemUpdate &&
+          (sessionAccount.role === Role.Admin ||
+            sessionAccount.role == Role.ProblemSetter)
         );
+      case 'settings':
+        return sessionAccount.role === Role.Admin;
       default:
         return true;
     }

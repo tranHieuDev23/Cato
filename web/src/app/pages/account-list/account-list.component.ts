@@ -83,6 +83,7 @@ export class AccountListComponent implements OnInit, OnDestroy {
   public serverInfo: RpcGetServerInfoResponse | undefined;
 
   private queryParamsSubscription: Subscription | undefined;
+  private serverInfoChangedSubscription: Subscription;
 
   constructor(
     private readonly accountService: AccountService,
@@ -108,6 +109,7 @@ export class AccountListComponent implements OnInit, OnDestroy {
         validators: [ConfirmedValidator('password', 'passwordConfirm')],
       }
     );
+
     this.editAccountForm = formBuilder.group(
       {
         displayName: ['', [Validators.required, this.displayNameValidator()]],
@@ -119,6 +121,11 @@ export class AccountListComponent implements OnInit, OnDestroy {
         validators: [ConfirmedValidator('password', 'passwordConfirm')],
       }
     );
+
+    this.serverInfoChangedSubscription =
+      this.serverService.serverInfoChanged.subscribe((serverInfo) => {
+        this.serverInfo = serverInfo;
+      });
   }
 
   private accountNameValidator(): ValidatorFn {
@@ -145,7 +152,7 @@ export class AccountListComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     (async () => {
       try {
-        this.serverInfo = await this.serverService.getServiceInfo();
+        this.serverInfo = await this.serverService.getServerInfo();
       } catch (e) {
         this.notificationService.error('Failed to get server information', '');
         return;
@@ -169,10 +176,15 @@ export class AccountListComponent implements OnInit, OnDestroy {
         await this.onQueryParamsChanged(params);
       }
     );
+    this.serverInfoChangedSubscription =
+      this.serverService.serverInfoChanged.subscribe((serverInfo) => {
+        this.serverInfo = serverInfo;
+      });
   }
 
   ngOnDestroy(): void {
     this.queryParamsSubscription?.unsubscribe();
+    this.serverInfoChangedSubscription.unsubscribe();
   }
 
   private async onQueryParamsChanged(queryParams: Params): Promise<void> {

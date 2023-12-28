@@ -15,8 +15,7 @@
         {{ problem.memoryLimitInByte | memory}}
     </nz-descriptions-item>
 </nz-descriptions><br />
-<p *ngIf="sessionAccount?.role === 'admin' ||
-                         (sessionAccount?.role === 'problem_setter' && sessionAccount?.iD === problem.author.iD)">
+<p *ngIf="canUpdateProblem()">
     <nz-button-group>
         <button nz-button routerLink="/problem-editor/{{problem.uUID}}">
             <span nz-icon nzType="edit" nzTheme="outline"></span>

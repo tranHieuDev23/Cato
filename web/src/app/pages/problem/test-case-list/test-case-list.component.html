@@ -1,6 +1,5 @@
 <div *ngIf="problem" class="content">
-    <p *ngIf="sessionAccount?.role === 'admin' ||
-        (sessionAccount?.role === 'problem_setter' && sessionAccount?.iD === problem.author.iD)">
+    <p *ngIf="canUpdateProblem()">
         <nz-button-group>
             <button nz-button (click)="onCreateTestCaseClicked()">
                 <span nz-icon nzType="plus" nzTheme="outline"></span>
@@ -52,18 +51,12 @@
                             (click)="onTestCaseExpandClicked(i, testCase)">
                             <span nz-icon nzType="expand-alt" nzTheme="outline"></span>
                         </button>
-                        <button
-                            *ngIf="sessionAccount?.role === 'admin' ||
-                                (sessionAccount?.role === 'problem_setter' && sessionAccount?.iD === problem.author.iD)"
-                            nz-button [disabled]="testCase.loading" nz-tooltip="Edit"
+                        <button *ngIf="canUpdateProblem()" nz-button [disabled]="testCase.loading" nz-tooltip="Edit"
                             (click)="onTestCaseEditClicked(i, testCase)">
                             <span nz-icon nzType="edit" nzTheme="outline"></span>
                         </button>
-                        <button
-                            *ngIf="sessionAccount?.role === 'admin' ||
-                                (sessionAccount?.role === 'problem_setter' && sessionAccount?.iD === problem.author.iD)"
-                            nz-button [disabled]="testCase.loading" nz-tooltip="Delete" nzDanger
-                            (click)="onTestCaseDeleteClicked(testCase)">
+                        <button *ngIf="canUpdateProblem()" nz-button [disabled]="testCase.loading" nz-tooltip="Delete"
+                            nzDanger (click)="onTestCaseDeleteClicked(testCase)">
                             <span nz-icon nzType="delete" nzTheme="outline"></span>
                         </button>
                     </nz-button-group>

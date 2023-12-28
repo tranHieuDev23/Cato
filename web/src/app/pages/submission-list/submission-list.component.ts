@@ -9,7 +9,6 @@ import {
   AccountService,
   UnauthenticatedError,
   PermissionDeniedError,
-  Role,
   AccountNotFoundError,
 } from '../../logic/account.service';
 import { PaginationService } from '../../logic/pagination.service';

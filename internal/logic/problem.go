@@ -44,6 +44,7 @@ type problem struct {
 	token                           Token
 	role                            Role
 	testCase                        TestCase
+	setting                         Setting
 	accountDataAccessor             db.AccountDataAccessor
 	problemDataAccessor             db.ProblemDataAccessor
 	problemExampleDataAccessor      db.ProblemExampleDataAccessor
@@ -62,6 +63,7 @@ func NewProblem(
 	token Token,
 	role Role,
 	testCase TestCase,
+	setting Setting,
 	accountDataAccessor db.AccountDataAccessor,
 	problemDataAccessor db.ProblemDataAccessor,
 	problemExampleDataAccessor db.ProblemExampleDataAccessor,
@@ -77,6 +79,7 @@ func NewProblem(
 		token:                           token,
 		role:                            role,
 		testCase:                        testCase,
+		setting:                         setting,
 		accountDataAccessor:             accountDataAccessor,
 		problemDataAccessor:             problemDataAccessor,
 		problemExampleDataAccessor:      problemExampleDataAccessor,
@@ -237,6 +240,18 @@ func (p problem) CreateProblem(
 	in *rpc.CreateProblemRequest,
 	token string,
 ) (*rpc.CreateProblemResponse, error) {
+	logger := utils.LoggerWithContext(ctx, p.logger)
+
+	setting, err := p.setting.GetSetting(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if setting.Problem.DisableProblemCreation {
+		logger.Info("problem creation is disabled via setting")
+		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeUnavailable))
+	}
+
 	account, err := p.token.GetAccount(ctx, token)
 	if err != nil {
 		return nil, err
@@ -560,6 +575,16 @@ func (p problem) UpdateProblem(
 ) (*rpc.UpdateProblemResponse, error) {
 	logger := utils.LoggerWithContext(ctx, p.logger)
 
+	setting, err := p.setting.GetSetting(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if setting.Problem.DisableProblemUpdate {
+		logger.Info("problem update is disabled via setting")
+		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeUnavailable))
+	}
+
 	account, err := p.token.GetAccount(ctx, token)
 	if err != nil {
 		return nil, err
@@ -725,6 +750,7 @@ func (p problem) WithDB(db *gorm.DB) Problem {
 	return &problem{
 		token:                           p.token.WithDB(db),
 		role:                            p.role,
+		setting:                         p.setting.WithDB(db),
 		accountDataAccessor:             p.accountDataAccessor.WithDB(db),
 		problemDataAccessor:             p.problemDataAccessor.WithDB(db),
 		problemExampleDataAccessor:      p.problemExampleDataAccessor.WithDB(db),
@@ -734,6 +760,7 @@ func (p problem) WithDB(db *gorm.DB) Problem {
 		submissionDataAccessor:          p.submissionDataAccessor.WithDB(db),
 		logger:                          p.logger,
 		db:                              db,
+		apiClient:                       p.apiClient,
 		displayNameSanitizePolicy:       p.displayNameSanitizePolicy,
 		descriptionSanitizePolicy:       p.descriptionSanitizePolicy,
 		logicConfig:                     p.logicConfig,

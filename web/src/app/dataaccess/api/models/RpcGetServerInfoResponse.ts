@@ -13,6 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { RpcGetServerInfoResponseSetting } from './RpcGetServerInfoResponseSetting';
+import {
+    RpcGetServerInfoResponseSettingFromJSON,
+    RpcGetServerInfoResponseSettingFromJSONTyped,
+    RpcGetServerInfoResponseSettingToJSON,
+} from './RpcGetServerInfoResponseSetting';
 import type { RpcLanguage } from './RpcLanguage';
 import {
     RpcLanguageFromJSON,
@@ -38,6 +44,12 @@ export interface RpcGetServerInfoResponse {
      * @memberof RpcGetServerInfoResponse
      */
     supportedLanguageList: Array<RpcLanguage>;
+    /**
+     * 
+     * @type {RpcGetServerInfoResponseSetting}
+     * @memberof RpcGetServerInfoResponse
+     */
+    setting: RpcGetServerInfoResponseSetting;
 }
 
 /**
@@ -47,6 +59,7 @@ export function instanceOfRpcGetServerInfoResponse(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "isDistributed" in value;
     isInstance = isInstance && "supportedLanguageList" in value;
+    isInstance = isInstance && "setting" in value;
 
     return isInstance;
 }
@@ -63,6 +76,7 @@ export function RpcGetServerInfoResponseFromJSONTyped(json: any, ignoreDiscrimin
         
         'isDistributed': json['IsDistributed'],
         'supportedLanguageList': ((json['SupportedLanguageList'] as Array<any>).map(RpcLanguageFromJSON)),
+        'setting': RpcGetServerInfoResponseSettingFromJSON(json['Setting']),
     };
 }
 
@@ -77,6 +91,7 @@ export function RpcGetServerInfoResponseToJSON(value?: RpcGetServerInfoResponse 
         
         'IsDistributed': value.isDistributed,
         'SupportedLanguageList': ((value.supportedLanguageList as Array<any>).map(RpcLanguageToJSON)),
+        'Setting': RpcGetServerInfoResponseSettingToJSON(value.setting),
     };
 }
 

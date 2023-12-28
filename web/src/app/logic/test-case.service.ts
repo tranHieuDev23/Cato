@@ -2,7 +2,10 @@ import { Injectable } from '@angular/core';
 import { RpcTestCase, RpcError, RpcTestCaseSnippet } from '../dataaccess/api';
 import { ApiService, ErrorCode } from '../dataaccess/api.service';
 import { UnauthenticatedError, PermissionDeniedError } from './account.service';
-import { ProblemNotFoundError } from './problem.service';
+import {
+  ProblemNotFoundError,
+  ProblemUpdateDisabledError,
+} from './problem.service';
 import { Encoder } from 'bazinga64';
 
 export class InvalidTestCaseListParam extends Error {
@@ -135,6 +138,10 @@ export class TestCaseService {
         throw new ProblemNotFoundError();
       }
 
+      if (apiError.code === ErrorCode.Unavailable) {
+        throw new ProblemUpdateDisabledError();
+      }
+
       throw e;
     }
   }
@@ -168,6 +175,10 @@ export class TestCaseService {
 
       if (apiError.code == ErrorCode.NotFound) {
         throw new ProblemNotFoundError();
+      }
+
+      if (apiError.code === ErrorCode.Unavailable) {
+        throw new ProblemUpdateDisabledError();
       }
 
       throw e;
@@ -210,6 +221,10 @@ export class TestCaseService {
         throw new TestCaseNotFoundError();
       }
 
+      if (apiError.code === ErrorCode.Unavailable) {
+        throw new ProblemUpdateDisabledError();
+      }
+
       throw e;
     }
   }
@@ -237,6 +252,10 @@ export class TestCaseService {
 
       if (apiError.code == ErrorCode.NotFound) {
         throw new TestCaseNotFoundError();
+      }
+
+      if (apiError.code === ErrorCode.Unavailable) {
+        throw new ProblemUpdateDisabledError();
       }
 
       throw e;

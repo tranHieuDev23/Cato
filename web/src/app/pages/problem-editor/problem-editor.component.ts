@@ -23,8 +23,10 @@ import {
 } from '../../logic/account.service';
 import {
   InvalidProblemInfo,
+  ProblemCreationDisabledError,
   ProblemNotFoundError,
   ProblemService,
+  ProblemUpdateDisabledError,
 } from '../../logic/problem.service';
 import {
   NzNotificationModule,
@@ -354,6 +356,22 @@ export class ProblemEditorComponent implements OnInit, OnDestroy {
           'Problem not found'
         );
         this.location.back();
+        return;
+      }
+
+      if (e instanceof ProblemCreationDisabledError) {
+        this.notificationService.error(
+          'Failed to save problem',
+          'Problem creation is disabled'
+        );
+        return;
+      }
+
+      if (e instanceof ProblemUpdateDisabledError) {
+        this.notificationService.error(
+          'Failed to save problem',
+          'Problem update is disabled'
+        );
         return;
       }
 

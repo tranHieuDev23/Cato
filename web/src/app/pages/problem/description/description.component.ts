@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import {
   RpcAccount,
+  RpcGetServerInfoResponse,
   RpcProblem,
   RpcProblemExample,
 } from '../../../dataaccess/api';
@@ -29,6 +30,8 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import {
   UnauthenticatedError,
   PermissionDeniedError,
+  AccountService,
+  Role,
 } from '../../../logic/account.service';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import renderMathInElement from 'katex/contrib/auto-render';
@@ -36,6 +39,7 @@ import { EllipsisPipe } from '../../../components/utils/ellipsis.pipe';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import copyToClipboard from 'copy-to-clipboard';
 import { TestCaseViewModalComponent } from '../../../components/test-case-view-modal/test-case-view-modal.component';
+import { ServerService } from '../../../logic/server.service';
 
 @Component({
   selector: 'app-description',
@@ -71,18 +75,42 @@ export class DescriptionComponent implements OnInit, OnChanges {
   public expandExampleModalOutput = '';
 
   @Input() public problem!: RpcProblem;
-  @Input() public sessionAccount!: RpcAccount;
+
+  public sessionAccount: RpcAccount | undefined;
+  public serverInfo: RpcGetServerInfoResponse | undefined;
 
   constructor(
     private readonly modalService: NzModalService,
     private readonly problemService: ProblemService,
     private readonly notificationService: NzNotificationService,
     private readonly location: Location,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly accountService: AccountService,
+    private readonly serverService: ServerService
   ) {}
 
   ngOnInit(): void {
     setTimeout(() => this.renderKatex());
+    (async () => {
+      const sessionAccount = await this.accountService.getSessionAccount();
+      if (sessionAccount === null) {
+        this.notificationService.error(
+          'Failed to get session account',
+          'Not logged in'
+        );
+        this.router.navigateByUrl('/login');
+        return;
+      }
+      this.sessionAccount = sessionAccount;
+
+      try {
+        this.serverInfo = await this.serverService.getServerInfo();
+      } catch (e) {
+        this.notificationService.error('Failed to get server information', '');
+        this.location.back();
+        return;
+      }
+    })().then();
   }
 
   ngOnChanges(): void {
@@ -94,10 +122,28 @@ export class DescriptionComponent implements OnInit, OnChanges {
       return;
     }
 
-    console.log('Render');
     renderMathInElement(this.problemDescriptionContainer.nativeElement, {
       throwOnError: false,
     });
+  }
+
+  public canUpdateProblem(): boolean {
+    if (this.serverInfo?.setting.problem.disableProblemUpdate) {
+      return false;
+    }
+    if (!this.sessionAccount || !this.problem) {
+      return false;
+    }
+    if (this.sessionAccount.role === Role.Admin) {
+      return true;
+    }
+    if (
+      this.sessionAccount.role === Role.ProblemSetter &&
+      this.sessionAccount.iD === this.problem.author.iD
+    ) {
+      return true;
+    }
+    return false;
   }
 
   public onDeleteClicked(): void {

@@ -1,10 +1,8 @@
 <div nz-row>
-    <div nz-col [nzLg]="sessionAccount?.role === 'admin' || sessionAccount?.role === 'contestant'? 12 : 24" [nzMd]="24"
-        class="problem">
+    <div nz-col [nzLg]="canCreateSubmission()? 12 : 24" [nzMd]="24" class="problem">
         <nz-tabset #problemTabSet>
             <nz-tab nzTitle="Description">
-                <app-description *ngIf="problem && sessionAccount" [problem]="problem"
-                    [sessionAccount]="sessionAccount">
+                <app-description *ngIf="problem" [problem]="problem">
                 </app-description>
             </nz-tab>
 
@@ -22,8 +20,7 @@
         </nz-tabset>
     </div>
 
-    <div *ngIf="sessionAccount?.role === 'admin' || sessionAccount?.role === 'contestant'" nz-col [nzLg]="12"
-        [nzMd]="24">
+    <div *ngIf="canCreateSubmission()" nz-col [nzLg]="12" [nzMd]="24">
         <app-code-editor [(content)]="submissionContent" [(language)]="submissionLanguage"
             (submitClicked)="onSubmitClicked()"></app-code-editor>
     </div>

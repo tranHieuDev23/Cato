@@ -1,8 +1,9 @@
 <div class="inner-content">
     <nz-table #table [nzBordered]="true" [nzData]="accountList" [nzPageIndex]="pageIndex" [nzPageSize]="pageSize"
         [nzFrontPagination]="false" [nzTotal]="totalAccountCount" [nzLoading]="loading" [nzShowSizeChanger]="true"
-        [nzFooter]="accountListFooter" [nzPageSizeOptions]="[10, 20, 50, 100]"
-        (nzPageIndexChange)="onPageIndexChange($event)" (nzPageSizeChange)="onPageSizeChange($event)">
+        [nzFooter]="!serverInfo?.setting?.account?.disableAccountCreation ? accountListFooter : null"
+        [nzPageSizeOptions]="[10, 20, 50, 100]" (nzPageIndexChange)="onPageIndexChange($event)"
+        (nzPageSizeChange)="onPageSizeChange($event)">
         <thead>
             <tr>
                 <th>#</th>
@@ -19,7 +20,8 @@
                 <td>{{ account.displayName }}</td>
                 <td>{{ account.role | role }}</td>
                 <td>
-                    <button nz-button nz-tooltip="Edit" (click)="onAccountEditClicked(account)">
+                    <button *ngIf="!serverInfo?.setting?.account?.disableAccountUpdate" nz-button nz-tooltip="Edit"
+                        (click)="onAccountEditClicked(account)">
                         <span nz-icon nzType="edit" nzTheme="outline"></span>
                     </button>
                 </td>

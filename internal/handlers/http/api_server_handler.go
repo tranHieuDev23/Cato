@@ -24,6 +24,7 @@ type apiServerHandler struct {
 	problemLogic    logic.Problem
 	testCaseLogic   logic.TestCase
 	submissionLogic logic.Submission
+	settingLogic    logic.Setting
 	logicConfig     configs.Logic
 	logger          *zap.Logger
 	validate        *validator.Validate
@@ -35,6 +36,7 @@ func NewAPIServerHandler(
 	problemLogic logic.Problem,
 	testCaseLogic logic.TestCase,
 	submissionLogic logic.Submission,
+	settingLogic logic.Setting,
 	logicConfig configs.Logic,
 	logger *zap.Logger,
 	appArguments utils.Arguments,
@@ -45,6 +47,7 @@ func NewAPIServerHandler(
 		problemLogic:    problemLogic,
 		testCaseLogic:   testCaseLogic,
 		submissionLogic: submissionLogic,
+		settingLogic:    settingLogic,
 		logicConfig:     logicConfig,
 		logger:          logger,
 		validate:        validate,
@@ -96,9 +99,14 @@ func (a apiServerHandler) validateRequest(
 }
 
 func (a apiServerHandler) GetServerInfo(
-	_ context.Context,
+	ctx context.Context,
 	_ *rpc.GetServerInfoRequest,
 ) (*rpc.GetServerInfoResponse, error) {
+	setting, err := a.settingLogic.GetSetting(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	return &rpc.GetServerInfoResponse{
 		IsDistributed: a.appArguments.Distributed,
 		SupportedLanguageList: lo.Map[configs.Language, rpc.Language](
@@ -109,6 +117,7 @@ func (a apiServerHandler) GetServerInfo(
 					Name:  item.Name,
 				}
 			}),
+		Setting: *setting,
 	}, nil
 }
 
@@ -472,4 +481,16 @@ func (a apiServerHandler) GetAndUpdateFirstSubmittedSubmissionToExecuting(
 
 	token := a.getAuthorizationBearerToken(ctx)
 	return a.submissionLogic.GetAndUpdateFirstSubmittedSubmissionToExecuting(ctx, token)
+}
+
+func (a apiServerHandler) UpdateSetting(
+	ctx context.Context,
+	in *rpc.UpdateSettingRequest,
+) (*rpc.UpdateSettingResponse, error) {
+	if err := a.validateRequest(ctx, in); err != nil {
+		return nil, err
+	}
+
+	token := a.getAuthorizationBearerToken(ctx)
+	return a.settingLogic.UpdateSetting(ctx, in, token)
 }

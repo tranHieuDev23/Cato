@@ -18,7 +18,7 @@ export class LanguagePipe implements PipeTransform {
     }
 
     try {
-      const serverInfo = await this.serverService.getServiceInfo();
+      const serverInfo = await this.serverService.getServerInfo();
       for (const item of serverInfo.supportedLanguageList) {
         if (item.value === language) {
           return item.name;

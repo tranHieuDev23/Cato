@@ -29,6 +29,7 @@ models/RequestBodyOfTheGetSubmissionSnippetListMethod.ts
 models/RequestBodyOfTheGetTestCaseMethod.ts
 models/RequestBodyOfTheUpdateAccountMethod.ts
 models/RequestBodyOfTheUpdateProblemMethod.ts
+models/RequestBodyOfTheUpdateSettingMethod.ts
 models/RequestBodyOfTheUpdateSubmissionMethod.ts
 models/RequestBodyOfTheUpdateTestCaseMethod.ts
 models/ResponseBodyOfTheCreateAccountMethod.ts
@@ -58,9 +59,11 @@ models/ResponseBodyOfTheGetSubmissionSnippetListMethod.ts
 models/ResponseBodyOfTheGetTestCaseMethod.ts
 models/ResponseBodyOfTheUpdateAccountMethod.ts
 models/ResponseBodyOfTheUpdateProblemMethod.ts
+models/ResponseBodyOfTheUpdateSettingMethod.ts
 models/ResponseBodyOfTheUpdateSubmissionMethod.ts
 models/ResponseBodyOfTheUpdateTestCaseMethod.ts
 models/RpcAccount.ts
+models/RpcAccountSetting.ts
 models/RpcCreateAccountRequest.ts
 models/RpcCreateAccountResponse.ts
 models/RpcCreateAccountResponseAccount.ts
@@ -101,6 +104,7 @@ models/RpcGetProblemSubmissionSnippetListResponse.ts
 models/RpcGetProblemTestCaseSnippetListRequest.ts
 models/RpcGetProblemTestCaseSnippetListResponse.ts
 models/RpcGetServerInfoResponse.ts
+models/RpcGetServerInfoResponseSetting.ts
 models/RpcGetSessionResponse.ts
 models/RpcGetSubmissionRequest.ts
 models/RpcGetSubmissionResponse.ts
@@ -112,10 +116,16 @@ models/RpcGetTestCaseResponseTestCase.ts
 models/RpcLanguage.ts
 models/RpcProblem.ts
 models/RpcProblemExample.ts
+models/RpcProblemSetting.ts
 models/RpcProblemSnippet.ts
+models/RpcSetting.ts
+models/RpcSettingAccount.ts
+models/RpcSettingProblem.ts
+models/RpcSettingSubmission.ts
 models/RpcSubmission.ts
 models/RpcSubmissionProblem.ts
 models/RpcSubmissionProblemSnippet.ts
+models/RpcSubmissionSetting.ts
 models/RpcSubmissionSnippet.ts
 models/RpcTestCase.ts
 models/RpcTestCaseSnippet.ts
@@ -123,6 +133,8 @@ models/RpcUpdateAccountRequest.ts
 models/RpcUpdateAccountResponse.ts
 models/RpcUpdateProblemRequest.ts
 models/RpcUpdateProblemResponse.ts
+models/RpcUpdateSettingRequest.ts
+models/RpcUpdateSettingResponse.ts
 models/RpcUpdateSubmissionRequest.ts
 models/RpcUpdateSubmissionResponse.ts
 models/RpcUpdateTestCaseRequest.ts

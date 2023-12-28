@@ -57,7 +57,9 @@ func InitializeDB(
 
 	db, err := gorm.Open(
 		sqlite.Open(fmt.Sprintf("file://%s", databaseFilePath)),
-		&gorm.Config{Logger: gormZapLogger{logger: logger}},
+		&gorm.Config{
+			Logger: gormZapLogger{logger: logger},
+		},
 	)
 	if err != nil {
 		return nil, err
