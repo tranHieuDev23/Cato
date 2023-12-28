@@ -19,7 +19,7 @@
         </nz-tag>
     </nz-descriptions-item>
 </nz-descriptions><br />
-<p>
+<p *ngIf="sessionAccount && submission && sessionAccount.iD === submission.author.iD">
     <button nz-button (click)="onCopyClicked()">
         <span nz-icon nzType="copy" nzTheme="outline"></span> Copy
     </button>

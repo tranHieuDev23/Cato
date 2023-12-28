@@ -136,38 +136,13 @@ export class SubmissionListComponent implements OnInit, OnDestroy {
   private async loadSubmissionSnippetList(): Promise<void> {
     try {
       this.loading = true;
-      const sessionAccount = await this.accountService.getSessionAccount();
-      if (sessionAccount === null) {
-        this.notificationService.error(
-          'Failed to load submission list',
-          'Not logged in'
+      const { totalSubmissionCount, submissionSnippetList } =
+        await this.submissionService.getSubmissionSnippetList(
+          this.paginationService.getPageOffset(this.pageIndex, this.pageSize),
+          this.pageSize
         );
-        this.router.navigateByUrl('/login');
-        return;
-      }
-
-      if (
-        sessionAccount.role === Role.Admin ||
-        sessionAccount.role === Role.ProblemSetter
-      ) {
-        const { totalSubmissionCount, submissionSnippetList } =
-          await this.submissionService.getSubmissionSnippetList(
-            this.paginationService.getPageOffset(this.pageIndex, this.pageSize),
-            this.pageSize
-          );
-        this.totalSubmissionCount = totalSubmissionCount;
-        this.submissionSnippetList = submissionSnippetList;
-      } else {
-        const { totalSubmissionCount, submissionSnippetList } =
-          await this.submissionService.getAccountSubmissionSnippetList(
-            sessionAccount.iD,
-            this.paginationService.getPageOffset(this.pageIndex, this.pageSize),
-            this.pageSize
-          );
-        this.totalSubmissionCount = totalSubmissionCount;
-        this.submissionSnippetList = submissionSnippetList;
-      }
-
+      this.totalSubmissionCount = totalSubmissionCount;
+      this.submissionSnippetList = submissionSnippetList;
       this.lastLoadedTime = Date.now();
     } catch (e) {
       if (e instanceof UnauthenticatedError) {
