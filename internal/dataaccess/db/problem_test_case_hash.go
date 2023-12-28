@@ -12,8 +12,8 @@ import (
 
 type ProblemTestCaseHash struct {
 	gorm.Model
-	OfProblemID uint64
-	Hash        string
+	OfProblemID uint64 `gorm:"index"`
+	Hash        string `gorm:"type:text"`
 }
 
 type ProblemTestCaseHashDataAccessor interface {

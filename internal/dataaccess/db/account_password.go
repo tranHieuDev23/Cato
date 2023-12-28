@@ -12,8 +12,8 @@ import (
 
 type AccountPassword struct {
 	gorm.Model
-	OfAccountID uint64
-	Hash        string
+	OfAccountID uint64 `gorm:"index"`
+	Hash        string `gorm:"type:varchar(128)"`
 }
 
 type AccountPasswordDataAccessor interface {

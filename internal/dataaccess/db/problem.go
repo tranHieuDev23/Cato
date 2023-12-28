@@ -12,9 +12,9 @@ import (
 
 type Problem struct {
 	gorm.Model
-	UUID                   string
-	DisplayName            string
-	AuthorAccountID        uint64
+	UUID                   string `gorm:"type:char(36);uniqueIndex"`
+	DisplayName            string `gorm:"type:varchar(256)"`
+	AuthorAccountID        uint64 `gorm:"index"`
 	Description            string `gorm:"type:text"`
 	TimeLimitInMillisecond uint64
 	MemoryLimitInByte      uint64

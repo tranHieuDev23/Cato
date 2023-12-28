@@ -16,11 +16,11 @@ const (
 
 type TestCase struct {
 	gorm.Model
-	UUID        string
-	OfProblemID uint64
+	UUID        string `gorm:"type:char(36);uniqueIndex"`
+	OfProblemID uint64 `gorm:"index"`
 	Input       string `gorm:"type:text"`
 	Output      string `gorm:"type:text"`
-	Hash        string
+	Hash        string `gorm:"type:text"`
 	IsHidden    bool
 }
 

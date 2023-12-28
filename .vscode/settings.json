@@ -4,7 +4,7 @@
             "previewLimit": 50,
             "driver": "SQLite",
             "name": "Cato",
-            "database": "${workspaceFolder:cato}/cmd/cato/cato.db"
+            "database": "${workspaceFolder:cato}/cato.db"
         }
     ],
     "sqltools.useNodeRuntime": true

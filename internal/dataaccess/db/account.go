@@ -21,9 +21,9 @@ const (
 
 type Account struct {
 	gorm.Model
-	AccountName string `gorm:"uniqueIndex"`
-	DisplayName string
-	Role        AccountRole
+	AccountName string      `gorm:"type:varchar(32);uniqueIndex"`
+	DisplayName string      `gorm:"type:varchar(32)"`
+	Role        AccountRole `gorm:"type:varchar(32)"`
 }
 
 type AccountDataAccessor interface {

@@ -30,11 +30,11 @@ const (
 
 type Submission struct {
 	gorm.Model
-	OfProblemID     uint64
-	AuthorAccountID uint64
-	Content         string `gorm:"type:text"`
-	Language        string
-	Status          SubmissionStatus
+	OfProblemID     uint64           `gorm:"index"`
+	AuthorAccountID uint64           `gorm:"index"`
+	Content         string           `gorm:"type:text"`
+	Language        string           `gorm:"type:varchar(16)"`
+	Status          SubmissionStatus `gorm:"index"`
 	Result          SubmissionResult
 }
 
