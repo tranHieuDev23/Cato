@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, inject } from '@angular/core';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
-import { RpcSubmission } from '../../dataaccess/api';
+import { RpcAccount, RpcSubmission } from '../../dataaccess/api';
 import { LanguagePipe } from '../utils/language.pipe';
 import { CommonModule } from '@angular/common';
 import { SubmissionStatusPipe } from '../utils/submission-status.pipe';
@@ -16,6 +16,8 @@ import {
 import { SubmissionStatusColorPipe } from '../utils/submission-status-color.pipe';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NgeMonacoModule } from '@cisstech/nge/monaco';
+import { AccountService } from '../../logic/account.service';
+import { Router } from '@angular/router';
 
 export interface SubmissionModalData {
   submission: RpcSubmission;
@@ -44,18 +46,43 @@ export interface SubmissionModalData {
 export class SubmissionModalComponent implements OnInit {
   @Input() public submission: RpcSubmission | undefined;
 
+  public sessionAccount: RpcAccount | undefined;
+
   private readonly nzModalData: SubmissionModalData | null = inject(
     NZ_MODAL_DATA,
     { optional: true }
   );
 
-  constructor(private readonly notificationService: NzNotificationService) {}
+  constructor(
+    private readonly notificationService: NzNotificationService,
+    private readonly accountService: AccountService,
+    private readonly router: Router
+  ) {}
 
   ngOnInit(): void {
+    this.loadModalData();
+    this.getSessionAccount().then();
+  }
+
+  private loadModalData(): void {
     if (!this.nzModalData) {
       return;
     }
     this.submission = this.nzModalData.submission;
+  }
+
+  private async getSessionAccount(): Promise<void> {
+    const sessionAccount = await this.accountService.getSessionAccount();
+    if (sessionAccount === null) {
+      this.notificationService.error(
+        'Failed to load session account',
+        'Not logged in'
+      );
+      this.router.navigateByUrl('/login');
+      return;
+    }
+
+    this.sessionAccount = sessionAccount;
   }
 
   public onMonacoEditorReady(editor: monaco.editor.IEditor): void {

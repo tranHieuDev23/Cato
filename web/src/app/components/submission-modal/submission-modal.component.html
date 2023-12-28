@@ -24,5 +24,6 @@
         <span nz-icon nzType="copy" nzTheme="outline"></span> Copy
     </button>
 </p>
-<nge-monaco-editor (ready)="onMonacoEditorReady($event)">
+<nge-monaco-editor *ngIf="sessionAccount && submission && sessionAccount.iD === submission.author.iD"
+    (ready)="onMonacoEditorReady($event)">
 </nge-monaco-editor>

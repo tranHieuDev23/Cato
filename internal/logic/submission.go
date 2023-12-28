@@ -107,10 +107,16 @@ func NewSubmission(
 }
 
 func (s submission) dbSubmissionToRPCSubmission(
+	account *db.Account,
 	submission *db.Submission,
 	problem *db.Problem,
 	author *db.Account,
 ) rpc.Submission {
+	content := submission.Content
+	if account.Role == db.AccountRoleContestant && author.ID != account.ID {
+		content = ""
+	}
+
 	return rpc.Submission{
 		ID: uint64(submission.ID),
 		Problem: rpc.SubmissionProblemSnippet{
@@ -124,7 +130,7 @@ func (s submission) dbSubmissionToRPCSubmission(
 			Role:        string(author.Role),
 		},
 		Language:    submission.Language,
-		Content:     submission.Content,
+		Content:     content,
 		Status:      uint8(submission.Status),
 		Result:      uint8(submission.Result),
 		CreatedTime: uint64(submission.CreatedAt.UnixMilli()),
@@ -602,7 +608,7 @@ func (s submission) GetSubmission(
 	}
 
 	return &rpc.GetSubmissionResponse{
-		Submission: s.dbSubmissionToRPCSubmission(submission, problem, author),
+		Submission: s.dbSubmissionToRPCSubmission(author, submission, problem, author),
 	}, nil
 }
 
@@ -706,7 +712,7 @@ func (s submission) GetAndUpdateFirstSubmittedSubmissionToExecuting(
 			return submissionErr
 		}
 
-		response.Submission = s.dbSubmissionToRPCSubmission(submission, problem, author)
+		response.Submission = s.dbSubmissionToRPCSubmission(author, submission, problem, author)
 
 		return nil
 	}); txErr != nil {
