@@ -8,9 +8,11 @@ package wiring
 
 import (
 	"github.com/google/wire"
+
 	"github.com/tranHieuDev23/cato/internal/app"
 	"github.com/tranHieuDev23/cato/internal/configs"
 	"github.com/tranHieuDev23/cato/internal/dataaccess"
+	"github.com/tranHieuDev23/cato/internal/dataaccess/cache"
 	"github.com/tranHieuDev23/cato/internal/dataaccess/cato"
 	"github.com/tranHieuDev23/cato/internal/dataaccess/db"
 	"github.com/tranHieuDev23/cato/internal/handlers"
@@ -44,8 +46,11 @@ func InitializeHost(filePath configs.ConfigFilePath, args utils.Arguments) (*app
 	}
 	accountDataAccessor := db.NewAccountDataAccessor(gormDB, logger)
 	tokenPublicKeyDataAccessor := db.NewTokenPublicKeyDataAccessor(gormDB, logger)
+	configsCache := config.Cache
+	client := cache.NewClient(configsCache, logger)
+	tokenPublicKey := cache.NewTokenPublicKey(client, logger)
 	token := auth.Token
-	logicToken, err := logic.NewToken(accountDataAccessor, tokenPublicKeyDataAccessor, token, logger)
+	logicToken, err := logic.NewToken(accountDataAccessor, tokenPublicKeyDataAccessor, tokenPublicKey, token, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
@@ -59,7 +64,7 @@ func InitializeHost(filePath configs.ConfigFilePath, args utils.Arguments) (*app
 	submissionDataAccessor := db.NewSubmissionDataAccessor(gormDB, logger)
 	testCaseDataAccessor := db.NewTestCaseDataAccessor(gormDB, logger)
 	problemTestCaseHashDataAccessor := db.NewProblemTestCaseHashDataAccessor(gormDB, logger)
-	client, err := utils.InitializeDockerClient()
+	clientClient, err := utils.InitializeDockerClient()
 	if err != nil {
 		cleanup()
 		return nil, nil, err
@@ -70,7 +75,7 @@ func InitializeHost(filePath configs.ConfigFilePath, args utils.Arguments) (*app
 		return nil, nil, err
 	}
 	apiClient := cato.InitializeAuthenticatedClient(args, httpClientWithAuthToken)
-	judge, err := logic.NewJudge(problemDataAccessor, submissionDataAccessor, testCaseDataAccessor, problemTestCaseHashDataAccessor, client, gormDB, apiClient, logger, configsLogic, args)
+	judge, err := logic.NewJudge(problemDataAccessor, submissionDataAccessor, testCaseDataAccessor, problemTestCaseHashDataAccessor, clientClient, gormDB, apiClient, logger, configsLogic, args)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
@@ -122,9 +127,12 @@ func InitializeWorker(filePath configs.ConfigFilePath, args utils.Arguments) (*a
 	}
 	accountDataAccessor := db.NewAccountDataAccessor(gormDB, logger)
 	tokenPublicKeyDataAccessor := db.NewTokenPublicKeyDataAccessor(gormDB, logger)
+	configsCache := config.Cache
+	client := cache.NewClient(configsCache, logger)
+	tokenPublicKey := cache.NewTokenPublicKey(client, logger)
 	auth := config.Auth
 	token := auth.Token
-	logicToken, err := logic.NewToken(accountDataAccessor, tokenPublicKeyDataAccessor, token, logger)
+	logicToken, err := logic.NewToken(accountDataAccessor, tokenPublicKeyDataAccessor, tokenPublicKey, token, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
@@ -134,7 +142,7 @@ func InitializeWorker(filePath configs.ConfigFilePath, args utils.Arguments) (*a
 	submissionDataAccessor := db.NewSubmissionDataAccessor(gormDB, logger)
 	testCaseDataAccessor := db.NewTestCaseDataAccessor(gormDB, logger)
 	problemTestCaseHashDataAccessor := db.NewProblemTestCaseHashDataAccessor(gormDB, logger)
-	client, err := utils.InitializeDockerClient()
+	clientClient, err := utils.InitializeDockerClient()
 	if err != nil {
 		cleanup()
 		return nil, nil, err
@@ -146,7 +154,7 @@ func InitializeWorker(filePath configs.ConfigFilePath, args utils.Arguments) (*a
 	}
 	apiClient := cato.InitializeAuthenticatedClient(args, httpClientWithAuthToken)
 	configsLogic := config.Logic
-	judge, err := logic.NewJudge(problemDataAccessor, submissionDataAccessor, testCaseDataAccessor, problemTestCaseHashDataAccessor, client, gormDB, apiClient, logger, configsLogic, args)
+	judge, err := logic.NewJudge(problemDataAccessor, submissionDataAccessor, testCaseDataAccessor, problemTestCaseHashDataAccessor, clientClient, gormDB, apiClient, logger, configsLogic, args)
 	if err != nil {
 		cleanup()
 		return nil, nil, err

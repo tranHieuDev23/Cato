@@ -1,5 +1,7 @@
 database:
   file_path: cato.db
+cache:
+  size: 10000
 auth:
   hash:
     cost: 10

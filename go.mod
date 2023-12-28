@@ -5,6 +5,7 @@ go 1.21
 toolchain go1.21.5
 
 require (
+	github.com/bluele/gcache v0.0.2
 	github.com/docker/docker v24.0.7+incompatible
 	github.com/dustin/go-humanize v1.0.1
 	github.com/gammazero/workerpool v1.1.3

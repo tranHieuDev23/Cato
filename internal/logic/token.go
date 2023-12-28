@@ -14,6 +14,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/tranHieuDev23/cato/internal/configs"
+	"github.com/tranHieuDev23/cato/internal/dataaccess/cache"
 	"github.com/tranHieuDev23/cato/internal/dataaccess/db"
 	"github.com/tranHieuDev23/cato/internal/handlers/http/rpc"
 	"github.com/tranHieuDev23/cato/internal/utils"
@@ -42,6 +43,7 @@ func generateRSAKeyPair(bits int) (*rsa.PrivateKey, error) {
 type token struct {
 	accountDataAccessor        db.AccountDataAccessor
 	tokenPublicKeyDataAccessor db.TokenPublicKeyDataAccessor
+	tokenPublicKeyCache        cache.TokenPublicKey
 	expiresIn                  time.Duration
 	privateKey                 *rsa.PrivateKey
 	tokenPublicKeyID           uint64
@@ -64,6 +66,7 @@ func pemEncodePublicKey(pubKey *rsa.PublicKey) ([]byte, error) {
 func NewToken(
 	accountDataAccessor db.AccountDataAccessor,
 	tokenPublicKeyDataAccessor db.TokenPublicKeyDataAccessor,
+	tokenPublicKeyCache cache.TokenPublicKey,
 	tokenConfig configs.Token,
 	logger *zap.Logger,
 ) (Token, error) {
@@ -95,12 +98,42 @@ func NewToken(
 	return &token{
 		accountDataAccessor:        accountDataAccessor,
 		tokenPublicKeyDataAccessor: tokenPublicKeyDataAccessor,
+		tokenPublicKeyCache:        tokenPublicKeyCache,
 		expiresIn:                  expiresIn,
 		privateKey:                 rsaKeyPair,
 		tokenPublicKeyID:           uint64(tokenPublicKey.ID),
 		tokenConfig:                tokenConfig,
 		logger:                     logger,
 	}, nil
+}
+
+func (t token) getJWTPublicKey(ctx context.Context, id uint64) (*rsa.PublicKey, error) {
+	logger := utils.LoggerWithContext(ctx, t.logger).With(zap.Uint64("id", id))
+
+	cachedPublicKeyBytes, err := t.tokenPublicKeyCache.Get(ctx, id)
+	if err == nil && cachedPublicKeyBytes != nil {
+		return jwt.ParseRSAPublicKeyFromPEM(cachedPublicKeyBytes)
+	}
+
+	logger.With(zap.Error(err)).Warn("failed to get cached public key bytes, will fail back to database")
+
+	tokenPublicKey, err := t.tokenPublicKeyDataAccessor.GetPublicKey(ctx, id)
+	if err != nil {
+		logger.Error("cannot get token's public key from database")
+		return nil, pjrpc.JRPCErrInternalError()
+	}
+
+	if tokenPublicKey == nil {
+		logger.Warn("token public key not found")
+		return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeUnauthenticated))
+	}
+
+	err = t.tokenPublicKeyCache.Set(ctx, id, tokenPublicKey.PublicKey)
+	if err != nil {
+		logger.With(zap.Error(err)).Warn("failed to set public key bytes into cache")
+	}
+
+	return jwt.ParseRSAPublicKeyFromPEM(tokenPublicKey.PublicKey)
 }
 
 func (t token) GetAccountIDAndExpireTime(ctx context.Context, tokenString string) (uint64, time.Time, error) {
@@ -124,13 +157,7 @@ func (t token) GetAccountIDAndExpireTime(ctx context.Context, tokenString string
 			return nil, pjrpc.JRPCErrServerError(int(rpc.ErrorCodeUnauthenticated))
 		}
 
-		tokenPublicKey, err := t.tokenPublicKeyDataAccessor.GetPublicKey(ctx, uint64(tokenPublicKeyID))
-		if err != nil {
-			logger.Error("cannot get token's public key from database")
-			return nil, pjrpc.JRPCErrInternalError()
-		}
-
-		return jwt.ParseRSAPublicKeyFromPEM(tokenPublicKey.PublicKey)
+		return t.getJWTPublicKey(ctx, uint64(tokenPublicKeyID))
 	})
 	if err != nil {
 		logger.With(zap.Error(err)).Error("failed to parse token")

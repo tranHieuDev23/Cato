@@ -14,6 +14,7 @@ type ConfigFilePath string
 type Config struct {
 	Log      Log      `yaml:"log"`
 	Database Database `yaml:"database"`
+	Cache    Cache    `yaml:"cache"`
 	Auth     Auth     `yaml:"auth"`
 	HTTP     HTTP     `yaml:"http"`
 	Logic    Logic    `yaml:"logic"`
